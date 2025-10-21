@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
 
 const transactionSchema = new mongoose.Schema({
   userId: String,
-  type: Strin
+  type: String,
   amount: Number,
   category: String,
   description: String,
