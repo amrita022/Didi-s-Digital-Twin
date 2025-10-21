@@ -12,7 +12,9 @@
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
     "@tailwindcss/postcss": "^4.1.15",
+    "date-fns": "^4.1.0",
     "firebase": "^12.4.0",
+    "idb": "^8.0.3",
     "lucide-react": "^0.546.0",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
