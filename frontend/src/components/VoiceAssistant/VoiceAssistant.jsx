@@ -6,18 +6,22 @@ import {
   VolumeX, 
   Send,
   MessageCircle,
-  RotateCcw
+  RotateCcw,
+  Wifi,
+  WifiOff,
+  RefreshCw
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
+import { processVoiceCommand as processVoiceAPI, getSyncStatus, syncOfflineTransactions, setupAutoSync } from '../../utils/api';
 
 const VoiceAssistant = () => {
   const { 
     language, 
     voiceState, 
     updateVoiceState, 
-    addTransaction,
-    businessData 
+    //addTransaction,
+    //businessData 
   } = useStore();
   
   const [messages, setMessages] = useState([
@@ -33,6 +37,9 @@ const VoiceAssistant = () => {
   
   const [inputText, setInputText] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [syncStatus, setSyncStatus] = useState({ unsyncedCount: 0, needsSync: false });
+  const [isSyncing, setIsSyncing] = useState(false);
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -68,10 +75,31 @@ const VoiceAssistant = () => {
     // Initialize speech synthesis
     synthRef.current = window.speechSynthesis;
 
+    // Setup auto-sync
+    setupAutoSync();
+
+    // Setup online/offline listeners
+    const handleOnline = async () => {
+      setIsOnline(true);
+      await updateSyncStatus();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initial sync status check
+    updateSyncStatus();
+
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, [language, updateVoiceState]);
 
@@ -84,20 +112,43 @@ const VoiceAssistant = () => {
   };
 
   const speak = (text) => {
-    if (synthRef.current) {
+    if (synthRef.current && isSpeaking) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = language === 'hindi' ? 'hi-IN' : 'en-US';
       utterance.rate = 0.8;
       utterance.pitch = 1;
       
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      
       synthRef.current.speak(utterance);
     }
   };
 
-  const handleVoiceInput = (transcript) => {
+  const updateSyncStatus = async () => {
+    const status = await getSyncStatus();
+    setSyncStatus(status);
+  };
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    const result = await syncOfflineTransactions();
+    setIsSyncing(false);
+    
+    if (result.success) {
+      const message = language === 'hindi' 
+        ? '✅ सभी डेटा सिंक हो गया!' 
+        : '✅ All data synced successfully!';
+      
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        type: 'ai',
+        text: message,
+        timestamp: new Date()
+      }]);
+      
+      await updateSyncStatus();
+    }
+  };
+
+  const handleVoiceInput = async (transcript) => {
     const userMessage = {
       id: Date.now(),
       type: 'user',
@@ -106,79 +157,44 @@ const VoiceAssistant = () => {
     };
     
     setMessages(prev => [...prev, userMessage]);
+    updateVoiceState({ isProcessing: true });
     
-    // Process the voice input
-    setTimeout(() => {
-      const response = processVoiceCommand(transcript);
+    try {
+      // Call backend API
+      const result = await processVoiceAPI(transcript);
+      
       const aiMessage = {
         id: Date.now() + 1,
         type: 'ai',
-        text: response,
-        timestamp: new Date()
+        text: result.response || 'I processed your request.',
+        timestamp: new Date(),
+        offline: result.offline || false
       };
       
       setMessages(prev => [...prev, aiMessage]);
-      speak(response);
-    }, 1000);
-  };
-
-  const processVoiceCommand = (command) => {
-    const lowerCommand = command.toLowerCase();
-    
-    if (lowerCommand.includes('expense') || lowerCommand.includes('खर्च')) {
-      const amount = extractAmount(command);
-      if (amount) {
-        addTransaction({
-          id: Date.now(),
-          type: 'expense',
-          amount: amount,
-          description: 'Voice recorded expense',
-          date: new Date().toISOString().split('T')[0]
-        });
-        return language === 'hindi' 
-          ? `₹${amount} का खर्च दर्ज कर दिया गया है` 
-          : `Expense of ₹${amount} has been recorded`;
+      speak(aiMessage.text);
+      
+      // Update sync status if saved offline
+      if (result.offline) {
+        await updateSyncStatus();
       }
+      
+    } catch (error) {
+      console.error('Error processing voice:', error);
+      
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: 'ai',
+        text: language === 'hindi' 
+          ? '❌ कुछ गलत हो गया। कृपया फिर से प्रयास करें।' 
+          : '❌ Something went wrong. Please try again.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      updateVoiceState({ isProcessing: false });
     }
-    
-    if (lowerCommand.includes('sale') || lowerCommand.includes('बिक्री')) {
-      const amount = extractAmount(command);
-      if (amount) {
-        addTransaction({
-          id: Date.now(),
-          type: 'sale',
-          amount: amount,
-          description: 'Voice recorded sale',
-          date: new Date().toISOString().split('T')[0]
-        });
-        return language === 'hindi' 
-          ? `₹${amount} की बिक्री दर्ज कर दी गई है` 
-          : `Sale of ₹${amount} has been recorded`;
-      }
-    }
-    
-    if (lowerCommand.includes('pricing') || lowerCommand.includes('कीमत')) {
-      return language === 'hindi' 
-        ? 'आपके आचार की सुझाई गई कीमत ₹120 प्रति जार है। यह आपकी कमाई 50% बढ़ा सकती है।' 
-        : 'Your suggested pickle price is ₹120 per jar. This could increase your earnings by 50%.';
-    }
-    
-    if (lowerCommand.includes('savings') || lowerCommand.includes('बचत')) {
-      const { savings, savingsGoal } = businessData;
-      const percentage = Math.round((savings / savingsGoal) * 100);
-      return language === 'hindi' 
-        ? `आपकी बचत ₹${savings} है, जो आपके लक्ष्य का ${percentage}% है` 
-        : `Your savings are ₹${savings}, which is ${percentage}% of your goal`;
-    }
-    
-    return language === 'hindi' 
-      ? 'मैं आपकी मदद कैसे कर सकती हूं? आप खर्च, बिक्री, कीमत या बचत के बारे में पूछ सकते हैं।' 
-      : 'How can I help you? You can ask about expenses, sales, pricing, or savings.';
-  };
-
-  const extractAmount = (text) => {
-    const match = text.match(/(\d+)/);
-    return match ? parseInt(match[1]) : null;
   };
 
   const startListening = () => {
@@ -222,6 +238,49 @@ const VoiceAssistant = () => {
 
   return (
     <div className="space-y-6">
+      {/* Online/Offline Status Banner */}
+      <div className={`rounded-xl p-4 shadow-sm border ${
+        isOnline 
+          ? 'bg-green-50 border-green-200' 
+          : 'bg-orange-50 border-orange-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {isOnline ? (
+              <>
+                <Wifi size={20} className="text-green-600" />
+                <span className="text-green-800 font-medium">
+                  {language === 'hindi' ? '🟢 ऑनलाइन' : '🟢 Online'}
+                </span>
+              </>
+            ) : (
+              <>
+                <WifiOff size={20} className="text-orange-600" />
+                <span className="text-orange-800 font-medium">
+                  {language === 'hindi' ? '🔴 ऑफ़लाइन - डेटा स्थानीय रूप से सहेजा जाएगा' : '🔴 Offline - Data will be saved locally'}
+                </span>
+              </>
+            )}
+          </div>
+          
+          {syncStatus.needsSync && isOnline && (
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+              <span>
+                {isSyncing 
+                  ? (language === 'hindi' ? 'सिंक हो रहा है...' : 'Syncing...') 
+                  : `${language === 'hindi' ? 'सिंक करें' : 'Sync'} (${syncStatus.unsyncedCount})`
+                }
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Voice Interface */}
       <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center">
         <div className="mb-6">

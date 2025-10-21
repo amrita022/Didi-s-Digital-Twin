@@ -1,108 +1,209 @@
-// Service Worker for Didi's Digital Twin PWA
-const CACHE_NAME = 'didi-digital-twin-v1';
+// Service Worker for Didi's Digital Twin PWA - Enhanced for Offline Support
+const CACHE_NAME = 'didi-digital-twin-v2';
+const API_CACHE = 'didi-api-cache-v2';
+
 const urlsToCache = [
   '/',
+  '/index.html',
   '/static/js/bundle.js',
   '/static/css/main.css',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/manifest.json'
 ];
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
+  console.log('🔧 Service Worker installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    Promise.all([
+      caches.open(CACHE_NAME).then((cache) => {
+        console.log('✅ Opened cache:', CACHE_NAME);
+        return cache.addAll(urlsToCache).catch(err => {
+          console.warn('⚠️ Some resources failed to cache:', err);
+        });
+      }),
+      caches.open(API_CACHE)
+    ]).then(() => {
+      console.log('✅ Service Worker installed successfully');
+      return self.skipWaiting(); // Activate immediately
+    })
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - Network-first strategy for API, Cache-first for assets
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      }
-    )
-  );
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Network-first strategy for API calls
+  if (url.origin.includes('localhost:5002') || url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Clone the response and cache it
+          const responseClone = response.clone();
+          caches.open(API_CACHE).then((cache) => {
+            cache.put(request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // If network fails, try cache
+          return caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              console.log('📴 Serving from cache (offline):', request.url);
+              return cachedResponse;
+            }
+            // Return offline response
+            return new Response(
+              JSON.stringify({ 
+                offline: true, 
+                error: 'You are offline. Data will sync when you reconnect.' 
+              }),
+              { 
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
+          });
+        })
+    );
+  } 
+  // Cache-first strategy for static assets
+  else {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(request).then((response) => {
+          // Cache the new resource
+          if (request.method === 'GET') {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        });
+      })
+    );
+  }
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and take control
 self.addEventListener('activate', (event) => {
+  console.log('🚀 Service Worker activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
+    Promise.all([
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME && cacheName !== API_CACHE) {
+              console.log('🗑️ Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      self.clients.claim() // Take control of all pages immediately
+    ]).then(() => {
+      console.log('✅ Service Worker activated and ready!');
     })
   );
 });
 
 // Background sync for offline data
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
-  }
-});
-
-// Push notification handling
-self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'New update available!',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
-      {
-        action: 'explore',
-        title: 'View Details',
-        icon: '/icons/icon-192x192.png'
-      },
-      {
-        action: 'close',
-        title: 'Close',
-        icon: '/icons/icon-192x192.png'
-      }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification('Didi\'s Digital Twin', options)
-  );
-});
-
-// Notification click handling
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+  console.log('🔄 Background sync triggered:', event.tag);
+  if (event.tag === 'sync-transactions') {
+    event.waitUntil(syncTransactions());
   }
 });
 
 // Background sync function
-async function doBackgroundSync() {
+async function syncTransactions() {
+  console.log('🔄 Starting background sync...');
+  
   try {
-    // Sync offline data when connection is restored
-    console.log('Background sync triggered');
-    // Add your sync logic here
+    // Open IndexedDB
+    const db = await openDatabase();
+    const transactions = await getUnsyncedTransactions(db);
+    
+    if (transactions.length === 0) {
+      console.log('✅ No transactions to sync');
+      return;
+    }
+
+    console.log(`🔄 Syncing ${transactions.length} transactions...`);
+
+    // Send to backend
+    const response = await fetch('http://localhost:5002/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transactions: transactions,
+        userId: 'demo-user-123'
+      })
+    });
+
+    if (response.ok) {
+      console.log('✅ Background sync successful!');
+      await markTransactionsAsSynced(db, transactions);
+      
+      // Notify user
+      self.registration.showNotification('Didi\'s Digital Twin', {
+        body: `✅ ${transactions.length} transactions synced successfully!`,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-72x72.png'
+      });
+    } else {
+      console.error('❌ Background sync failed');
+    }
   } catch (error) {
-    console.error('Background sync failed:', error);
+    console.error('❌ Sync error:', error);
   }
 }
+
+// Helper functions for IndexedDB
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('DidiDigitalTwinDB', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getUnsyncedTransactions(db) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['offlineTransactions'], 'readonly');
+    const store = tx.objectStore('offlineTransactions');
+    const index = store.index('synced');
+    const request = index.getAll(false);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function markTransactionsAsSynced(db, transactions) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['offlineTransactions'], 'readwrite');
+    const store = tx.objectStore('offlineTransactions');
+    
+    transactions.forEach(t => {
+      t.synced = true;
+      store.put(t);
+    });
+    
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Message handling for manual sync requests
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SYNC_NOW') {
+    console.log('📨 Manual sync requested');
+    syncTransactions();
+  }
+});
+

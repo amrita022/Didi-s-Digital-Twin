@@ -1,6 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const nlpProcessor = require('./utils/nlpProcessor');
+const { 
+  getTransactionsByTime, 
+  calculateTotals, 
+  getPricingSuggestion, 
+  getDemandPrediction,
+  generateAIInsights 
+} = require('./utils/dbHelpers');
 
 const app = express();
 app.use(cors());
@@ -50,7 +58,7 @@ const Analysis = mongoose.model('Analysis', analysisSchema);
 // 🎯 DEMO USER ID (we'll use a fixed demo user)
 const DEMO_USER_ID = 'demo-user-123';
 
-// 🎤 VOICE PROCESSING API
+// 🎤 VOICE PROCESSING API - ENHANCED with NLP
 app.post('/api/process-voice', async (req, res) => {
   try {
     const { text, userId } = req.body;
@@ -58,59 +66,153 @@ app.post('/api/process-voice', async (req, res) => {
     
     const currentUserId = userId || DEMO_USER_ID;
 
-    // Extract amount
-    const amountMatch = text.match(/(\d+)\s*(रुपये|rupees|rs|₹)/i);
-    const amount = amountMatch ? parseInt(amountMatch[1]) : null;
-    
-    // Detect intent
-    let intent = 'unknown';
-    let category = 'general';
-    
-    const lowerText = text.toLowerCase();
-    
-    if (lowerText.includes('खर्च') || lowerText.includes('spent') || lowerText.includes('expense') || lowerText.includes('kharch')) {
-      intent = 'expense';
-      if (lowerText.includes('कपड़ा') || lowerText.includes('cloth') || lowerText.includes('kapda')) category = 'raw_materials';
-      else if (lowerText.includes('सामान') || lowerText.includes('material') || lowerText.includes('saman')) category = 'raw_materials';
-    } 
-    else if (lowerText.includes('बिक्री') || lowerText.includes('sale') || lowerText.includes('sold') || lowerText.includes('bikri')) {
-      intent = 'income';
-      if (lowerText.includes('अचार') || lowerText.includes('pickle') || lowerText.includes('achar')) category = 'pickles';
-      else if (lowerText.includes('ब्लाउज') || lowerText.includes('blouse')) category = 'clothing';
-    }
-    else if (lowerText.includes('कीमत') || lowerText.includes('price') || lowerText.includes('mulya') || lowerText.includes('दाम')) {
-      intent = 'pricing_advice';
-    }
-    else if (lowerText.includes('demand') || lowerText.includes('मांग') || lowerText.includes('mang')) {
-      intent = 'demand_prediction';
-    }
+    // Use NLP processor for better understanding
+    const processed = nlpProcessor.process(text);
+    console.log('🧠 NLP Result:', processed);
 
-    let savedTransaction = null;
+    const { intent, amount, category, timeReference, language } = processed;
     
-    // Save transaction
-    if ((intent === 'expense' || intent === 'income') && amount) {
+    let savedTransaction = null;
+    let responseData = {};
+    
+    // Handle different intents
+    if (intent === 'expense' && amount) {
+      // Record expense
       savedTransaction = new Transaction({
         userId: currentUserId,
-        type: intent,
+        type: 'expense',
         amount: amount,
         category: category,
         description: text
       });
       await savedTransaction.save();
       
+      // Get today's totals
+      const todayTransactions = await getTransactionsByTime(Transaction, currentUserId, 'today');
+      const totals = calculateTotals(todayTransactions);
+      
+      responseData = {
+        totalExpense: totals.totalExpenses,
+        saved: true
+      };
+      
       // Generate AI insights
-      await generateAIInsights(currentUserId);
+      await generateAIInsights(Transaction, Analysis, currentUserId);
+      
+    } else if (intent === 'income' && amount) {
+      // Record income/sale
+      savedTransaction = new Transaction({
+        userId: currentUserId,
+        type: 'income',
+        amount: amount,
+        category: category,
+        description: text
+      });
+      await savedTransaction.save();
+      
+      // Get today's totals
+      const todayTransactions = await getTransactionsByTime(Transaction, currentUserId, 'today');
+      const totals = calculateTotals(todayTransactions);
+      
+      responseData = {
+        totalIncome: totals.totalIncome,
+        saved: true
+      };
+      
+      // Generate AI insights
+      await generateAIInsights(Transaction, Analysis, currentUserId);
+      
+    } else if (intent === 'query_expense') {
+      // Query total expenses
+      const transactions = await getTransactionsByTime(Transaction, currentUserId, timeReference);
+      const totals = calculateTotals(transactions);
+      
+      responseData = {
+        totalExpense: totals.totalExpenses,
+        timeReference: timeReference,
+        count: totals.expenseCount
+      };
+      
+    } else if (intent === 'query_income') {
+      // Query total income
+      const transactions = await getTransactionsByTime(Transaction, currentUserId, timeReference);
+      const totals = calculateTotals(transactions);
+      
+      responseData = {
+        totalIncome: totals.totalIncome,
+        timeReference: timeReference,
+        count: totals.incomeCount
+      };
+      
+    } else if (intent === 'query_profit') {
+      // Query profit
+      const transactions = await getTransactionsByTime(Transaction, currentUserId, timeReference);
+      const totals = calculateTotals(transactions);
+      
+      responseData = {
+        profit: totals.profit,
+        totalIncome: totals.totalIncome,
+        totalExpense: totals.totalExpenses,
+        timeReference: timeReference
+      };
+      
+    } else if (intent === 'pricing') {
+      // Get pricing suggestion
+      const allTransactions = await Transaction.find({ userId: currentUserId });
+      const expenses = allTransactions.filter(t => t.type === 'expense');
+      const suggestion = getPricingSuggestion(category, expenses);
+      
+      responseData = {
+        ...suggestion,
+        category: category
+      };
+      
+    } else if (intent === 'demand') {
+      // Get demand prediction
+      const prediction = getDemandPrediction(category);
+      
+      responseData = {
+        ...prediction,
+        category: category
+      };
+    } else if (intent === 'unknown') {
+      // Handle unknown intent - check if it looks like pricing question
+      const lowerText = text.toLowerCase();
+      if (lowerText.includes('mein') || lowerText.includes('में') || 
+          lowerText.includes('bechna') || lowerText.includes('बेचना') ||
+          lowerText.includes('chahie') || lowerText.includes('चाहिए')) {
+        // Likely a pricing question
+        const allTransactions = await Transaction.find({ userId: currentUserId });
+        const expenses = allTransactions.filter(t => t.type === 'expense');
+        const suggestion = getPricingSuggestion(category, expenses);
+        
+        responseData = {
+          ...suggestion,
+          category: category
+        };
+        
+        // Override intent to pricing
+        intent = 'pricing';
+      }
     }
 
-    // Generate response
-    const response = generateAIResponse(intent, amount, category, text);
+    // Generate natural language response
+    const response = nlpProcessor.generateResponse(
+      intent, 
+      amount, 
+      category, 
+      language, 
+      responseData
+    );
     
     res.json({
       success: true,
       intent: intent,
       amount: amount,
       category: category,
+      language: language,
       response: response,
+      data: responseData,
       saved: !!savedTransaction
     });
     
@@ -123,64 +225,95 @@ app.post('/api/process-voice', async (req, res) => {
   }
 });
 
-// 🤖 AI RESPONSE GENERATOR
-function generateAIResponse(intent, amount, category, originalText) {
-  const responses = {
-    expense: `💰 I've recorded your expense of ₹${amount} for ${category}. Let me analyze if this fits your budget.`,
-    income: `🎉 Great sale! I've logged ₹${amount} income from ${category}. Your business is growing!`,
-    pricing_advice: `💡 Based on your costs, you should charge at least 30% more to earn fair wages. Most women in your area charge ₹120 for similar products.`,
-    demand_prediction: `📈 I see seasonal trends! Festival season is coming - expect 50% higher demand. Stock up on materials now!`,
-    unknown: `🤔 I understand you said: "${originalText}". I can help you track expenses, sales, pricing, and demand predictions.`
-  };
-
-  return responses[intent] || responses.unknown;
-}
-
-// 🧠 AI INSIGHTS GENERATOR
-async function generateAIInsights(userId) {
+// 📲 SYNC ENDPOINT - For offline transactions
+app.post('/api/sync', async (req, res) => {
   try {
-    const transactions = await Transaction.find({ userId });
+    const { transactions, userId } = req.body;
+    console.log(`🔄 Syncing ${transactions?.length || 0} offline transactions...`);
     
-    const expenses = transactions.filter(t => t.type === 'expense');
-    const income = transactions.filter(t => t.type === 'income');
-    
-    const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
-    const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
-    const profit = totalIncome - totalExpenses;
-    
-    // Clear old insights
-    await Analysis.deleteMany({ userId });
-    
-    // Generate pricing insights
-    if (income.length > 0 && expenses.length > 0) {
-      const avgSale = totalIncome / income.length;
-      const avgCost = totalExpenses / expenses.length;
-      
-      if (avgSale < avgCost * 1.3) {
-        const analysis = new Analysis({
-          userId,
-          type: 'pricing',
-          message: `⚠️ You're underpricing! Your average sale is ₹${Math.round(avgSale)} but costs are ₹${Math.round(avgCost)}. You should charge at least ₹${Math.round(avgCost * 1.5)}.`,
-          data: { currentPrice: avgSale, suggestedPrice: avgCost * 1.5 }
+    const currentUserId = userId || DEMO_USER_ID;
+    const syncResults = {
+      success: [],
+      failed: [],
+      totalSynced: 0
+    };
+
+    if (!transactions || transactions.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No transactions to sync',
+        results: syncResults
+      });
+    }
+
+    // Process each offline transaction
+    for (const txn of transactions) {
+      try {
+        // Check if transaction already exists (by client-side ID)
+        const exists = await Transaction.findOne({ 
+          userId: currentUserId,
+          description: txn.description,
+          amount: txn.amount,
+          date: { 
+            $gte: new Date(txn.date), 
+            $lt: new Date(new Date(txn.date).getTime() + 60000) // Within 1 minute
+          }
         });
-        await analysis.save();
+
+        if (!exists) {
+          const newTransaction = new Transaction({
+            userId: currentUserId,
+            type: txn.type,
+            amount: txn.amount,
+            category: txn.category || 'general',
+            description: txn.description,
+            date: new Date(txn.date)
+          });
+          
+          await newTransaction.save();
+          syncResults.success.push(txn);
+          syncResults.totalSynced++;
+        } else {
+          console.log('⏭️ Transaction already exists, skipping...');
+          syncResults.success.push(txn); // Still count as success
+        }
+        
+      } catch (error) {
+        console.error('❌ Failed to sync transaction:', error);
+        syncResults.failed.push({ transaction: txn, error: error.message });
       }
     }
-    
-    // Generate savings insights
-    if (profit > 0) {
-      const analysis = new Analysis({
-        userId,
-        type: 'savings',
-        message: `🎯 You're saving ₹${profit} per month! In 6 months, you can buy that new sewing machine worth ₹${profit * 6}.`,
-        data: { monthlySavings: profit, goal: profit * 6 }
-      });
-      await analysis.save();
+
+    // Regenerate AI insights after sync
+    if (syncResults.totalSynced > 0) {
+      await generateAIInsights(Transaction, Analysis, currentUserId);
     }
-    
+
+    res.json({
+      success: true,
+      message: `Synced ${syncResults.totalSynced} transactions`,
+      results: syncResults
+    });
+
   } catch (error) {
-    console.log('⚠️ Error generating insights:', error.message);
+    console.error('❌ Sync error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Sync failed: ' + error.message
+    });
   }
+});
+
+// 🤖 AI RESPONSE GENERATOR - DEPRECATED (using nlpProcessor now)
+// Kept for backward compatibility
+function generateAIResponse(intent, amount, category, originalText) {
+  return nlpProcessor.generateResponse(intent, amount, category, 'english', {});
+}
+
+// 🧠 AI INSIGHTS GENERATOR - DEPRECATED (using dbHelpers now)
+// Kept for backward compatibility
+async function oldGenerateAIInsights(userId) {
+  return await generateAIInsights(Transaction, Analysis, userId);
 }
 
 // 📊 DASHBOARD DATA API - FIXED ROUTE (no ? parameter)
@@ -265,11 +398,19 @@ app.post('/api/users', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({ 
     message: '🚀 Didi Digital Twin Backend is Running!',
-    version: '1.0',
+    version: '2.0 - Enhanced with Offline Support',
+    features: [
+      '🎤 Voice-based business intelligence',
+      '🌐 Works offline with sync',
+      '🗣️ Hindi & English support',
+      '🤖 AI-powered insights',
+      '📊 Real-time analytics'
+    ],
     endpoints: {
-      voice: 'POST /api/process-voice',
-      dashboard: 'GET /api/dashboard',
-      users: 'POST /api/users'
+      voice: 'POST /api/process-voice - Process voice commands',
+      sync: 'POST /api/sync - Sync offline transactions',
+      dashboard: 'GET /api/dashboard - Get dashboard data',
+      users: 'POST /api/users - Create new user'
     },
     database: mongoose.connection.readyState === 1 ? 'Connected ✅' : 'Disconnected ❌'
   });
