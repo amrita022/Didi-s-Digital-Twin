@@ -11,9 +11,11 @@ import SavingsGoals from './components/Savings/SavingsGoals';
 import Settings from './components/Settings/Settings';
 import RekhaStory from './components/Demo/RekhaStory';
 import useStore from './store/useStore';
+import Login from './components/Auth/Login';
+import Signup from './components/Auth/Signup';
 
 function App() {
-  const { currentPage, sidebarOpen, demoMode } = useStore();
+  const { currentPage, sidebarOpen, demoMode, isLoggedIn, authView } = useStore();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -38,6 +40,22 @@ function App() {
     }
   };
 
+  // Show auth pages if not logged in
+  if (!isLoggedIn) {
+    return (
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-green-50">
+          {authView === 'login' ? (
+            <Login />
+          ) : (
+            <Signup />
+          )}
+        </div>
+      </Router>
+    );
+  }
+
+  // Show main app if logged in
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
