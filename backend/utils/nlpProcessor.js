@@ -16,15 +16,15 @@ class NLPProcessor {
     this.intents = {
       expense: {
         hindi: ['खर्च', 'खर्चा', 'खर्चे', 'दिया', 'ख़रीदा', 'ख़रीद', 'लिया', 'खरीदा', 'खरीद', 'maine', 'liya'],
-        english: ['expense', 'spent', 'bought', 'purchased', 'paid', 'buy', 'spent rs']
+        english: ['i spent', 'i bought', 'purchased', 'paid', 'bought']
       },
       income: {
         hindi: ['बिक्री', 'बेचा', 'बेची', 'कमाया', 'आमदनी', 'मिला', 'आय', 'भेजा', 'बचा', 'बेच'],
         english: ['sale', 'sold', 'earned', 'income', 'revenue', 'made', 'bheja', 'bacha', 'sell']
       },
       query_expense: {
-        hindi: ['कितना खर्च', 'कुल खर्च', 'खर्चा कितना', 'खर्च हुआ'],
-        english: ['total expense', 'how much spent', 'spending', 'expenses today', 'my total expenses', 'what are my expenses']
+        hindi: ['कितना खर्च', 'कुल खर्च', 'खर्चा कितना', 'खर्च हुआ', 'aaj kitna', 'kitna kharcha'],
+        english: ['total expense', 'how much spent', 'spending', 'expenses today', 'my total expenses', 'what are my expenses', 'how much have i spent', 'how much did i spend', 'spent today']
       },
       query_income: {
         hindi: ['कितनी कमाई', 'कुल बिक्री', 'कमाई कितनी', 'बिक्री कितनी'],
@@ -102,8 +102,17 @@ class NLPProcessor {
   detectIntent(text) {
     const lowerText = text.toLowerCase();
     
-    // Priority order: Check queries first, then actions
-    const priorityOrder = ['query_expense', 'query_income', 'query_profit', 'pricing', 'demand', 'expense', 'income'];
+    // Check for question words first - these indicate queries, not actions
+    const questionWords = ['how much', 'kitna', 'कितना', 'kitni', 'कितनी', 'what are', 'show me', 'tell me'];
+    const hasQuestionWord = questionWords.some(q => lowerText.includes(q));
+    
+    // Priority order: Check queries first if question word present, then all queries, then actions
+    let priorityOrder;
+    if (hasQuestionWord) {
+      priorityOrder = ['query_expense', 'query_income', 'query_profit', 'pricing', 'demand', 'expense', 'income'];
+    } else {
+      priorityOrder = ['query_expense', 'query_income', 'query_profit', 'pricing', 'demand', 'expense', 'income'];
+    }
     
     for (const intent of priorityOrder) {
       const patterns = this.intents[intent];
@@ -113,6 +122,14 @@ class NLPProcessor {
       
       for (const pattern of allPatterns) {
         if (lowerText.includes(pattern)) {
+          // If it's a query intent, make sure it actually sounds like a question
+          if (intent.startsWith('query_') && !hasQuestionWord) {
+            // Check if it has other query indicators
+            const queryIndicators = ['total', 'kul', 'कुल', 'today', 'aaj', 'आज'];
+            if (!queryIndicators.some(ind => lowerText.includes(ind))) {
+              continue; // Skip this match, not really a query
+            }
+          }
           return intent;
         }
       }
