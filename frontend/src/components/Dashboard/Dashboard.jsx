@@ -3,7 +3,6 @@ import {
   TrendingUp, 
   TrendingDown, 
   DollarSign, 
-  Target, 
   PiggyBank,
   ArrowUpRight,
   ArrowDownRight,
@@ -13,16 +12,17 @@ import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
 
 const Dashboard = () => {
-  const { businessData, language } = useStore();
+  const { businessData, language, userName } = useStore(); // Added userName here
   const { totalSales, monthlyProfit, expenses, savings, savingsGoal, healthScore, recentTransactions } = businessData;
 
   const savingsPercentage = Math.round((savings / savingsGoal) * 100);
 
-  const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, bgColor }) => (
+  // Fixed StatCard component - use React.createElement instead of destructuring
+  const StatCard = ({ title, value, icon, trend, trendValue, color, bgColor }) => (
     <div className={`${bgColor} rounded-xl p-6 shadow-sm border border-gray-200`}>
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg ${color}`}>
-          <Icon size={24} className="text-white" />
+          {React.createElement(icon, { size: 24, className: "text-white" })}
         </div>
         {trend && (
           <div className={`flex items-center space-x-1 ${
@@ -71,7 +71,7 @@ const Dashboard = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {getTranslation('welcome', language)}, {useStore.getState().userName}! 🌸
+              {getTranslation('welcome', language)}, {userName}! 🌸 {/* Use userName from destructured store */}
             </h1>
             <p className="text-gray-600">
               {language === 'hindi' 

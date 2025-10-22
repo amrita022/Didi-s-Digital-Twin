@@ -9,7 +9,7 @@ const Header = () => {
     language, 
     userName, 
     setSidebarOpen, 
-    setCurrentPage 
+    setCurrentPage,
   } = useStore();
 
   const { logout } = useAuth();
@@ -17,8 +17,7 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      useStore.getState().setIsLoggedIn(false);
-      useStore.getState().setAuthView('login');
+      // The onAuthStateChanged in useAuth will automatically update the store
     } catch (error) {
       console.error('Failed to log out:', error);
     }
