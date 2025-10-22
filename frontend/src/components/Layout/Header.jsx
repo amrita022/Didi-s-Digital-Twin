@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu, Bell, Settings, LogOut } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store/useStore";
 import { getTranslation } from '../../utils/translations';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,19 +9,24 @@ const Header = () => {
   const { 
     language, 
     userName, 
-    setSidebarOpen, 
-    setCurrentPage,
+    setSidebarOpen,
   } = useStore();
 
   const { logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
       await logout();
-      // The onAuthStateChanged in useAuth will automatically update the store
+      navigate('/login');
     } catch (error) {
       console.error('Failed to log out:', error);
     }
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
   };
 
   return (
@@ -58,7 +64,7 @@ const Header = () => {
 
           {/* Settings */}
           <button
-            onClick={() => setCurrentPage('settings')}
+            onClick={handleSettingsClick}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <Settings size={20} className="text-gray-700" />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 
@@ -9,7 +10,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   
   const { login } = useAuth();
-  const { setAuthView, setIsLoggedIn, setUserName } = useStore();
+  const { setUserName } = useStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,8 +24,8 @@ const Login = () => {
       setError('');
       setLoading(true);
       await login(email, password);
-      setIsLoggedIn(true);
       setUserName(email.split('@')[0]);
+      navigate('/dashboard');
     } catch (error) {
       setError('Failed to log in: ' + error.message);
     }
@@ -237,13 +239,12 @@ const Login = () => {
             {/* Signup Link */}
             <div className="text-center">
               <p className="text-gray-600 mb-3">New to Didi's Digital Twin?</p>
-              <button
-                type="button"
-                onClick={() => setAuthView('signup')}
+              <Link
+                to="/signup"
                 className="text-orange-600 hover:text-pink-600 font-bold text-lg underline decoration-2 underline-offset-4 transition-colors"
               >
                 Create your account →
-              </button>
+              </Link>
             </div>
 
             {/* Footer Quote */}

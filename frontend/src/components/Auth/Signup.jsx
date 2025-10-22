@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 
@@ -10,7 +11,8 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   
   const { signup } = useAuth();
-  const { setAuthView, setIsLoggedIn, setUserName } = useStore();
+  const { setUserName } = useStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,8 +33,8 @@ const Signup = () => {
       setError('');
       setLoading(true);
       await signup(email, password);
-      setIsLoggedIn(true);
       setUserName(email.split('@')[0]);
+      navigate('/dashboard');
     } catch (error) {
       setError('Failed to create account: ' + error.message);
     }
@@ -155,16 +157,16 @@ const Signup = () => {
         </div>
       </div>
 
-      {/* Right Side - Signup Form - EXACT SAME STRUCTURE AS LOGIN */}
+      {/* Right Side - Signup Form */}
       <div className="flex-1 flex items-center justify-center p-8 lg:p-12 relative z-10">
         <div className="max-w-md w-full">
-          {/* Card with Indian-inspired design - EXACT SAME AS LOGIN */}
+          {/* Card with Indian-inspired design */}
           <div className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border-t-4 border-orange-500 relative overflow-hidden">
             {/* Decorative corner elements */}
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-orange-200 to-transparent rounded-bl-full"></div>
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-pink-200 to-transparent rounded-tr-full"></div>
 
-            {/* Header - Only changed text and emoji */}
+            {/* Header */}
             <div className="text-center mb-8 relative">
               <div className="inline-block bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full px-6 py-2 mb-4 shadow-lg">
                 <span className="text-2xl">🎉</span>
@@ -175,7 +177,7 @@ const Signup = () => {
               <p className="text-gray-600">Create your business account</p>
             </div>
 
-            {/* Form - Same structure, just different fields */}
+            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg animate-shake">
@@ -183,7 +185,7 @@ const Signup = () => {
                 </div>
               )}
 
-              {/* Email Input - Same as login */}
+              {/* Email Input */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   📧 Email Address
@@ -198,7 +200,7 @@ const Signup = () => {
                 />
               </div>
 
-              {/* Password Input - Same as login */}
+              {/* Password Input */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   🔒 Password
@@ -213,7 +215,7 @@ const Signup = () => {
                 />
               </div>
 
-              {/* Only difference: Added Confirm Password field */}
+              {/* Confirm Password field */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   🔒 Confirm Password
@@ -228,7 +230,7 @@ const Signup = () => {
                 />
               </div>
 
-              {/* Submit Button - Same styling as login */}
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -248,7 +250,7 @@ const Signup = () => {
               </button>
             </form>
 
-            {/* Divider - Same as login */}
+            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t-2 border-gray-200"></div>
@@ -258,19 +260,18 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Login Link - Changed text to point to login */}
+            {/* Login Link */}
             <div className="text-center">
               <p className="text-gray-600 mb-3">Already have an account?</p>
-              <button
-                type="button"
-                onClick={() => setAuthView('login')}
+              <Link
+                to="/login"
                 className="text-orange-600 hover:text-pink-600 font-bold text-lg underline decoration-2 underline-offset-4 transition-colors"
               >
                 Sign in to your account →
-              </button>
+              </Link>
             </div>
 
-            {/* Footer Quote - Same as login */}
+            {/* Footer Quote */}
             <div className="mt-8 pt-6 border-t-2 border-gray-100 text-center">
               <p className="text-sm text-gray-500 italic">
                 "सर्वजन हिताय सर्वजन सुखाय" - For the welfare of all
@@ -278,7 +279,7 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Mobile illustration hint - Same as login */}
+          {/* Mobile illustration hint */}
           <div className="lg:hidden mt-8 grid grid-cols-4 gap-4">
             <div className="text-center">
               <span className="text-4xl">🧺</span>

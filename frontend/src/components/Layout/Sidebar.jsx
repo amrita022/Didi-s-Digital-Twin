@@ -11,28 +11,37 @@ import {
   X,
   Star
 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
 
 const Sidebar = () => {
   const { 
     language, 
-    currentPage, 
-    setCurrentPage, 
     sidebarOpen, 
     setSidebarOpen 
   } = useStore();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const menuItems = [
-    { id: 'dashboard', icon: Home, label: getTranslation('dashboard', language) },
-    { id: 'voice', icon: Mic, label: getTranslation('voiceAssistant', language) },
-    { id: 'analytics', icon: BarChart3, label: getTranslation('businessAnalytics', language) },
-    { id: 'pricing', icon: IndianRupee, label: getTranslation('pricingAdvisor', language) },
-    { id: 'demand', icon: Calendar, label: getTranslation('demandPredictions', language) },
-    { id: 'savings', icon: PiggyBank, label: getTranslation('savingsGoals', language) },
-    { id: 'demo', icon: Star, label: language === 'hindi' ? 'रेखा की कहानी' : 'Rekha\'s Story' },
-    { id: 'settings', icon: Settings, label: getTranslation('settings', language) },
+    { id: 'dashboard', path: '/dashboard', icon: Home, label: getTranslation('dashboard', language) },
+    { id: 'voice', path: '/voice-assistant', icon: Mic, label: getTranslation('voiceAssistant', language) },
+    { id: 'analytics', path: '/analytics', icon: BarChart3, label: getTranslation('businessAnalytics', language) },
+    { id: 'pricing', path: '/pricing', icon: IndianRupee, label: getTranslation('pricingAdvisor', language) },
+    { id: 'demand', path: '/demand', icon: Calendar, label: getTranslation('demandPredictions', language) },
+    { id: 'savings', path: '/savings', icon: PiggyBank, label: getTranslation('savingsGoals', language) },
+    { id: 'demo', path: '/demo', icon: Star, label: language === 'hindi' ? 'रेखा की कहानी' : 'Rekha\'s Story' },
+    { id: 'settings', path: '/settings', icon: Settings, label: getTranslation('settings', language) },
   ];
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setSidebarOpen(false);
+  };
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
@@ -75,19 +84,16 @@ const Sidebar = () => {
         <nav className="flex-1 px-4 py-6">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPage === item.id;
+            const active = isActive(item.path);
             
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  setCurrentPage(item.id);
-                  setSidebarOpen(false);
-                }}
+                onClick={() => handleNavigation(item.path)}
                 className={`
                   w-full flex items-center space-x-3 px-4 py-3 rounded-lg mb-2
                   transition-all duration-200 text-left
-                  ${isActive 
+                  ${active 
                     ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500' 
                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -11,36 +11,31 @@ import SavingsGoals from './components/Savings/SavingsGoals';
 import Settings from './components/Settings/Settings';
 import RekhaStory from './components/Demo/RekhaStory';
 import useStore from './store/useStore';
-import { useAuth } from './hooks/useAuth'; // Import useAuth
+import { useAuth } from './hooks/useAuth';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
 
-function App() {
-  const { currentPage, isLoggedIn, authView } = useStore();
-  const { loading } = useAuth(); // Get loading state from useAuth
+// Main Layout Component for authenticated routes
+const MainLayout = ({ children }) => (
+  <div className="min-h-screen bg-gray-50">
+    <Sidebar />
+    <div className="lg:ml-64 flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        {children}
+      </main>
+    </div>
+  </div>
+);
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'voice':
-        return <VoiceAssistant />;
-      case 'analytics':
-        return <BusinessAnalytics />;
-      case 'pricing':
-        return <PricingAdvisor />;
-      case 'demand':
-        return <DemandPredictions />;
-      case 'savings':
-        return <SavingsGoals />;
-      case 'settings':
-        return <Settings />;
-      case 'demo':
-        return <RekhaStory />;
-      default:
-        return <Dashboard />;
-    }
-  };
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { isLoggedIn } = useStore();
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+};
+
+function App() {
+  const { isLoggedIn, authView, loading } = useAuth();
 
   // Show loading while checking auth state
   if (loading) {
@@ -54,33 +49,107 @@ function App() {
     );
   }
 
-  // Show auth pages if not logged in
-  if (!isLoggedIn) {
-    return (
-      <Router>
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-green-50">
-          {authView === 'login' ? (
-            <Login />
-          ) : (
-            <Signup />
-          )}
-        </div>
-      </Router>
-    );
-  }
-
-  // Show main app if logged in
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Sidebar />
-        <div className="lg:ml-64 flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-1 p-4 lg:p-6 overflow-auto">
-            {renderPage()}
-          </main>
-        </div>
-      </div>
+      <Routes>
+        {/* Auth Routes */}
+        <Route 
+          path="/login" 
+          element={!isLoggedIn ? <Login /> : <Navigate to="/dashboard" replace />} 
+        />
+        <Route 
+          path="/signup" 
+          element={!isLoggedIn ? <Signup /> : <Navigate to="/dashboard" replace />} 
+        />
+        
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Dashboard />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/voice-assistant" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <VoiceAssistant />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/analytics" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <BusinessAnalytics />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/pricing" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PricingAdvisor />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/demand" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <DemandPredictions />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/savings" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SavingsGoals />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Settings />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/demo" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <RekhaStory />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
     </Router>
   );
 }
