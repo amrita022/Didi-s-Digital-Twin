@@ -1,14 +1,9 @@
-/**
- * API utilities for communicating with backend
- */
+/* API utilities for communicating with backend */
 
 import offlineStorage from './offlineStorage';
-
 const API_BASE_URL = 'http://localhost:5002/api';
 
-/**
- * Process voice command
- */
+/* Process voice command */
 export async function processVoiceCommand(text, userId = 'demo-user-123') {
   try {
     const response = await fetch(`${API_BASE_URL}/process-voice`, {
@@ -37,14 +32,11 @@ export async function processVoiceCommand(text, userId = 'demo-user-123') {
       const localResult = await processOffline(text);
       return localResult;
     }
-
     throw error;
   }
 }
 
-/**
- * Process voice command offline
- */
+/* Process voice command offline */
 async function processOffline(text) {
   console.log('💾 Processing offline:', text);
   
@@ -101,9 +93,7 @@ async function processOffline(text) {
   };
 }
 
-/**
- * Get dashboard data
- */
+/* Get dashboard data */
 export async function getDashboardData(userId = 'demo-user-123') {
   try {
     const response = await fetch(`${API_BASE_URL}/dashboard?userId=${userId}`);
@@ -134,10 +124,7 @@ export async function getDashboardData(userId = 'demo-user-123') {
     };
   }
 }
-
-/**
- * Sync offline transactions
- */
+/* Sync offline transactions */
 export async function syncOfflineTransactions() {
   if (!navigator.onLine) {
     return { success: false, message: 'Still offline' };
@@ -145,24 +132,15 @@ export async function syncOfflineTransactions() {
 
   return await offlineStorage.syncOfflineData();
 }
-
-/**
- * Get sync status
- */
+/*Get sync status*/
 export async function getSyncStatus() {
   return await offlineStorage.getSyncStatus();
 }
-
-/**
- * Check online status
- */
+/* Check online status */
 export function isOnline() {
   return navigator.onLine;
 }
-
-/**
- * Setup auto-sync when coming online
- */
+/* Setup auto-sync when coming online */
 export function setupAutoSync() {
   window.addEventListener('online', async () => {
     console.log('🌐 Back online! Auto-syncing...');
