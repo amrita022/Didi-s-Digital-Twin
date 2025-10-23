@@ -27,37 +27,41 @@ class NLPProcessor {
     
     const lowerText = text.toLowerCase();
     
-    // SIMPLE INTENT DETECTION
-    if (text.includes('लिया') || text.includes('liya') || 
-        text.includes('खरीद') || text.includes('kharid') ||
-        lowerText.includes('bought') || lowerText.includes('spent')) {
-      return 'expense';
-    }
-    
-    if (text.includes('बेच') || text.includes('bech') || 
-        text.includes('कमाय') || text.includes('kamai') ||
-        lowerText.includes('sold') || lowerText.includes('earned')) {
-      return 'income';
-    }
-    
-    if (text.includes('खर्च') && (text.includes('कितना') || text.includes('kitna'))) {
-      return 'query_expense';
-    }
-    
-    if (text.includes('कमाई') && (text.includes('कितनी') || text.includes('kitni'))) {
-      return 'query_income';
-    }
-    
-    if (text.includes('मुनाफा') || text.includes('profit')) {
-      return 'query_profit';
-    }
-    
-    if (text.includes('कीमत') || text.includes('दाम') || lowerText.includes('price')) {
-      return 'pricing';
-    }
-    
-    return 'unknown';
+  // EXPENSE QUERY
+  if ((lowerText.includes('खर्च') || lowerText.includes('kharch')) && 
+      (lowerText.includes('कितना') || lowerText.includes('kitna'))) {
+    return 'query_expense';
   }
+  
+  // INCOME QUERY
+  if ((lowerText.includes('कमाई') || lowerText.includes('kamai')) && 
+      (lowerText.includes('कितनी') || lowerText.includes('kitni'))) {
+    return 'query_income';
+  }
+  
+  // SIMPLE INTENT DETECTION
+  if (lowerText.includes('लिया') || lowerText.includes('liya') || 
+      lowerText.includes('खरीद') || lowerText.includes('kharid') ||
+      lowerText.includes('bought') || lowerText.includes('spent')) {
+    return 'expense';
+  }
+  
+  if (lowerText.includes('बेच') || lowerText.includes('bech') || 
+      lowerText.includes('कमाय') || lowerText.includes('kamai') ||
+      lowerText.includes('sold') || lowerText.includes('earned')) {
+    return 'income';
+  }
+  
+  if (lowerText.includes('मुनाफा') || lowerText.includes('profit')) {
+    return 'query_profit';
+  }
+  
+  if (lowerText.includes('कीमत') || lowerText.includes('दाम') || lowerText.includes('price')) {
+    return 'pricing';
+  }
+  
+  return 'unknown';
+}
 
   extractCategory(text) {
     console.log(`🏷️ Extracting category from: "${text}"`);

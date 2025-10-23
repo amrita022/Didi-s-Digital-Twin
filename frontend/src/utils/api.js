@@ -19,7 +19,19 @@ export async function processVoiceCommand(text, userId = 'demo-user-123') {
     }
 
     const data = await response.json();
-    return data;
+    console.log('🔍 Backend response:', data);
+    
+    // RETURN THE ACTUAL RESPONSE FIELDS
+    return {
+      success: data.success,
+      response_english: data.response_english,
+      response_hindi: data.response_hindi,
+      response: data.response_english, // Fallback for frontend
+      intent: data.intent,
+      amount: data.amount,
+      category: data.category,
+      offline: false
+    };
 
   } catch (error) {
     console.error('❌ API Error:', error);
@@ -78,6 +90,8 @@ async function processOffline(text) {
     return {
       success: true,
       offline: true,
+      response_english: `📴 Offline: Saved ${type} of ₹${amount}. Will sync when online.`,
+      response_hindi: `📴 ऑफलाइन: ₹${amount} का ${type} सहेजा गया। ऑनलाइन होने पर सिंक होगा।`,
       response: `📴 Offline: Saved ${type} of ₹${amount}. Will sync when online.`,
       intent: type,
       amount,
@@ -88,6 +102,8 @@ async function processOffline(text) {
   return {
     success: true,
     offline: true,
+    response_english: '📴 You are offline. Transaction will be saved when you come back online.',
+    response_hindi: '📴 आप ऑफलाइन हैं। लेन-देन ऑनलाइन आने पर सहेजा जाएगा।',
     response: '📴 You are offline. Transaction will be saved when you come back online.',
     intent: 'unknown'
   };
@@ -124,6 +140,7 @@ export async function getDashboardData(userId = 'demo-user-123') {
     };
   }
 }
+
 /* Sync offline transactions */
 export async function syncOfflineTransactions() {
   if (!navigator.onLine) {
@@ -132,14 +149,17 @@ export async function syncOfflineTransactions() {
 
   return await offlineStorage.syncOfflineData();
 }
-/*Get sync status*/
+
+/* Get sync status */
 export async function getSyncStatus() {
   return await offlineStorage.getSyncStatus();
 }
+
 /* Check online status */
 export function isOnline() {
   return navigator.onLine;
 }
+
 /* Setup auto-sync when coming online */
 export function setupAutoSync() {
   window.addEventListener('online', async () => {

@@ -148,54 +148,57 @@ const VoiceAssistant = () => {
     }
   };
 
-  const handleVoiceInput = async (transcript) => {
-    const userMessage = {
-      id: Date.now(),
-      type: 'user',
-      text: transcript,
+const handleVoiceInput = async (transcript) => {
+  const userMessage = {
+    id: Date.now(),
+    type: 'user',
+    text: transcript,
+    timestamp: new Date()
+  };
+  
+  setMessages(prev => [...prev, userMessage]);
+  updateVoiceState({ isProcessing: true });
+  
+  try {
+    // Call backend API
+    const result = await processVoiceAPI(transcript);
+    
+    // ADD THIS DEBUG LOG TO SEE WHAT'S ACTUALLY IN THE RESPONSE
+    console.log('🔍 FULL API RESPONSE:', JSON.stringify(result, null, 2));
+    
+    const aiMessage = {
+      id: Date.now() + 1,
+      type: 'ai',
+      text: result.response_english || result.response_hindi || result.response || 'I processed your request.',
+      timestamp: new Date(),
+      offline: result.offline || false
+    };
+    
+    setMessages(prev => [...prev, aiMessage]);
+    speak(aiMessage.text);
+    
+    // Update sync status if saved offline
+    if (result.offline) {
+      await updateSyncStatus();
+    }
+    
+  } catch (error) {
+    console.error('Error processing voice:', error);
+    
+    const errorMessage = {
+      id: Date.now() + 1,
+      type: 'ai',
+      text: language === 'hindi' 
+        ? '❌ कुछ गलत हो गया। कृपया फिर से प्रयास करें।' 
+        : '❌ Something went wrong. Please try again.',
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, userMessage]);
-    updateVoiceState({ isProcessing: true });
-    
-    try {
-      // Call backend API
-      const result = await processVoiceAPI(transcript);
-      
-      const aiMessage = {
-        id: Date.now() + 1,
-        type: 'ai',
-        text: result.response || 'I processed your request.',
-        timestamp: new Date(),
-        offline: result.offline || false
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      speak(aiMessage.text);
-      
-      // Update sync status if saved offline
-      if (result.offline) {
-        await updateSyncStatus();
-      }
-      
-    } catch (error) {
-      console.error('Error processing voice:', error);
-      
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: 'ai',
-        text: language === 'hindi' 
-          ? '❌ कुछ गलत हो गया। कृपया फिर से प्रयास करें।' 
-          : '❌ Something went wrong. Please try again.',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      updateVoiceState({ isProcessing: false });
-    }
-  };
+    setMessages(prev => [...prev, errorMessage]);
+  } finally {
+    updateVoiceState({ isProcessing: false });
+  }
+};
 
   const startListening = () => {
     if (recognitionRef.current && !voiceState.isListening) {

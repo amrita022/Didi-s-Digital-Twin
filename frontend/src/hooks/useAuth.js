@@ -13,7 +13,10 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   
   // Get store actions
-  const { setIsLoggedIn, setUserName, setAuthView } = useStore();
+  const setIsLoggedIn = useStore((state) => state.setIsLoggedIn);
+const setUserName = useStore((state) => state.setUserName);
+const setAuthView = useStore((state) => state.setAuthView);
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
