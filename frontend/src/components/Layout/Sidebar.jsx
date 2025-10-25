@@ -12,6 +12,7 @@ import {
   Star
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
 
@@ -19,11 +20,17 @@ const Sidebar = () => {
   const { 
     language, 
     sidebarOpen, 
-    setSidebarOpen 
+    setSidebarOpen,
+    userName 
   } = useStore();
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Get user display name
+  const displayName = userName || user?.email?.split('@')[0] || 'User';
+  const userEmail = user?.email || '';
 
   const menuItems = [
     { id: 'dashboard', path: '/dashboard', icon: Home, label: getTranslation('dashboard', language) },
@@ -81,7 +88,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation - Takes up available space */}
-        <nav className="flex-1 px-4 py-6">
+        <nav className="flex-1 px-4 py-6 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -107,15 +114,21 @@ const Sidebar = () => {
         </nav>
 
         {/* Footer - Sticky at bottom */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="bg-gray-50 rounded-lg p-4">
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                <span className="text-gray-600 text-sm">👩</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-lg font-bold">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
               </div>
-              <div>
-                <p className="text-gray-900 text-sm font-medium">Rekha Didi</p>
-                <p className="text-gray-500 text-xs">Pickle Seller</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-gray-900 text-sm font-semibold truncate">
+                  {displayName}
+                </p>
+                <p className="text-gray-600 text-xs truncate">
+                  {userEmail}
+                </p>
               </div>
             </div>
           </div>

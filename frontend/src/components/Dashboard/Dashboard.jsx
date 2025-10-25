@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -10,72 +10,163 @@ import {
   IndianRupee,
   Wallet,
   Target,
-  AlertCircle
+  AlertCircle,
+  Edit3,
+  Plus
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
+import AddDashboardDataModal from './AddDashboardDataModal';
+import AddTransactionModal from './AddTransactionModal';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
 const Dashboard = () => {
-  const { businessData, language, userName } = useStore();
-  const { totalSales, monthlyProfit, expenses, savings, savingsGoal, healthScore, recentTransactions } = businessData;
+  const { uid, loading: authLoading, user } = useAuth();
+  const { language, userName } = useStore();
+  
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
 
-  const savingsPercentage = Math.round((savings / savingsGoal) * 100);
+  // Sync user with MongoDB
+  useEffect(() => {
+    const syncUser = async () => {
+      if (!uid || !user?.email) return;
+      
+      try {
+        const res = await fetch(`${API_URL}/api/user/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId: uid, 
+            email: user.email 
+          })
+        });
+        
+        if (!res.ok) throw new Error('User sync failed');
+        console.log('✅ User synced with MongoDB');
+      } catch (error) {
+        console.error('❌ User sync error:', error);
+      }
+    };
 
-  // Business Health variables
+    if (!authLoading && uid) {
+      syncUser();
+    }
+  }, [authLoading, uid, user]);
+
+  // Fetch dashboard data
+  const fetchDashboardData = async (userId) => {
+    try {
+      setLoading(true);
+      console.log("🌐 Fetching dashboard for userId:", userId);
+      
+      const res = await fetch(`${API_URL}/api/dashboard?userId=${userId}`);
+      
+      if (!res.ok) throw new Error('Failed to fetch dashboard data');
+      
+      const data = await res.json();
+      console.log("📊 Raw API Response:", data);
+      
+      if (data.success) {
+        console.log("✅ Dashboard data received:", data.data);
+        console.log("💰 Total Savings from API:", data.data.totalSavings);
+        console.log("🎯 Goal Target from API:", data.data.goalTarget);
+        console.log("📝 Goal Name from API:", data.data.goalName);
+        setDashboard(data.data);
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error("❌ Error fetching dashboard:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading && uid) {
+      fetchDashboardData(uid);
+    }
+  }, [authLoading, uid]);
+
+  // Handle saving dashboard updates
+  const handleSave = async (formData) => {
+    try {
+      const res = await fetch(`${API_URL}/api/dashboard`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          userId: uid,
+          ...formData
+        }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        toast.success("Dashboard updated successfully!");
+        fetchDashboardData(uid);
+        setShowModal(false);
+      } else {
+        throw new Error(data.error || 'Save failed');
+      }
+    } catch (error) {
+      console.error("❌ Error saving dashboard:", error);
+      toast.error("Failed to save data");
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!uid) {
+    return (
+      <div className="text-center py-10">
+        <AlertCircle className="mx-auto text-gray-400 mb-4" size={48} />
+        <p className="text-gray-500">Please log in to view your dashboard</p>
+      </div>
+    );
+  }
+
+  // Extract values with fallbacks - USE SAVED VALUES FIRST!
+  const totalSavings = dashboard?.totalSavings || 0;
+  const savingsGoal = dashboard?.goalTarget || 25000;
+  const goalName = dashboard?.goalName || 'Savings Goal';
+  const todayIncome = dashboard?.todayIncome || 0;
+  const totalSales = dashboard?.totalSales || 0;
+  const expenses = dashboard?.monthlyExpenses || 0;
+  const monthlyProfit = dashboard?.monthlyProfit || 0;
+  const healthScore = dashboard?.overview?.healthScore || 0;
+
+  // Debug logs
+  console.log("🔍 Extracted Values:");
+  console.log("  totalSavings:", totalSavings);
+  console.log("  savingsGoal:", savingsGoal);
+  console.log("  goalName:", goalName);
+  console.log("  todayIncome:", todayIncome);
+  console.log("  totalSales:", totalSales);
+  console.log("  expenses:", expenses);
+  console.log("  monthlyProfit:", monthlyProfit);
+
+  const savingsPercentage = savingsGoal > 0 ? Math.round((totalSavings / savingsGoal) * 100) : 0;
   const healthColor = healthScore >= 80 ? "text-green-600" : healthScore >= 60 ? "text-yellow-600" : "text-red-600";
   const healthText = healthScore >= 80 ? "Excellent" : healthScore >= 60 ? "Good" : "Needs Attention";
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
 
-  // Sample transactions data matching the reference structure
-  const transactions = [
-    {
-      id: "1",
-      type: "income",
-      description: "Pickle Sale - Mrs. Sharma",
-      descriptionHindi: "अचार बिक्री - श्रीमती शर्मा",
-      amount: 450,
-      date: "Today, 2:30 PM",
-      category: "Sales"
-    },
-    {
-      id: "2",
-      type: "expense",
-      description: "Raw Materials - Spices",
-      descriptionHindi: "कच्चा माल - मसाले",
-      amount: 280,
-      date: "Today, 11:00 AM",
-      category: "Materials"
-    },
-    {
-      id: "3",
-      type: "income",
-      description: "Bulk Order - 20 Jars",
-      descriptionHindi: "थोक ऑर्डर - 20 जार",
-      amount: 2800,
-      date: "Yesterday, 4:15 PM",
-      category: "Sales"
-    },
-    {
-      id: "4",
-      type: "expense",
-      description: "Packaging Supplies",
-      descriptionHindi: "पैकेजिंग सामग्री",
-      amount: 180,
-      date: "Yesterday, 10:30 AM",
-      category: "Materials"
-    },
-    {
-      id: "5",
-      type: "income",
-      description: "Market Sale",
-      descriptionHindi: "बाजार बिक्री",
-      amount: 650,
-      date: "2 days ago",
-      category: "Sales"
-    }
-  ];
-
-  // Fixed StatCard component
   const StatCard = ({ title, value, icon, trend, trendValue, color, bgColor }) => (
     <div className={`${bgColor} rounded-xl p-6 shadow-sm border border-gray-200`}>
       <div className="flex items-center justify-between mb-4">
@@ -96,7 +187,6 @@ const Dashboard = () => {
     </div>
   );
 
-  // Updated TransactionItem component to match reference structure
   const TransactionItem = ({ transaction }) => (
     <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-500/50 transition-all duration-300 bg-white">
       <div className="flex items-start justify-between">
@@ -114,16 +204,18 @@ const Dashboard = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
-              {language === 'hindi' ? transaction.descriptionHindi : transaction.description}
+              {transaction.description}
             </p>
             <p className="text-xs text-gray-500 mt-0.5">
-              {language === 'hindi' ? transaction.description : transaction.descriptionHindi}
+              {transaction.descriptionHindi || transaction.description}
             </p>
             <div className="flex items-center gap-2 mt-1">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
                 {transaction.category}
               </span>
-              <span className="text-xs text-gray-500">{transaction.date}</span>
+              <span className="text-xs text-gray-500">
+                {new Date(transaction.date).toLocaleDateString()}
+              </span>
             </div>
           </div>
         </div>
@@ -138,67 +230,73 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
+      {/* Welcome Section with Edit Button */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
-            <span className="text-3xl">👩‍🍳</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+              <span className="text-3xl">👩‍🍳</span>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                {language === 'hindi' 
+                  ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
+                  : 'Here are some great insights for your business today'
+                }
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {getTranslation('welcome', language)}, {userName}! 🌸
-            </h1>
-            <p className="text-gray-600">
-              {language === 'hindi' 
-                ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
-                : 'Here are some great insights for your business today'
-              }
-            </p>
-          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow transition-colors"
+          >
+            <Edit3 size={18} /> 
+            {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
+          </button>
         </div>
       </div>
 
-      {/* Stats Grid - Updated with reference features */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title={language === 'hindi' ? 'आज की आय' : "Today's Income"}
-          value="₹1,230"
+          value={`₹${todayIncome.toLocaleString()}`}
           icon={IndianRupee}
-          trend="up"
+          trend={todayIncome > 0 ? "up" : null}
           trendValue="12"
           color="bg-blue-500"
           bgColor="bg-white"
         />
         <StatCard
           title={language === 'hindi' ? 'मासिक लाभ' : 'Monthly Profit'}
-          value="₹8,450"
+          value={`₹${monthlyProfit.toLocaleString()}`}
           icon={TrendingUp}
-          trend="up"
+          trend={monthlyProfit > 0 ? "up" : monthlyProfit < 0 ? "down" : null}
           trendValue="25"
           color="bg-green-500"
           bgColor="bg-white"
         />
         <StatCard
           title={language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
-          value="₹12,600"
+          value={`₹${totalSavings.toLocaleString()}`}
           icon={Wallet}
-          trend="up"
+          trend={totalSavings > 0 ? "up" : null}
           trendValue="8"
           color="bg-purple-500"
           bgColor="bg-white"
         />
         <StatCard
           title={language === 'hindi' ? 'लक्ष्य प्रगति' : 'Goal Progress'}
-          value="63%"
+          value={`${savingsPercentage}%`}
           icon={Target}
-          trend="up"
+          trend={savingsPercentage > 50 ? "up" : null}
           trendValue="15"
           color="bg-orange-500"
           bgColor="bg-white"
         />
       </div>
 
-      {/* Business Health Score - Updated to match reference */}
+      {/* Business Health Score */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 col-span-full">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -229,19 +327,19 @@ const Dashboard = () => {
             <p className="text-sm text-gray-600 mb-1">
               {language === 'hindi' ? 'कुल बिक्री' : 'Total Sales'}
             </p>
-            <p className="text-2xl font-bold text-green-600">₹15,280</p>
+            <p className="text-2xl font-bold text-green-600">₹{totalSales.toLocaleString()}</p>
           </div>
           <div className="p-4 rounded-lg bg-red-50 border border-red-200">
             <p className="text-sm text-gray-600 mb-1">
               {language === 'hindi' ? 'कुल खर्च' : 'Total Expenses'}
             </p>
-            <p className="text-2xl font-bold text-red-600">₹6,830</p>
+            <p className="text-2xl font-bold text-red-600">₹{expenses.toLocaleString()}</p>
           </div>
           <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
             <p className="text-sm text-gray-600 mb-1">
               {language === 'hindi' ? 'शुद्ध लाभ' : 'Net Profit'}
             </p>
-            <p className="text-2xl font-bold text-blue-600">₹8,450</p>
+            <p className="text-2xl font-bold text-blue-600">₹{monthlyProfit.toLocaleString()}</p>
           </div>
         </div>
 
@@ -262,7 +360,7 @@ const Dashboard = () => {
 
       {/* Two Column Layout for Recent Transactions and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Transactions - Updated to match reference */}
+        {/* Recent Transactions */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="mb-4">
             <h3 className="text-lg font-bold text-gray-900">
@@ -271,30 +369,42 @@ const Dashboard = () => {
           </div>
 
           <div className="h-[400px] pr-4 overflow-y-auto">
-            <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <TransactionItem key={transaction.id} transaction={transaction} />
-              ))}
-            </div>
+            {dashboard?.recentTransactions && dashboard.recentTransactions.length > 0 ? (
+              <div className="space-y-3">
+                {dashboard.recentTransactions.map((transaction) => (
+                  <TransactionItem key={transaction._id} transaction={transaction} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <AlertCircle className="mx-auto text-gray-300 mb-3" size={40} />
+                <p className="text-gray-500">No transactions yet</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Add your first transaction to see it here
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* AI Insights Panel */}
         <div className="space-y-4">
-          {/* Achievement Card - Very Light Pink */}
+          {/* Achievement Card */}
           <div className="p-6 rounded-xl bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 shadow-sm">
-            <h3 className="text-lg font-bold text-pink-800 mb-2">🎉 {language === 'hindi' ? 'उपलब्धि अनलॉक!' : 'Achievement Unlocked!'}</h3>
+            <h3 className="text-lg font-bold text-pink-800 mb-2">
+              🎉 {language === 'hindi' ? 'उपलब्धि अनलॉक!' : 'Achievement Unlocked!'}
+            </h3>
             <p className="text-sm text-pink-700 mb-1">
               {language === 'hindi' 
-                ? 'आपने अपने लक्ष्य के लिए ₹12,600 बचाए हैं!' 
-                : "You've saved ₹12,600 towards your goal!"
+                ? `आपने अपने लक्ष्य के लिए ₹${totalSavings.toLocaleString()} बचाए हैं!` 
+                : `You've saved ₹${totalSavings.toLocaleString()} towards your goal!`
               }
             </p>
             <div className="mt-4 p-3 bg-white/60 rounded-lg border border-pink-300">
               <p className="text-sm text-pink-800">
                 {language === 'hindi' 
-                  ? 'अपनी सिलाई मशीन के लक्ष्य तक पहुँचने के लिए केवल ₹7,400 और! 🪡' 
-                  : 'Only ₹7,400 more to reach your sewing machine goal! 🪡'
+                  ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और! 🪡` 
+                  : `Only ₹${(savingsGoal - totalSavings).toLocaleString()} more to reach your ${goalName} goal! 🪡`
                 }
               </p>
             </div>
@@ -311,43 +421,42 @@ const Dashboard = () => {
               </h2>
             </div>
             <div className="space-y-3">
-              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm font-medium text-gray-900">
-                  🌶️ {language === 'hindi' ? 'आचार की कीमत ₹20 बढ़ाएँ' : 'Increase pickle prices by ₹20'}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">
-                  {language === 'hindi' 
-                    ? 'मार्केट विश्लेषण दिखाता है कि प्रीमियम आचार की मांग अधिक है' 
-                    : 'Market analysis shows demand is high for premium pickles'
-                  }
-                </p>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-gray-900">
-                  📦 {language === 'hindi' ? 'गर्मी के लिए आम का स्टॉक बढ़ाएँ' : 'Stock up on mango for summer'}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">
-                  {language === 'hindi' 
-                    ? 'अगले महीने मांग में 40% वृद्धि का अनुमान' 
-                    : 'Predicted 40% increase in demand next month'
-                  }
-                </p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <p className="text-sm font-medium text-gray-900">
-                  💰 {language === 'hindi' ? 'आप इस सप्ताह ₹150 और बचा सकती हैं' : 'You can save ₹150 more this week'}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">
-                  {language === 'hindi' 
-                    ? 'पैकेजिंग लागत 10% कम करके' 
-                    : 'By reducing packaging costs by 10%'
-                  }
-                </p>
-              </div>
+              {dashboard?.aiInsights && dashboard.aiInsights.length > 0 ? (
+                dashboard.aiInsights.map((insight, index) => (
+                  <div key={`ai-insight-${index}`} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-medium text-gray-900">{insight}</p>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-sm font-medium text-gray-900">
+                      🌶️ {language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights'}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Add/Update Data Modal */}
+      {showModal && (
+        <AddDashboardDataModal
+          onClose={() => setShowModal(false)}
+          onSave={handleSave}
+          existingData={{
+            totalSavings: totalSavings,
+            goalTarget: savingsGoal,
+            goalName: goalName,
+            todayIncome: todayIncome,
+            monthlyProfit: monthlyProfit,
+            monthlyExpenses: expenses,
+            totalSales: totalSales
+          }}
+        />
+      )}
     </div>
   );
 };

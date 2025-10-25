@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
-import { 
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from 'firebase/auth';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import useStore from '../store/useStore'; // Import your store
+import useStore from '../store/useStore'; // Remove the { } - it's default export
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -21,8 +16,7 @@ const setAuthView = useStore((state) => state.setAuthView);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      
-      // Sync with Zustand store
+
       if (user) {
         setIsLoggedIn(true);
         setUserName(user.email?.split('@')[0] || 'User');
@@ -30,24 +24,16 @@ const setAuthView = useStore((state) => state.setAuthView);
         setIsLoggedIn(false);
         setAuthView('login');
       }
-      
+
       setLoading(false);
     });
 
     return unsubscribe;
   }, [setIsLoggedIn, setUserName, setAuthView]);
 
-  const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
+  const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password);
+  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const logout = () => signOut(auth);
 
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const logout = () => {
-    return signOut(auth);
-  };
-
-  return { user, loading, signup, login, logout };
+  return { user, uid: user?.uid || null, loading, signup, login, logout };
 };

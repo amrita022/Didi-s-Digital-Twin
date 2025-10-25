@@ -1,10 +1,6 @@
-/**
- * Database utilities for querying and aggregating transaction data
- */
-
-/**
- * Get transactions for a specific time period
- */
+// utils/dbHelpers.js
+/* Database utilities for querying and aggregating transaction data */
+/* Get transactions for a specific time period */
 async function getTransactionsByTime(Transaction, userId, timeReference) {
   const now = new Date();
   let startDate;
@@ -37,9 +33,7 @@ async function getTransactionsByTime(Transaction, userId, timeReference) {
   });
 }
 
-/**
- * Calculate totals from transactions
- */
+/* Calculate totals from transactions */
 function calculateTotals(transactions) {
   const expenses = transactions.filter(t => t.type === 'expense');
   const income = transactions.filter(t => t.type === 'income');
@@ -57,9 +51,7 @@ function calculateTotals(transactions) {
   };
 }
 
-/**
- * Get pricing suggestions based on category
- */
+/* Get pricing suggestions based on category */
 function getPricingSuggestion(category, expenses) {
   const categoryExpenses = expenses.filter(e => e.category === category);
   
@@ -84,9 +76,7 @@ function getPricingSuggestion(category, expenses) {
   };
 }
 
-/**
- * Get demand prediction based on season and category
- */
+/* Get demand prediction based on season and category */
 function getDemandPrediction(category) {
   const now = new Date();
   const month = now.getMonth(); // 0-11
@@ -133,9 +123,7 @@ function getDemandPrediction(category) {
   };
 }
 
-/**
- * Generate AI insights based on transaction patterns
- */
+/* Generate AI insights based on transaction patterns */
 async function generateAIInsights(Transaction, Analysis, userId) {
   try {
     const transactions = await Transaction.find({ userId });

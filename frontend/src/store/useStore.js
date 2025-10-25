@@ -66,7 +66,7 @@ const useStore = create((set, get) => ({
     },
   })),
 
-  // Logout action
+  // Logout action - updated to clear real data too
   logout: () => {
     set({
       isLoggedIn: false,

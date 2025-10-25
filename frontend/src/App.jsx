@@ -10,7 +10,7 @@ import DemandPredictions from './components/Demand/DemandPredictions';
 import SavingsGoals from './components/Savings/SavingsGoals';
 import Settings from './components/Settings/Settings';
 import RekhaStory from './components/Demo/RekhaStory';
-import useStore from './store/useStore';
+import useStore from './store/useStore'; // Remove { } - default export
 import { useAuth } from './hooks/useAuth';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
