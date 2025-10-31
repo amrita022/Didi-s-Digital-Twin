@@ -123,7 +123,7 @@ app.get('/api/dashboard', async (req, res) => {
     const weekTotals = calculateTotals(weekTxns);
     const monthTotals = calculateTotals(monthTxns);
     const allTimeTotals = calculateTotals(allTransactions);
-    const healthScore = calculateHealthScore(monthTotals);
+    const healthScore = calculateHealthScore(allTimeTotals); // Use ALL-TIME data for health score
 
     // Use saved dashboard values ONLY for goals and savings (manual fields)
     // But calculate income/expenses/profit dynamically from transactions
@@ -147,14 +147,26 @@ app.get('/api/dashboard', async (req, res) => {
     console.log('🎯 Total Savings (used):', totalSavings);
     console.log('📈 Health Score:', healthScore);
     
-    // Get AI insights
-    let insights = await AIInsight.find({ userId }).sort({ date: -1 }).limit(5).lean();
+    // Get SMART AI insights (seasonal patterns, top sellers, etc.)
+    console.log('🤖 Generating smart AI insights...');
+    const smartInsights = await generateAIInsights(userId, allTransactions);
     
-    // Generate new insights if none exist and user has transactions
-    if (insights.length === 0 && allTransactions.length > 0) {
-      await generateAIInsights(userId, allTransactions);
-      insights = await AIInsight.find({ userId }).sort({ date: -1 }).limit(5).lean();
+    // Clear old insights and save new ones
+    if (smartInsights && smartInsights.length > 0) {
+      await AIInsight.deleteMany({ userId }); // Clear old insights
+      
+      // Save new insights to database
+      for (const insight of smartInsights) {
+        await AIInsight.create({
+          userId,
+          ...insight,
+          date: new Date()
+        });
+      }
     }
+    
+    // Fetch saved insights
+    let insights = await AIInsight.find({ userId }).sort({ date: -1 }).limit(5).lean();
 
     // Get savings goals
     const savingsGoals = await SavingsGoal.find({ userId }).sort({ createdAt: -1 }).limit(3).lean();
@@ -171,7 +183,7 @@ app.get('/api/dashboard', async (req, res) => {
         },
         // DYNAMIC VALUES FROM TRANSACTIONS (these update automatically)
         todayIncome: todayTotals.totalIncome,
-        totalSales: monthTotals.totalIncome,
+        totalSales: monthTotals.totalIncome, // Monthly sales for top cards
         monthlyExpenses: monthTotals.totalExpenses,
         monthlyProfit: monthTotals.profit,
         
@@ -180,10 +192,11 @@ app.get('/api/dashboard', async (req, res) => {
         goalTarget: goalTarget,
         goalName: savedDashboard.goalName || 'Savings Goal',
         
+        // OVERVIEW (Business Health Score) - ALL-TIME TOTALS
         overview: {
-          totalSales: monthTotals.totalIncome,
-          monthlyProfit: monthTotals.profit,
-          expenses: monthTotals.totalExpenses,
+          totalSales: allTimeTotals.totalIncome, // ALL-TIME SALES
+          monthlyProfit: allTimeTotals.profit, // ALL-TIME PROFIT
+          expenses: allTimeTotals.totalExpenses, // ALL-TIME EXPENSES
           savings: totalSavings,
           healthScore: healthScore
         },
@@ -199,7 +212,7 @@ app.get('/api/dashboard', async (req, res) => {
           profit: monthTotals.profit
         },
         recentTransactions,
-        aiInsights: insights.map(i => i.message || i.title || (i.insights && i.insights[0]) || 'Insight'),
+        aiInsights: insights, // Return full insight objects with title, message, type, priority
         savingsGoals
       },
       lastUpdated: new Date().toISOString()

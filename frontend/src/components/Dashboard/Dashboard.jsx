@@ -171,9 +171,14 @@ const Dashboard = () => {
   const savingsGoal = dashboard?.goalTarget || 25000;
   const goalName = dashboard?.goalName || 'Savings Goal';
   const todayIncome = dashboard?.todayIncome || 0;
-  const totalSales = dashboard?.totalSales || 0;
-  const expenses = dashboard?.monthlyExpenses || 0;
-  const monthlyProfit = dashboard?.monthlyProfit || 0;
+  const totalSales = dashboard?.totalSales || 0; // Monthly sales for cards
+  const expenses = dashboard?.monthlyExpenses || 0; // Monthly expenses for cards
+  const monthlyProfit = dashboard?.monthlyProfit || 0; // Monthly profit for cards
+  
+  // Business Health Score - ALL-TIME TOTALS
+  const allTimeSales = dashboard?.overview?.totalSales || 0;
+  const allTimeExpenses = dashboard?.overview?.expenses || 0;
+  const allTimeProfit = dashboard?.overview?.monthlyProfit || 0;
   const healthScore = dashboard?.overview?.healthScore || 0;
 
   // Debug logs
@@ -182,9 +187,12 @@ const Dashboard = () => {
   console.log("  savingsGoal:", savingsGoal);
   console.log("  goalName:", goalName);
   console.log("  todayIncome:", todayIncome);
-  console.log("  totalSales:", totalSales);
-  console.log("  expenses:", expenses);
+  console.log("  totalSales (monthly):", totalSales);
+  console.log("  expenses (monthly):", expenses);
   console.log("  monthlyProfit:", monthlyProfit);
+  console.log("  allTimeSales:", allTimeSales);
+  console.log("  allTimeExpenses:", allTimeExpenses);
+  console.log("  allTimeProfit:", allTimeProfit);
   console.log("  healthScore:", healthScore);
   console.log("  overview:", dashboard?.overview);
 
@@ -363,21 +371,21 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 rounded-lg bg-green-50 border border-green-200">
             <p className="text-sm text-gray-600 mb-1">
-              {language === 'hindi' ? 'कुल बिक्री' : 'Total Sales'}
+              {language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-green-600">₹{totalSales.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-green-600">₹{allTimeSales.toLocaleString()}</p>
           </div>
           <div className="p-4 rounded-lg bg-red-50 border border-red-200">
             <p className="text-sm text-gray-600 mb-1">
-              {language === 'hindi' ? 'कुल खर्च' : 'Total Expenses'}
+              {language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-red-600">₹{expenses.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-red-600">₹{allTimeExpenses.toLocaleString()}</p>
           </div>
           <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
             <p className="text-sm text-gray-600 mb-1">
-              {language === 'hindi' ? 'शुद्ध लाभ' : 'Net Profit'}
+              {language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-blue-600">₹{monthlyProfit.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-blue-600">₹{allTimeProfit.toLocaleString()}</p>
           </div>
         </div>
 
@@ -461,8 +469,18 @@ const Dashboard = () => {
             <div className="space-y-3">
               {dashboard?.aiInsights && dashboard.aiInsights.length > 0 ? (
                 dashboard.aiInsights.map((insight, index) => (
-                  <div key={`ai-insight-${index}`} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm font-medium text-gray-900">{insight}</p>
+                  <div 
+                    key={`ai-insight-${index}`} 
+                    className={`p-4 rounded-lg border ${
+                      insight.priority === 'high' 
+                        ? 'bg-orange-50 border-orange-200' 
+                        : insight.priority === 'medium'
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-green-50 border-green-200'
+                    }`}
+                  >
+                    <p className="text-sm font-bold text-gray-900 mb-1">{insight.title}</p>
+                    <p className="text-sm text-gray-700">{insight.message}</p>
                   </div>
                 ))
               ) : (
