@@ -4,7 +4,15 @@ import offlineStorage from './offlineStorage';
 const API_BASE_URL = 'http://localhost:5002/api';
 
 /* Process voice command */
-export async function processVoiceCommand(text, userId = 'demo-user-123') {
+export async function processVoiceCommand(text, userId) {
+  // REQUIRE userId - no default fallback!
+  if (!userId) {
+    console.error('❌ ERROR: processVoiceCommand called without userId!');
+    throw new Error('userId is required for processVoiceCommand');
+  }
+  
+  console.log('📞 API: processVoiceCommand called with:', { text, userId });
+  
   try {
     const response = await fetch(`${API_BASE_URL}/process-voice`, {
       method: 'POST',
@@ -110,7 +118,13 @@ async function processOffline(text) {
 }
 
 /* Get dashboard data */
-export async function getDashboardData(userId = 'demo-user-123') {
+export async function getDashboardData(userId) {
+  // REQUIRE userId - no default fallback!
+  if (!userId) {
+    console.error('❌ ERROR: getDashboardData called without userId!');
+    throw new Error('userId is required for getDashboardData');
+  }
+  
   try {
     const response = await fetch(`${API_BASE_URL}/dashboard?userId=${userId}`);
     

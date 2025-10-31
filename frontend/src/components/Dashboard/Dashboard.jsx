@@ -12,25 +12,49 @@ import {
   Target,
   AlertCircle,
   Edit3,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 //import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
-import { getTranslation } from '../../utils/translations';
+// import { getTranslation } from '../../utils/translations';
 import AddDashboardDataModal from './AddDashboardDataModal';
-import AddTransactionModal from './AddTransactionModal';
+// import AddTransactionModal from './AddTransactionModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
 const Dashboard = () => {
   const { uid, loading: authLoading, user } = useAuth();
-  const { language, userName } = useStore();
+  const { language } = useStore();
   
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
+
+  // Function to refresh dashboard data
+  const refreshDashboard = () => {
+    if (uid) {
+      console.log('🔄 Refreshing dashboard...');
+      fetchDashboardData(uid);
+    }
+  };
+
+  // Listen for custom 'refreshDashboard' events from voice assistant
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('📢 Dashboard refresh event received');
+      if (uid) {
+        fetchDashboardData(uid);
+      }
+    };
+
+    window.addEventListener('refreshDashboard', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('refreshDashboard', handleRefresh);
+    };
+  }, [uid]);
 
   // Sync user with MongoDB
   useEffect(() => {
@@ -83,7 +107,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error("❌ Error fetching dashboard:", error);
-      toast.error("Failed to load dashboard data");
+      console.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
@@ -110,7 +134,7 @@ const Dashboard = () => {
       const data = await res.json();
       
       if (data.success) {
-        toast.success("Dashboard updated successfully!");
+        console.log("✅ Dashboard updated successfully!");
         fetchDashboardData(uid);
         setShowModal(false);
       } else {
@@ -118,7 +142,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error("❌ Error saving dashboard:", error);
-      toast.error("Failed to save data");
+      console.error("Failed to save data");
     }
   };
 
@@ -161,8 +185,12 @@ const Dashboard = () => {
   console.log("  totalSales:", totalSales);
   console.log("  expenses:", expenses);
   console.log("  monthlyProfit:", monthlyProfit);
+  console.log("  healthScore:", healthScore);
+  console.log("  overview:", dashboard?.overview);
 
   const savingsPercentage = savingsGoal > 0 ? Math.round((totalSavings / savingsGoal) * 100) : 0;
+  console.log("  savingsPercentage:", savingsPercentage);
+  
   const healthColor = healthScore >= 80 ? "text-green-600" : healthScore >= 60 ? "text-yellow-600" : "text-red-600";
   const healthText = healthScore >= 80 ? "Excellent" : healthScore >= 60 ? "Good" : "Needs Attention";
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
@@ -230,7 +258,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section with Edit Button */}
+      {/* Welcome Section with Edit and Refresh Buttons */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -246,13 +274,23 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow transition-colors"
-          >
-            <Edit3 size={18} /> 
-            {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={refreshDashboard}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl shadow transition-colors"
+              title={language === 'hindi' ? 'रीफ्रेश करें' : 'Refresh'}
+            >
+              <RefreshCw size={18} /> 
+              {language === 'hindi' ? 'रीफ्रेश' : 'Refresh'}
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow transition-colors"
+            >
+              <Edit3 size={18} /> 
+              {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
+            </button>
+          </div>
         </div>
       </div>
 

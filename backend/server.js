@@ -34,6 +34,8 @@ app.post('/api/process-voice', async (req, res) => {
     const { audioData, text, userId = 'DEMO_USER_ID' } = req.body;
     
     console.log('🎤 Processing voice command...');
+    console.log('🔑 Received userId from request:', userId);
+    console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
     
     // Process with AI Service (handles both audio and text)
     const result = await aiService.processVoiceCommand(text, userId, audioData);
@@ -120,10 +122,30 @@ app.get('/api/dashboard', async (req, res) => {
     const todayTotals = calculateTotals(todayTxns);
     const weekTotals = calculateTotals(weekTxns);
     const monthTotals = calculateTotals(monthTxns);
+    const allTimeTotals = calculateTotals(allTransactions);
     const healthScore = calculateHealthScore(monthTotals);
 
-    // Use saved dashboard values OR calculated values as fallback
+    // Use saved dashboard values ONLY for goals and savings (manual fields)
+    // But calculate income/expenses/profit dynamically from transactions
     const savedDashboard = user.dashboard || {};
+    
+    // Calculate cumulative savings (30% of all-time profit, or use saved value)
+    const calculatedSavings = Math.max(0, Math.round(allTimeTotals.profit * 0.3));
+    const totalSavings = savedDashboard.totalSavings !== undefined && savedDashboard.totalSavings > 0 
+      ? savedDashboard.totalSavings 
+      : calculatedSavings;
+    
+    // Default goal target if not set
+    const goalTarget = savedDashboard.goalTarget || 25000;
+    
+    console.log('💰 Calculated Today Income:', todayTotals.totalIncome);
+    console.log('📊 Calculated Month Sales:', monthTotals.totalIncome);
+    console.log('💸 Calculated Month Expenses:', monthTotals.totalExpenses);
+    console.log('🎯 Calculated Month Profit:', monthTotals.profit);
+    console.log('💎 All-Time Profit:', allTimeTotals.profit);
+    console.log('🏦 Calculated Savings (30%):', calculatedSavings);
+    console.log('🎯 Total Savings (used):', totalSavings);
+    console.log('📈 Health Score:', healthScore);
     
     // Get AI insights
     let insights = await AIInsight.find({ userId }).sort({ date: -1 }).limit(5).lean();
@@ -147,31 +169,34 @@ app.get('/api/dashboard', async (req, res) => {
           email: user.email,
           userId: user.userId
         },
-        // DIRECTLY RETURN SAVED VALUES (not nested in objects)
-        totalSavings: savedDashboard.totalSavings || 0,
-        goalTarget: savedDashboard.goalTarget || 0,
-        goalName: savedDashboard.goalName || '',
-        todayIncome: savedDashboard.todayIncome || 0,
-        totalSales: savedDashboard.totalSales || 0,
-        monthlyExpenses: savedDashboard.monthlyExpenses || 0,
-        monthlyProfit: savedDashboard.monthlyProfit || 0,
+        // DYNAMIC VALUES FROM TRANSACTIONS (these update automatically)
+        todayIncome: todayTotals.totalIncome,
+        totalSales: monthTotals.totalIncome,
+        monthlyExpenses: monthTotals.totalExpenses,
+        monthlyProfit: monthTotals.profit,
+        
+        // SAVINGS: Use saved value if set, otherwise calculate from all-time profit
+        totalSavings: totalSavings,
+        goalTarget: goalTarget,
+        goalName: savedDashboard.goalName || 'Savings Goal',
+        
         overview: {
-          totalSales: savedDashboard.totalSales || monthTotals.totalIncome,
-          monthlyProfit: savedDashboard.monthlyProfit || monthTotals.profit,
-          expenses: savedDashboard.monthlyExpenses || monthTotals.totalExpenses,
-          savings: Math.round((savedDashboard.monthlyProfit || monthTotals.profit) * 0.3),
-          healthScore
+          totalSales: monthTotals.totalIncome,
+          monthlyProfit: monthTotals.profit,
+          expenses: monthTotals.totalExpenses,
+          savings: totalSavings,
+          healthScore: healthScore
         },
         today: {
-          totalIncome: savedDashboard.todayIncome || todayTotals.totalIncome,
+          totalIncome: todayTotals.totalIncome,
           totalExpenses: todayTotals.totalExpenses,
           profit: todayTotals.profit
         },
         thisWeek: weekTotals,
         thisMonth: {
-          totalIncome: savedDashboard.totalSales || monthTotals.totalIncome,
-          totalExpenses: savedDashboard.monthlyExpenses || monthTotals.totalExpenses,
-          profit: savedDashboard.monthlyProfit || monthTotals.profit
+          totalIncome: monthTotals.totalIncome,
+          totalExpenses: monthTotals.totalExpenses,
+          profit: monthTotals.profit
         },
         recentTransactions,
         aiInsights: insights.map(i => i.message || i.title || (i.insights && i.insights[0]) || 'Insight'),
@@ -370,6 +395,32 @@ app.get('/', (req, res) => {
 });
 
 // ======================
+// TESTING: Clear all transactions for a user
+// ======================
+app.delete('/api/transactions/clear/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required' });
+    }
+
+    const result = await Transaction.deleteMany({ userId });
+    
+    console.log(`🗑️ Cleared ${result.deletedCount} transactions for user: ${userId}`);
+    
+    res.json({
+      success: true,
+      message: `Deleted ${result.deletedCount} transactions`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('❌ Error clearing transactions:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ======================
 // START SERVER
 // ======================
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -398,6 +449,7 @@ mongoose.connect(MONGODB_URI)
           console.log(`   POST   /api/dashboard`);
           console.log(`   POST   /api/transaction`);
           console.log(`   DELETE /api/transaction/:id`);
+          console.log(`   DELETE /api/transactions/clear/:userId (TEST ONLY)`);
           console.log(`   POST   /api/savings-goal`);
           console.log(`   PUT    /api/savings-goal/:id\n`);
         });

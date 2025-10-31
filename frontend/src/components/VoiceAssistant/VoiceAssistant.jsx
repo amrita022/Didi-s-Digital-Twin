@@ -12,10 +12,12 @@ import {
   RefreshCw
 } from 'lucide-react';
 import useStore from '../../store/useStore';
+import { useAuth } from '../../hooks/useAuth';
 import { getTranslation } from '../../utils/translations';
 import { processVoiceCommand as processVoiceAPI, getSyncStatus, syncOfflineTransactions, setupAutoSync } from '../../utils/api';
 
 const VoiceAssistant = () => {
+  const { uid } = useAuth();
   const { 
     language, 
     voiceState, 
@@ -279,8 +281,15 @@ const handleVoiceInput = async (transcript) => {
   updateVoiceState({ isProcessing: true });
   
   try {
-    // Call backend API
-    const result = await processVoiceAPI(transcript);
+    // CRITICAL: Check if user is authenticated
+    if (!uid) {
+      console.error('❌ ERROR: User not authenticated! uid is:', uid);
+      throw new Error('You must be logged in to use voice commands');
+    }
+    
+    // Call backend API with userId
+    console.log('🔑 VoiceAssistant: Calling API with userId:', uid);
+    const result = await processVoiceAPI(transcript, uid);
     
     console.log('🔍 FULL API RESPONSE:', JSON.stringify(result, null, 2));
     
@@ -294,6 +303,13 @@ const handleVoiceInput = async (transcript) => {
     
     setMessages(prev => [...prev, aiMessage]);
     speak(aiMessage.text);
+    
+    // Refresh dashboard if transaction was saved
+    if (result.saved || (result.intent === 'expense' || result.intent === 'income') && result.amount) {
+      console.log('🔄 Transaction saved, triggering dashboard refresh');
+      // Dispatch custom event to refresh dashboard
+      window.dispatchEvent(new CustomEvent('refreshDashboard'));
+    }
     
     // Update sync status if saved offline
     if (result.offline) {

@@ -31,17 +31,30 @@ class DBService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    console.log(`📅 Getting today's totals for userId: ${userId}`);
+    console.log(`📅 Today's date (midnight): ${today.toISOString()}`);
+    
     const transactions = await Transaction.find({
       userId,
       date: { $gte: today }
     });
     
+    console.log(`📊 Found ${transactions.length} transactions for today`);
+    transactions.forEach(t => {
+      console.log(`  - ${t.type}: ₹${t.amount} (${t.date.toISOString()})`);
+    });
+    
     const expenses = transactions.filter(t => t.type === 'expense');
     const income = transactions.filter(t => t.type === 'income');
     
+    const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+    const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
+    
+    console.log(`💰 Total expenses: ₹${totalExpenses}, Total income: ₹${totalIncome}`);
+    
     return {
-      expenses: expenses.reduce((sum, t) => sum + t.amount, 0),
-      income: income.reduce((sum, t) => sum + t.amount, 0)
+      expenses: totalExpenses,
+      income: totalIncome
     };
   }
 

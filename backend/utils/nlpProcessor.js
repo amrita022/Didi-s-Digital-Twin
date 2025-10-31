@@ -44,9 +44,9 @@ class NLPProcessor {
     t = t.replace(/गिती/g, 'किती');      // Wrong letter: "गिती" → "किती"
     t = t.replace(/कि\s*ती/g, 'किती');   // Split: "कि ती" → "किती"
     t = t.replace(/की\s*दी/g, 'किती');   // Severe garble: "की दी" → "किती"
-    // Fix मी (I in Marathi) garbles
-    t = t.replace(/\sमें\s/g, ' मी ');    // Hindi मैं mistaken as में, should be Marathi मी
-    t = t.replace(/^में\s/g, 'मी ');     // At start of sentence
+    // Fix मी (I in Marathi) garbles - BUT keep में when it means "in/at" (Hindi)
+    // Only replace में → मी if it appears in Marathi context
+    // For now, keep में as-is to avoid confusion
     // Fix today forms
     t = t.replace(/आज्च्चा|आज्छा|आज्चा/g, 'आजचा'); // Marathi today-possessive
   t = t.replace(/आज्छ|आज्का|आज्च्का/g, 'आज');     // noisy "आज"
@@ -73,12 +73,12 @@ class NLPProcessor {
 
     // Scoring-based detection between Hindi and Marathi
     const hiIndicators = [
-      'मैं', 'मैंने', 'हुआ', 'मेरा', 'लिया', 'खरीद', 'बेच',
-      'का', 'की', 'के', 'कितना', 'कितनी', 'आज', 'खर्च', 'खर्चा', 'है'
+      'मैं', 'मैंने', 'हुआ', 'मेरा', 'लिया', 'खरीद', 'बेच', 'में',
+      'का', 'की', 'के', 'कितना', 'कितनी', 'आज', 'खर्च', 'खर्चा', 'है', 'रुपये'
     ];
     const mrIndicators = [
       'मी', 'झाला', 'जाला', 'घेतल', 'गेतल', 'गित्ल', 'गेदल', 'विक्री', 'विकल',
-      'चा', 'ची', 'चे', 'किती', 'आजचा', 'खर्च', 'खर्चा', 'आहे'
+      'चा', 'ची', 'चे', 'किती', 'आजचा', 'खर्च', 'खर्चा', 'आहे', 'रुपयां'
     ];
 
     let hiScore = 0, mrScore = 0;
@@ -86,8 +86,11 @@ class NLPProcessor {
     for (const w of mrIndicators) if (t.includes(w)) mrScore++;
 
     // Tie-breakers using strongly distinctive markers
-    if (t.includes('कितना') || t.includes('कितनी')) hiScore += 2;
-    if (t.includes('किती')) mrScore += 2;
+    if (t.includes('कितना') || t.includes('कितनी')) hiScore += 3;
+    if (t.includes('किती')) mrScore += 3;
+    if (t.includes('में')) hiScore += 2; // "में" is Hindi preposition
+    if (t.includes('बेच') || t.includes('बेचा') || t.includes('बेची')) hiScore += 2; // Hindi "sold"
+    if (t.includes('विकल') || t.includes('विक्री')) mrScore += 2; // Marathi "sold"
     if (t.includes('का ') || t.includes(' की ') || t.includes(' के ')) hiScore += 1;
     if (t.includes('चा') || t.includes('ची') || t.includes('चे')) mrScore += 1;
 
@@ -279,6 +282,7 @@ class NLPProcessor {
       if (lowerText.includes('विकल') || lowerText.includes('vikal') || 
           lowerText.includes('विक्री') || lowerText.includes('vikri') ||
           lowerText.includes('मिळाल') || lowerText.includes('mihal') ||
+          lowerText.includes('बेच') || lowerText.includes('bech') || // Added Hindi "sold" variants
           lowerText.includes('sold') || lowerText.includes('earned')) {
         return 'income';
       }
@@ -336,31 +340,76 @@ class NLPProcessor {
   extractCategory(text) {
     console.log(`🏷️ Extracting category from: "${text}"`);
     
-    const language = this.detectLanguage(text); // ADD THIS LINE
+    const t = text.toLowerCase();
+    const language = this.detectLanguage(text);
 
     // HINDI CATEGORIES
     if (language === 'hi') {
-      if (text.includes('मसाल') || text.includes('masala')) return 'spices';
-      if (text.includes('सब्जी') || text.includes('vegetable')) return 'vegetables';
-      if (text.includes('अचार') || text.includes('आचार') || text.includes('pickle')) return 'pickles';
-      if (text.includes('कपड़') || text.includes('kapda') || text.includes('cloth')) return 'clothing';
-      if (text.includes('साड़ी') || text.includes('saree')) return 'clothing';
+      // Spices
+      if (t.includes('मसाल') || t.includes('masala') || t.includes('मिर्च') || t.includes('mirch')) return 'spices';
+      // Vegetables
+      if (t.includes('सब्जी') || t.includes('sabji') || t.includes('vegetable')) return 'vegetables';
+      // Pickles
+      if (t.includes('अचार') || t.includes('आचार') || t.includes('achar') || t.includes('pickle')) return 'pickles';
+      
+      // CLOTHING - All variants in Hindi
+      if (t.includes('साड़ी') || t.includes('सारी') || t.includes('saree') || t.includes('saari') || t.includes('sadi')) return 'clothing';
+      if (t.includes('दुपट्टा') || t.includes('दुपट्ठा') || t.includes('dupatta') || t.includes('duptta')) return 'clothing';
+      if (t.includes('ब्लाउज') || t.includes('ब्लाऊज') || t.includes('blouse') || t.includes('choli')) return 'clothing';
+      if (t.includes('कपड़') || t.includes('कपडा') || t.includes('kapda') || t.includes('kapda') || t.includes('cloth')) return 'clothing';
+      if (t.includes('शर्ट') || t.includes('shirt') || t.includes('कमीज') || t.includes('कमीझ')) return 'clothing';
+      if (t.includes('पैंट') || t.includes('पेंट') || t.includes('pant') || t.includes('trouser')) return 'clothing';
+      if (t.includes('लहंगा') || t.includes('लेहंगा') || t.includes('lehenga') || t.includes('lehnga')) return 'clothing';
+      if (t.includes('ड्रेस') || t.includes('dress') || t.includes('गाउन') || t.includes('gown')) return 'clothing';
+      if (t.includes('कुर्ता') || t.includes('kurta') || t.includes('कुर्ती') || t.includes('kurti')) return 'clothing';
+      if (t.includes('चुड़ीदार') || t.includes('चूडीदार') || t.includes('churidar')) return 'clothing';
+      if (t.includes('सलवार') || t.includes('salwar') || t.includes('सलवार')) return 'clothing';
     }
+    
     // MARATHI CATEGORIES
     else if (language === 'mr') {
-      if (text.includes('मसाल') || text.includes('masala')) return 'spices';
-      if (text.includes('भाजी') || text.includes('bhaaji') || text.includes('vegetable')) return 'vegetables';
-      if (text.includes('लोणच') || text.includes('loncha') || text.includes('pickle')) return 'pickles';
-      if (text.includes('कपड') || text.includes('kapda') || text.includes('cloth')) return 'clothing';
-      if (text.includes('साडी') || text.includes('sadi') || text.includes('saree')) return 'clothing';
+      // Spices
+      if (t.includes('मसाल') || t.includes('masala') || t.includes('मिर्ची') || t.includes('mirchi')) return 'spices';
+      // Vegetables
+      if (t.includes('भाजी') || t.includes('bhaaji') || t.includes('vegetable')) return 'vegetables';
+      // Pickles
+      if (t.includes('लोणच') || t.includes('loncha') || t.includes('आचार') || t.includes('pickle')) return 'pickles';
+      
+      // CLOTHING - All variants in Marathi
+      if (t.includes('साडी') || t.includes('सारी') || t.includes('sadi') || t.includes('saree')) return 'clothing';
+      if (t.includes('दुपट्टा') || t.includes('dupatta') || t.includes('ओढणी') || t.includes('odhani')) return 'clothing';
+      if (t.includes('ब्लाउज') || t.includes('blouse') || t.includes('चोळी') || t.includes('choli')) return 'clothing';
+      if (t.includes('कपड') || t.includes('कापड') || t.includes('kapda') || t.includes('cloth')) return 'clothing';
+      if (t.includes('शर्ट') || t.includes('shirt') || t.includes('सदरा') || t.includes('sadra')) return 'clothing';
+      if (t.includes('पँट') || t.includes('पॅंट') || t.includes('pant') || t.includes('trouser')) return 'clothing';
+      if (t.includes('लेहंगा') || t.includes('लहंगा') || t.includes('lehenga') || t.includes('lehnga')) return 'clothing';
+      if (t.includes('ड्रेस') || t.includes('dress') || t.includes('गाउन') || t.includes('gown')) return 'clothing';
+      if (t.includes('कुर्ता') || t.includes('kurta') || t.includes('कुर्ती') || t.includes('kurti')) return 'clothing';
+      if (t.includes('चुडीदार') || t.includes('churidar')) return 'clothing';
+      if (t.includes('सलवार') || t.includes('salwar')) return 'clothing';
     }
+    
     // BENGALI CATEGORIES
     else if (language === 'bn') {
-      if (text.includes('মশলা') || text.includes('moshla') || text.includes('masala')) return 'spices';
-      if (text.includes('সবজি') || text.includes('shobji') || text.includes('vegetable')) return 'vegetables';
-      if (text.includes('আচার') || text.includes('achar') || text.includes('pickle')) return 'pickles';
-      if (text.includes('কাপড়') || text.includes('kapod') || text.includes('cloth')) return 'clothing';
-      if (text.includes('শাড়ি') || text.includes('sari') || text.includes('saree')) return 'clothing';
+      // Spices
+      if (t.includes('মশলা') || t.includes('moshla') || t.includes('masala') || t.includes('মরিচ') || t.includes('morich')) return 'spices';
+      // Vegetables
+      if (t.includes('সবজি') || t.includes('shobji') || t.includes('vegetable')) return 'vegetables';
+      // Pickles
+      if (t.includes('আচার') || t.includes('achar') || t.includes('pickle')) return 'pickles';
+      
+      // CLOTHING - All variants in Bengali
+      if (t.includes('শাড়ি') || t.includes('শাড়ী') || t.includes('sari') || t.includes('saree')) return 'clothing';
+      if (t.includes('দুপাট্টা') || t.includes('dupatta') || t.includes('ওড়না') || t.includes('orna')) return 'clothing';
+      if (t.includes('ব্লাউজ') || t.includes('blouse') || t.includes('চোলি') || t.includes('choli')) return 'clothing';
+      if (t.includes('কাপড়') || t.includes('kapod') || t.includes('cloth')) return 'clothing';
+      if (t.includes('শার্ট') || t.includes('shirt') || t.includes('জামা') || t.includes('jama')) return 'clothing';
+      if (t.includes('প্যান্ট') || t.includes('pant') || t.includes('trouser')) return 'clothing';
+      if (t.includes('লেহেঙ্গা') || t.includes('lehenga') || t.includes('lehnga')) return 'clothing';
+      if (t.includes('ড্রেস') || t.includes('dress') || t.includes('গাউন') || t.includes('gown')) return 'clothing';
+      if (t.includes('কুর্তা') || t.includes('kurta') || t.includes('কুর্তি') || t.includes('kurti')) return 'clothing';
+      if (t.includes('চুড়িদার') || t.includes('churidar')) return 'clothing';
+      if (t.includes('সালোয়ার') || t.includes('salwar')) return 'clothing';
     }
     
     return 'general';
