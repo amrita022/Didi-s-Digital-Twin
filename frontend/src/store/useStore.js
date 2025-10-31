@@ -16,8 +16,14 @@ const useStore = create((set, get) => ({
   userName: 'Rekha',
   setUserName: (name) => set({ userName: name }),
 
-  // Business data
-  businessData: { /* ... your data here ... */ },
+  // Business data - provide defaults so UI components can render safely
+  businessData: {
+    savingsGoals: [],
+    achievements: [],
+    savings: 0,
+    recentTransactions: [],
+    totalRevenue: 0,
+  },
 
   // Voice assistant state
   voiceState: {

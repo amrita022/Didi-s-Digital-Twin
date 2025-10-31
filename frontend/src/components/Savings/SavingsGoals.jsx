@@ -17,7 +17,8 @@ import { getTranslation } from '../../utils/translations';
 
 const SavingsGoals = () => {
   const { businessData, language, updateBusinessData } = useStore();
-  const { savingsGoals, achievements, savings } = businessData;
+  // Provide safe defaults in case businessData is not yet populated
+  const { savingsGoals = [], achievements = [], savings = 0 } = businessData || {};
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({ name: '', target: '', deadline: '' });
 
@@ -53,6 +54,8 @@ const SavingsGoals = () => {
   };
 
   const getProgressPercentage = (current, target) => {
+    // Guard against division by zero or missing target
+    if (!target || target === 0) return 0;
     return Math.min(Math.round((current / target) * 100), 100);
   };
 
@@ -78,7 +81,7 @@ const SavingsGoals = () => {
           <div className="flex-1">
             <h3 className="text-lg font-bold text-[#3A2B4D] mb-1">{goal.name}</h3>
             <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <span>₹{goal.current.toLocaleString()} / ₹{goal.target.toLocaleString()}</span>
+              <span>₹{(goal.current ?? 0).toLocaleString()} / ₹{(goal.target ?? 0).toLocaleString()}</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                 isCompleted ? 'bg-green-100 text-green-600' :
                 isOverdue ? 'bg-red-100 text-red-600' :
@@ -118,9 +121,9 @@ const SavingsGoals = () => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-sm text-gray-600 mt-1">
+            <div className="flex justify-between text-sm text-gray-600 mt-1">
             <span>{progress}%</span>
-            <span>₹{goal.target - goal.current} remaining</span>
+            <span>₹{Math.max((goal.target ?? 0) - (goal.current ?? 0), 0).toLocaleString()} remaining</span>
           </div>
         </div>
 
