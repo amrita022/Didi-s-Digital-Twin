@@ -3,6 +3,84 @@
 import offlineStorage from './offlineStorage';
 const API_BASE_URL = 'http://localhost:5002/api';
 
+/* Savings Goals API */
+export async function listSavingsGoals(userId) {
+  if (!userId) throw new Error('userId is required');
+  
+  const response = await fetch(`${API_BASE_URL}/savings-goal?userId=${encodeURIComponent(userId)}`);
+  if (!response.ok) throw new Error('Failed to fetch savings goals');
+  
+  const data = await response.json();
+  return data.goals;
+}
+
+export async function getSavingsGoal(goalId, userId) {
+  if (!userId || !goalId) throw new Error('userId and goalId are required');
+  
+  const response = await fetch(`${API_BASE_URL}/savings-goal/${goalId}?userId=${encodeURIComponent(userId)}`);
+  if (!response.ok) throw new Error('Failed to fetch savings goal');
+  
+  const data = await response.json();
+  return data.goal;
+}
+
+export async function createSavingsGoal(goalData, userId) {
+  if (!userId) throw new Error('userId is required');
+  
+  const response = await fetch(`${API_BASE_URL}/savings-goal`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...goalData, userId })
+  });
+  
+  if (!response.ok) throw new Error('Failed to create savings goal');
+  
+  const data = await response.json();
+  return data.goal;
+}
+
+export async function updateSavingsGoal(goalId, currentAmount, userId) {
+  if (!userId || !goalId) throw new Error('userId and goalId are required');
+  
+  const response = await fetch(`${API_BASE_URL}/savings-goal/${goalId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, currentAmount })
+  });
+  
+  if (!response.ok) throw new Error('Failed to update savings goal');
+  
+  const data = await response.json();
+  return data.goal;
+}
+
+export async function deleteSavingsGoal(goalId, userId) {
+  if (!userId || !goalId) throw new Error('userId is required');
+  
+  const response = await fetch(`${API_BASE_URL}/savings-goal/${goalId}?userId=${encodeURIComponent(userId)}`, {
+    method: 'DELETE'
+  });
+  
+  if (!response.ok) throw new Error('Failed to delete savings goal');
+  
+  return true;
+}
+
+export async function incrementSavingsGoal(goalId, amount, userId) {
+  if (!userId || !goalId) throw new Error('userId and goalId are required');
+  
+  const response = await fetch(`${API_BASE_URL}/savings-goal/${goalId}/progress`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, amount })
+  });
+  
+  if (!response.ok) throw new Error('Failed to increment savings goal');
+  
+  const data = await response.json();
+  return data.goal;
+}
+
 /* Process voice command */
 export async function processVoiceCommand(text, userId) {
   // REQUIRE userId - no default fallback!

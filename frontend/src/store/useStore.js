@@ -15,6 +15,9 @@ const useStore = create((set, get) => ({
   // User data
   userName: 'Rekha',
   setUserName: (name) => set({ userName: name }),
+  // Firebase user id (for backend requests)
+  userId: null,
+  setUserId: (id) => set({ userId: id }),
 
   // Business data - provide defaults so UI components can render safely
   businessData: {

@@ -374,6 +374,78 @@ app.put('/api/savings-goal/:id', async (req, res) => {
   }
 });
 
+// Get all savings goals for a user
+app.get('/api/savings-goal', async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) return res.status(400).json({ success: false, error: 'User ID required' });
+
+    const goals = await SavingsGoal.find({ userId }).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, goals });
+  } catch (error) {
+    console.error('❌ Get savings goals error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get a single savings goal by id
+app.get('/api/savings-goal/:id', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ success: false, error: 'User ID required' });
+
+    const goal = await SavingsGoal.findOne({ _id: req.params.id, userId }).lean();
+    if (!goal) return res.status(404).json({ success: false, error: 'Goal not found' });
+
+    res.json({ success: true, goal });
+  } catch (error) {
+    console.error('❌ Get savings goal error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete a savings goal
+app.delete('/api/savings-goal/:id', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ success: false, error: 'User ID required' });
+
+    const result = await SavingsGoal.findOneAndDelete({ _id: req.params.id, userId });
+    if (!result) return res.status(404).json({ success: false, error: 'Goal not found' });
+
+    res.json({ success: true, message: 'Goal deleted' });
+  } catch (error) {
+    console.error('❌ Delete savings goal error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Increment goal progress (add amount)
+app.patch('/api/savings-goal/:id/progress', async (req, res) => {
+  try {
+    const { userId, amount } = req.body;
+    if (!userId) return res.status(400).json({ success: false, error: 'User ID required' });
+    const delta = Number(amount) || 0;
+
+    const goal = await SavingsGoal.findOne({ _id: req.params.id, userId });
+    if (!goal) return res.status(404).json({ success: false, error: 'Goal not found' });
+
+    goal.currentAmount = Math.min((goal.currentAmount || 0) + delta, goal.targetAmount || Infinity);
+    if (goal.targetAmount && goal.currentAmount >= goal.targetAmount) {
+      goal.isCompleted = true;
+      goal.currentAmount = goal.targetAmount;
+    }
+
+    await goal.save();
+
+    res.json({ success: true, goal });
+  } catch (error) {
+    console.error('❌ Update goal progress error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ======================
 // HEALTH CHECK
 // ======================

@@ -20,9 +20,14 @@ const setAuthView = useStore((state) => state.setAuthView);
       if (user) {
         setIsLoggedIn(true);
         setUserName(user.email?.split('@')[0] || 'User');
+        // set the userId in the global store for backend usage
+        const setUserId = useStore.getState().setUserId;
+        if (typeof setUserId === 'function') setUserId(user.uid || user.uid === 0 ? user.uid : user.uid);
       } else {
         setIsLoggedIn(false);
         setAuthView('login');
+        const setUserId = useStore.getState().setUserId;
+        if (typeof setUserId === 'function') setUserId(null);
       }
 
       setLoading(false);
