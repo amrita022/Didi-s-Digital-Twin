@@ -224,6 +224,30 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 // ======================
+// DEMAND PREDICTIONS API
+// ======================
+const { generateDemandPredictions } = require('./utils/demandPredictions');
+
+app.get('/api/demand-predictions', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required' });
+    }
+
+    console.log('📈 Generating demand predictions for user:', userId);
+
+    const predictions = await generateDemandPredictions(userId);
+    
+    res.json(predictions);
+  } catch (error) {
+    console.error('❌ Demand predictions error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ======================
 // UPDATE DASHBOARD DATA
 // ======================
 app.post('/api/dashboard', async (req, res) => {

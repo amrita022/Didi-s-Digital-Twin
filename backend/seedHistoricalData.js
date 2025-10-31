@@ -14,16 +14,22 @@ const transactionSchema = new mongoose.Schema({
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
 // Historical transactions for last year (2024)
-// Realistic expenses: ~₹25k distributed throughout year
+// Realistic rural business: More items, reasonable prices
 const historicalData = [
-  // December 2024 - Festive Season (High Sales + Expenses)
-  { type: 'income', amount: 3500, category: 'clothing', description: 'लहंगा बेचा - Wedding season', date: new Date('2024-12-05') },
+  // December 2024 - Wedding Season (More transactions, reasonable prices)
+  { type: 'income', amount: 2500, category: 'clothing', description: 'लहंगा बेचा - शादी', date: new Date('2024-12-02') },
   { type: 'expense', amount: 2500, category: 'inventory', description: 'कपड़े का स्टॉक खरीदा', date: new Date('2024-12-03') },
-  { type: 'income', amount: 2800, category: 'clothing', description: 'साड़ी बेची - Festive', date: new Date('2024-12-10') },
+  { type: 'income', amount: 1800, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-12-05') },
+  { type: 'income', amount: 2200, category: 'clothing', description: 'लहंगा बेचा', date: new Date('2024-12-08') },
   { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-12-01') },
-  { type: 'income', amount: 4000, category: 'clothing', description: 'दो लहंगे बेचे', date: new Date('2024-12-15') },
-  { type: 'income', amount: 1500, category: 'clothing', description: 'कुर्ती बेची', date: new Date('2024-12-18') },
-  { type: 'income', amount: 3200, category: 'clothing', description: 'साड़ी और ब्लाउज', date: new Date('2024-12-22') },
+  { type: 'income', amount: 1500, category: 'clothing', description: 'साड़ी बेची - शादी', date: new Date('2024-12-10') },
+  { type: 'income', amount: 2000, category: 'clothing', description: 'लहंगा और ब्लाउज', date: new Date('2024-12-12') },
+  { type: 'income', amount: 1800, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-12-15') },
+  { type: 'income', amount: 2500, category: 'clothing', description: 'लहंगा बेचा - शादी', date: new Date('2024-12-17') },
+  { type: 'income', amount: 1200, category: 'clothing', description: 'कुर्ती बेची', date: new Date('2024-12-18') },
+  { type: 'income', amount: 1700, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-12-20') },
+  { type: 'income', amount: 2300, category: 'clothing', description: 'लहंगा बेचा', date: new Date('2024-12-22') },
+  { type: 'income', amount: 1600, category: 'clothing', description: 'साड़ी और ब्लाउज', date: new Date('2024-12-24') },
   { type: 'expense', amount: 700, category: 'utilities', description: 'बिजली बिल', date: new Date('2024-12-28') },
   
   // November 2024 - Diwali Period (High Sales + Stock Purchases)
