@@ -75,7 +75,7 @@ const Sidebar = () => {
               <span className="text-white font-bold text-lg">🌸</span>
             </div>
             <div>
-              <h1 className="text-gray-900 font-bold text-lg">Didi's Digital Twin</h1>
+              <h1 className="text-gray-900 font-bold text-lg">Didi's Digital Sathi </h1>
               <p className="text-gray-500 text-sm">AI Business Advisor</p>
             </div>
           </div>

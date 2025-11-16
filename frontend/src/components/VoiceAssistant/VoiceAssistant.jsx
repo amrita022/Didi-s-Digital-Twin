@@ -38,7 +38,6 @@ const VoiceAssistant = () => {
   ]);
   
   const [inputText, setInputText] = useState('');
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [syncStatus, setSyncStatus] = useState({ unsyncedCount: 0, needsSync: false });
   const [isSyncing, setIsSyncing] = useState(false);
@@ -91,7 +90,7 @@ const VoiceAssistant = () => {
   };
 
   const speak = (text) => {
-    if (synthRef.current && isSpeaking) {
+    if (synthRef.current) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = language === 'hindi' ? 'hi-IN' : 'en-US';
       utterance.rate = 0.8;
@@ -302,7 +301,7 @@ const handleVoiceInput = async (transcript) => {
     };
     
     setMessages(prev => [...prev, aiMessage]);
-    speak(aiMessage.text);
+    // speak(aiMessage.text); // Disabled automatic speech
     
     // Refresh dashboard if transaction was saved
     if (result.saved || (result.intent === 'expense' || result.intent === 'income') && result.amount) {
@@ -518,7 +517,7 @@ const handleVoiceInput = async (transcript) => {
             }
           </p>
           
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-center">
             <button
               onClick={voiceState.isListening ? stopListening : startListening}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
@@ -536,27 +535,6 @@ const handleVoiceInput = async (transcript) => {
                 <>
                   <Mic size={20} className="inline mr-2" />
                   {language === 'hindi' ? 'बोलें' : 'Speak'}
-                </>
-              )}
-            </button>
-            
-            <button
-              onClick={() => setIsSpeaking(!isSpeaking)}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                isSpeaking
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                  : 'bg-gray-500 hover:bg-gray-600 text-white'
-              }`}
-            >
-              {isSpeaking ? (
-                <>
-                  <VolumeX size={20} className="inline mr-2" />
-                  {language === 'hindi' ? 'चुप करें' : 'Mute'}
-                </>
-              ) : (
-                <>
-                  <Volume2 size={20} className="inline mr-2" />
-                  {language === 'hindi' ? 'सुनें' : 'Listen'}
                 </>
               )}
             </button>
