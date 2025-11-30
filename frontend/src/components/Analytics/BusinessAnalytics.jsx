@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -25,35 +25,79 @@ import {
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
+import { fetchAnalytics } from '../../utils/api';
 
 const BusinessAnalytics = () => {
-  const { businessData, language } = useStore();
+  const { businessData, language, userId } = useStore();
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data for charts
-  const incomeExpenseData = [
-    { month: 'Jan', income: 2500, expenses: 1700, profit: 800 },
-    { month: 'Feb', income: 3200, expenses: 1900, profit: 1300 },
-    { month: 'Mar', income: 4100, expenses: 2100, profit: 2000 },
-    { month: 'Apr', income: 3800, expenses: 1800, profit: 2000 },
-    { month: 'May', income: 4500, expenses: 2200, profit: 2300 },
-    { month: 'Jun', income: 5200, expenses: 2400, profit: 2800 },
-  ];
+  // Fetch analytics data on component mount
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      if (!userId) {
+        console.log('⏳ Waiting for userId...', { userId });
+        setLoading(false);
+        return;
+      }
 
-  const categorySpendingData = [
-    { name: language === 'hindi' ? 'कच्चा माल' : 'Raw Materials', value: 1200, color: '#C85D3A' },
-    { name: language === 'hindi' ? 'पैकेजिंग' : 'Packaging', value: 400, color: '#EBAE82' },
-    { name: language === 'hindi' ? 'परिवहन' : 'Transport', value: 300, color: '#3B7A6D' },
-    { name: language === 'hindi' ? 'अन्य' : 'Others', value: 200, color: '#3A2B4D' },
-  ];
+      try {
+        setLoading(true);
+        console.log('📊 Fetching analytics for user:', userId);
+        const data = await fetchAnalytics(userId);
+        
+        console.log('📊 Analytics response:', data);
+        
+        if (data.success) {
+          console.log('✅ Analytics loaded successfully');
+          setAnalyticsData(data);
+        } else {
+          console.error('❌ Analytics error:', data.error);
+          setAnalyticsData(data); // Set it anyway to show empty state
+        }
+      } catch (error) {
+        console.error('❌ Failed to load analytics:', error);
+        // Set empty data to stop loading
+        setAnalyticsData({
+          success: false,
+          last6MonthsData: [],
+          keyMetrics: {
+            totalIncome: 0,
+            incomeChange: 0,
+            totalExpenses: 0,
+            expensesChange: 0,
+            netProfit: 0,
+            profitChange: 0,
+            profitMargin: 0,
+            marginChange: 0
+          },
+          categorySpending: [],
+          monthlyProfitTrend: [],
+          insights: []
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const profitTrendData = [
-    { month: 'Jan', profit: 800 },
-    { month: 'Feb', profit: 1300 },
-    { month: 'Mar', profit: 2000 },
-    { month: 'Apr', profit: 2000 },
-    { month: 'May', profit: 2300 },
-    { month: 'Jun', profit: 2800 },
-  ];
+    loadAnalytics();
+  }, [userId]);
+
+  // Use real data if available, otherwise show loading
+  const incomeExpenseData = analyticsData?.last6MonthsData || [];
+  const categorySpendingData = analyticsData?.categorySpending || [];
+  const profitTrendData = analyticsData?.monthlyProfitTrend || [];
+  const keyMetrics = analyticsData?.keyMetrics || {
+    totalIncome: 0,
+    incomeChange: 0,
+    totalExpenses: 0,
+    expensesChange: 0,
+    netProfit: 0,
+    profitChange: 0,
+    profitMargin: 0,
+    marginChange: 0
+  };
+  const insights = analyticsData?.insights || [];
 
   const COLORS = ['#C85D3A', '#EBAE82', '#3B7A6D', '#3A2B4D', '#D9A441'];
 
@@ -83,6 +127,20 @@ const BusinessAnalytics = () => {
   const handlePrint = () => {
     window.print();
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C85D3A] mx-auto"></div>
+          <p className="mt-4 text-[#3B7A6D]">
+            {language === 'hindi' ? 'विश्लेषण लोड हो रहा है...' : 'Loading analytics...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -121,29 +179,29 @@ const BusinessAnalytics = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title={language === 'hindi' ? 'कुल आय' : 'Total Income'}
-          value="₹32,100"
-          change={15}
+          value={`₹${keyMetrics.totalIncome.toLocaleString()}`}
+          change={keyMetrics.incomeChange}
           icon={DollarSign}
           color="bg-green-500"
         />
         <StatCard
           title={language === 'hindi' ? 'कुल खर्च' : 'Total Expenses'}
-          value="₹12,100"
-          change={-8}
+          value={`₹${keyMetrics.totalExpenses.toLocaleString()}`}
+          change={keyMetrics.expensesChange}
           icon={TrendingDown}
           color="bg-red-500"
         />
         <StatCard
           title={language === 'hindi' ? 'शुद्ध लाभ' : 'Net Profit'}
-          value="₹20,000"
-          change={25}
+          value={`₹${keyMetrics.netProfit.toLocaleString()}`}
+          change={keyMetrics.profitChange}
           icon={TrendingUp}
           color="bg-[#D9A441]"
         />
         <StatCard
           title={language === 'hindi' ? 'लाभ मार्जिन' : 'Profit Margin'}
-          value="62%"
-          change={12}
+          value={`${keyMetrics.profitMargin}%`}
+          change={keyMetrics.marginChange}
           icon={Calendar}
           color="bg-[#3B7A6D]"
         />
@@ -272,28 +330,19 @@ const BusinessAnalytics = () => {
           {language === 'hindi' ? 'मुख्य अंतर्दृष्टि' : 'Key Insights'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white/10 rounded-lg p-4">
-            <h3 className="font-bold mb-2">
-              {language === 'hindi' ? 'सकारात्मक प्रवृत्ति' : 'Positive Trend'}
-            </h3>
-            <p className="text-sm">
-              {language === 'hindi' 
-                ? 'आपकी आय में 25% की वृद्धि हुई है। यह प्रवृत्ति जारी रखें!' 
-                : 'Your income has increased by 25%. Keep up this trend!'
-              }
-            </p>
-          </div>
-          <div className="bg-white/10 rounded-lg p-4">
-            <h3 className="font-bold mb-2">
-              {language === 'hindi' ? 'खर्च प्रबंधन' : 'Expense Management'}
-            </h3>
-            <p className="text-sm">
-              {language === 'hindi' 
-                ? 'आपके खर्चों में 8% की कमी आई है। बहुत अच्छा!' 
-                : 'Your expenses have decreased by 8%. Great job!'
-              }
-            </p>
-          </div>
+          {insights.map((insight, index) => (
+            <div key={index} className={`bg-white/10 rounded-lg p-4 ${
+              insight.type === 'warning' ? 'border-l-4 border-yellow-400' : 
+              insight.type === 'positive' ? 'border-l-4 border-green-400' : ''
+            }`}>
+              <h3 className="font-bold mb-2">
+                {language === 'hindi' ? insight.title.hi : insight.title.en}
+              </h3>
+              <p className="text-sm">
+                {language === 'hindi' ? insight.message.hi : insight.message.en}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

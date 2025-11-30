@@ -257,6 +257,36 @@ app.get('/api/demand-predictions', async (req, res) => {
     }
 });
 // ======================
+// BUSINESS ANALYTICS API
+// ======================
+const { generateBusinessAnalytics } = require('./utils/analyticsCalculations');
+
+app.get('/api/analytics', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User ID required' 
+      });
+    }
+
+    console.log(`📊 Generating business analytics for: ${userId}`);
+    
+    const analytics = await generateBusinessAnalytics(userId);
+    
+    res.json(analytics);
+  } catch (error) {
+    console.error('❌ Analytics generation error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ======================
 // PRICING RECOMMENDATIONS
 // ======================
 app.get('/api/pricing-recommendations', async (req, res) => {

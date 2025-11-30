@@ -259,3 +259,46 @@ export function setupAutoSync() {
     await syncOfflineTransactions();
   });
 }
+
+/* Get business analytics */
+export async function fetchAnalytics(userId) {
+  if (!userId) {
+    console.error('❌ ERROR: fetchAnalytics called without userId!');
+    throw new Error('userId is required for fetchAnalytics');
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics?userId=${userId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch analytics data');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('❌ Analytics API Error:', error);
+    
+    // Return empty analytics if offline or error
+    return {
+      success: false,
+      offline: true,
+      error: error.message,
+      last6MonthsData: [],
+      keyMetrics: {
+        totalIncome: 0,
+        incomeChange: 0,
+        totalExpenses: 0,
+        expensesChange: 0,
+        netProfit: 0,
+        profitChange: 0,
+        profitMargin: 0,
+        marginChange: 0
+      },
+      categorySpending: [],
+      monthlyProfitTrend: [],
+      insights: []
+    };
+  }
+}
