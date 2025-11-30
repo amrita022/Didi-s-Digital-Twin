@@ -1,156 +1,1167 @@
-// Seed script to add historical transaction data for AI insights
-const mongoose = require('mongoose');
+// Seed Historical Sales Data (July 2023 - November 2025)
 require('dotenv').config();
+const mongoose = require('mongoose');
+const Transaction = require('./models/Transaction');
 
-const transactionSchema = new mongoose.Schema({
-  userId: String,
-  type: String,
-  amount: Number,
-  category: String,
-  description: String,
-  date: { type: Date, default: Date.now }
-});
+const MONGODB_URI = process.env.MONGODB_URI;
+const USER_ID = 'zj5NVCFe9lh4jzCfT5Kz85RANJq1';
 
-const Transaction = mongoose.model('Transaction', transactionSchema);
-
-// Historical transactions for last year (2024)
-// Realistic rural business: More items, reasonable prices
-const historicalData = [
-  // December 2024 - Wedding Season (More transactions, reasonable prices)
-  { type: 'income', amount: 2500, category: 'clothing', description: 'लहंगा बेचा - शादी', date: new Date('2024-12-02') },
-  { type: 'expense', amount: 2500, category: 'inventory', description: 'कपड़े का स्टॉक खरीदा', date: new Date('2024-12-03') },
-  { type: 'income', amount: 1800, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-12-05') },
-  { type: 'income', amount: 2200, category: 'clothing', description: 'लहंगा बेचा', date: new Date('2024-12-08') },
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-12-01') },
-  { type: 'income', amount: 1500, category: 'clothing', description: 'साड़ी बेची - शादी', date: new Date('2024-12-10') },
-  { type: 'income', amount: 2000, category: 'clothing', description: 'लहंगा और ब्लाउज', date: new Date('2024-12-12') },
-  { type: 'income', amount: 1800, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-12-15') },
-  { type: 'income', amount: 2500, category: 'clothing', description: 'लहंगा बेचा - शादी', date: new Date('2024-12-17') },
-  { type: 'income', amount: 1200, category: 'clothing', description: 'कुर्ती बेची', date: new Date('2024-12-18') },
-  { type: 'income', amount: 1700, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-12-20') },
-  { type: 'income', amount: 2300, category: 'clothing', description: 'लहंगा बेचा', date: new Date('2024-12-22') },
-  { type: 'income', amount: 1600, category: 'clothing', description: 'साड़ी और ब्लाउज', date: new Date('2024-12-24') },
-  { type: 'expense', amount: 700, category: 'utilities', description: 'बिजली बिल', date: new Date('2024-12-28') },
+// Parse the CSV data
+const salesData = [
+  // July 2023
+  { date: "2023-07-03", item: "Shirt", price: 200 },
+  { date: "2023-07-03", item: "Shirt", price: 200 },
+  { date: "2023-07-03", item: "Pant", price: 300 },
+  { date: "2023-07-03", item: "Blouse", price: 250 },
+  { date: "2023-07-05", item: "Saree", price: 1000 },
+  { date: "2023-07-05", item: "Shirt", price: 200 },
+  { date: "2023-07-05", item: "Dress", price: 500 },
+  { date: "2023-07-07", item: "Blouse", price: 250 },
+  { date: "2023-07-07", item: "Blouse", price: 250 },
+  { date: "2023-07-07", item: "Shirt", price: 200 },
+  { date: "2023-07-07", item: "Pant", price: 300 },
+  { date: "2023-07-10", item: "Saree", price: 1000 },
+  { date: "2023-07-12", item: "Shirt", price: 200 },
+  { date: "2023-07-12", item: "Pant", price: 300 },
+  { date: "2023-07-12", item: "Dress", price: 500 },
+  { date: "2023-07-15", item: "Shirt", price: 200 },
+  { date: "2023-07-15", item: "Shirt", price: 200 },
+  { date: "2023-07-15", item: "Blouse", price: 250 },
+  { date: "2023-07-15", item: "Pant", price: 300 },
+  { date: "2023-07-18", item: "Saree", price: 1000 },
+  { date: "2023-07-18", item: "Blouse", price: 250 },
+  { date: "2023-07-22", item: "Dress", price: 500 },
+  { date: "2023-07-22", item: "Dress", price: 500 },
+  { date: "2023-07-26", item: "Shirt", price: 200 },
+  { date: "2023-07-26", item: "Shirt", price: 200 },
+  { date: "2023-07-26", item: "Pant", price: 300 },
+  { date: "2023-07-29", item: "Saree", price: 1000 },
   
-  // November 2024 - Diwali Period (High Sales + Stock Purchases)
-  { type: 'expense', amount: 3000, category: 'inventory', description: 'दिवाली स्टॉक - नए कपड़े', date: new Date('2024-11-01') },
-  { type: 'income', amount: 3000, category: 'clothing', description: 'दिवाली साड़ी बेची', date: new Date('2024-11-02') },
-  { type: 'income', amount: 2500, category: 'clothing', description: 'लहंगा बेचा', date: new Date('2024-11-05') },
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-11-01') },
-  { type: 'income', amount: 1800, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-11-08') },
-  { type: 'income', amount: 2200, category: 'clothing', description: 'कुर्ता सेट बेचा', date: new Date('2024-11-12') },
-  { type: 'expense', amount: 500, category: 'transport', description: 'माल ढुलाई', date: new Date('2024-11-15') },
+  // August 2023
+  { date: "2023-08-02", item: "Shirt", price: 200 },
+  { date: "2023-08-02", item: "Pant", price: 300 },
+  { date: "2023-08-02", item: "Blouse", price: 250 },
+  { date: "2023-08-04", item: "Saree", price: 1000 },
+  { date: "2023-08-07", item: "Shirt", price: 200 },
+  { date: "2023-08-07", item: "Shirt", price: 200 },
+  { date: "2023-08-07", item: "Dress", price: 500 },
+  { date: "2023-08-09", item: "Pant", price: 300 },
+  { date: "2023-08-09", item: "Blouse", price: 250 },
+  { date: "2023-08-09", item: "Shirt", price: 200 },
+  { date: "2023-08-12", item: "Saree", price: 1000 },
+  { date: "2023-08-12", item: "Blouse", price: 250 },
+  { date: "2023-08-16", item: "Dress", price: 500 },
+  { date: "2023-08-16", item: "Pant", price: 300 },
+  { date: "2023-08-19", item: "Shirt", price: 200 },
+  { date: "2023-08-19", item: "Shirt", price: 200 },
+  { date: "2023-08-19", item: "Pant", price: 300 },
+  { date: "2023-08-19", item: "Blouse", price: 250 },
+  { date: "2023-08-23", item: "Saree", price: 1000 },
+  { date: "2023-08-26", item: "Blouse", price: 250 },
+  { date: "2023-08-26", item: "Dress", price: 500 },
+  { date: "2023-08-29", item: "Shirt", price: 200 },
+  { date: "2023-08-29", item: "Pant", price: 300 },
+  { date: "2023-08-29", item: "Shirt", price: 200 },
   
-  // October 2024 - Pre-Diwali (Stocking Up)
-  { type: 'expense', amount: 1800, category: 'inventory', description: 'त्योहार के लिए स्टॉक', date: new Date('2024-10-05') },
-  { type: 'income', amount: 1500, category: 'clothing', description: 'दुपट्टा बेचा', date: new Date('2024-10-15') },
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-10-01') },
-  { type: 'income', amount: 2000, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-10-20') },
-  { type: 'income', amount: 1200, category: 'clothing', description: 'कुर्ती बेची', date: new Date('2024-10-25') },
+  // September 2023
+  { date: "2023-09-01", item: "Shirt", price: 200 },
+  { date: "2023-09-01", item: "Pant", price: 300 },
+  { date: "2023-09-01", item: "Dress", price: 500 },
+  { date: "2023-09-03", item: "Saree", price: 1000 },
+  { date: "2023-09-03", item: "Blouse", price: 250 },
+  { date: "2023-09-05", item: "Shirt", price: 200 },
+  { date: "2023-09-05", item: "Shirt", price: 200 },
+  { date: "2023-09-05", item: "Pant", price: 300 },
+  { date: "2023-09-05", item: "Blouse", price: 250 },
+  { date: "2023-09-07", item: "Dress", price: 500 },
+  { date: "2023-09-07", item: "Dress", price: 500 },
+  { date: "2023-09-09", item: "Saree", price: 1000 },
+  { date: "2023-09-09", item: "Shirt", price: 200 },
+  { date: "2023-09-12", item: "Pant", price: 300 },
+  { date: "2023-09-12", item: "Blouse", price: 250 },
+  { date: "2023-09-12", item: "Shirt", price: 200 },
+  { date: "2023-09-15", item: "Saree", price: 1000 },
+  { date: "2023-09-18", item: "Shirt", price: 200 },
+  { date: "2023-09-18", item: "Dress", price: 500 },
+  { date: "2023-09-18", item: "Blouse", price: 250 },
+  { date: "2023-09-21", item: "Saree", price: 1000 },
+  { date: "2023-09-21", item: "Pant", price: 300 },
+  { date: "2023-09-24", item: "Shirt", price: 200 },
+  { date: "2023-09-24", item: "Shirt", price: 200 },
+  { date: "2023-09-24", item: "Blouse", price: 250 },
+  { date: "2023-09-27", item: "Pant", price: 300 },
+  { date: "2023-09-27", item: "Pant", price: 300 },
+  { date: "2023-09-27", item: "Shirt", price: 200 },
+  { date: "2023-09-29", item: "Saree", price: 1000 },
+  { date: "2023-09-29", item: "Dress", price: 500 },
   
-  // September 2024 - Normal Month
-  { type: 'income', amount: 1800, category: 'clothing', description: 'कपड़े बेचे', date: new Date('2024-09-10') },
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-09-01') },
-  { type: 'income', amount: 900, category: 'clothing', description: 'साड़ी बिक्री', date: new Date('2024-09-15') },
-  { type: 'expense', amount: 1000, category: 'inventory', description: 'कपड़े का स्टॉक', date: new Date('2024-09-20') },
+  // October 2023
+  { date: "2023-10-01", item: "Shirt", price: 200 },
+  { date: "2023-10-01", item: "Shirt", price: 200 },
+  { date: "2023-10-01", item: "Pant", price: 300 },
+  { date: "2023-10-03", item: "Saree", price: 1000 },
+  { date: "2023-10-03", item: "Blouse", price: 250 },
+  { date: "2023-10-03", item: "Dress", price: 500 },
+  { date: "2023-10-05", item: "Pant", price: 300 },
+  { date: "2023-10-05", item: "Blouse", price: 250 },
+  { date: "2023-10-05", item: "Shirt", price: 200 },
+  { date: "2023-10-07", item: "Saree", price: 1000 },
+  { date: "2023-10-09", item: "Dress", price: 500 },
+  { date: "2023-10-09", item: "Pant", price: 300 },
+  { date: "2023-10-09", item: "Shirt", price: 200 },
+  { date: "2023-10-12", item: "Saree", price: 1000 },
+  { date: "2023-10-12", item: "Saree", price: 1000 },
+  { date: "2023-10-14", item: "Shirt", price: 200 },
+  { date: "2023-10-14", item: "Blouse", price: 250 },
+  { date: "2023-10-14", item: "Pant", price: 300 },
+  { date: "2023-10-17", item: "Dress", price: 500 },
+  { date: "2023-10-17", item: "Dress", price: 500 },
+  { date: "2023-10-17", item: "Shirt", price: 200 },
+  { date: "2023-10-20", item: "Saree", price: 1000 },
+  { date: "2023-10-20", item: "Blouse", price: 250 },
+  { date: "2023-10-23", item: "Shirt", price: 200 },
+  { date: "2023-10-23", item: "Pant", price: 300 },
+  { date: "2023-10-23", item: "Shirt", price: 200 },
+  { date: "2023-10-25", item: "Dress", price: 500 },
+  { date: "2023-10-25", item: "Blouse", price: 250 },
+  { date: "2023-10-27", item: "Saree", price: 1000 },
+  { date: "2023-10-27", item: "Dress", price: 500 },
+  { date: "2023-10-30", item: "Pant", price: 300 },
+  { date: "2023-10-30", item: "Shirt", price: 200 },
   
-  // August 2024 - Monsoon (Lower Sales)
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-08-01') },
-  { type: 'income', amount: 1200, category: 'clothing', description: 'कुर्ती बेची', date: new Date('2024-08-05') },
-  { type: 'income', amount: 800, category: 'clothing', description: 'कपड़े बेचे', date: new Date('2024-08-18') },
-  { type: 'expense', amount: 600, category: 'maintenance', description: 'दुकान की मरम्मत', date: new Date('2024-08-25') },
+  // November 2023
+  { date: "2023-11-01", item: "Saree", price: 1000 },
+  { date: "2023-11-01", item: "Blouse", price: 250 },
+  { date: "2023-11-01", item: "Shirt", price: 200 },
+  { date: "2023-11-02", item: "Dress", price: 500 },
+  { date: "2023-11-02", item: "Dress", price: 500 },
+  { date: "2023-11-02", item: "Pant", price: 300 },
+  { date: "2023-11-04", item: "Saree", price: 1000 },
+  { date: "2023-11-04", item: "Saree", price: 1000 },
+  { date: "2023-11-06", item: "Shirt", price: 200 },
+  { date: "2023-11-06", item: "Shirt", price: 200 },
+  { date: "2023-11-06", item: "Blouse", price: 250 },
+  { date: "2023-11-06", item: "Pant", price: 300 },
+  { date: "2023-11-07", item: "Saree", price: 1000 },
+  { date: "2023-11-07", item: "Dress", price: 500 },
+  { date: "2023-11-09", item: "Pant", price: 300 },
+  { date: "2023-11-09", item: "Pant", price: 300 },
+  { date: "2023-11-09", item: "Shirt", price: 200 },
+  { date: "2023-11-11", item: "Saree", price: 1000 },
+  { date: "2023-11-11", item: "Blouse", price: 250 },
+  { date: "2023-11-14", item: "Saree", price: 1000 },
+  { date: "2023-11-14", item: "Saree", price: 1000 },
+  { date: "2023-11-14", item: "Blouse", price: 250 },
+  { date: "2023-11-16", item: "Dress", price: 500 },
+  { date: "2023-11-16", item: "Dress", price: 500 },
+  { date: "2023-11-16", item: "Shirt", price: 200 },
+  { date: "2023-11-16", item: "Pant", price: 300 },
+  { date: "2023-11-18", item: "Shirt", price: 200 },
+  { date: "2023-11-18", item: "Shirt", price: 200 },
+  { date: "2023-11-18", item: "Shirt", price: 200 },
+  { date: "2023-11-18", item: "Blouse", price: 250 },
+  { date: "2023-11-20", item: "Saree", price: 1000 },
+  { date: "2023-11-20", item: "Dress", price: 500 },
+  { date: "2023-11-22", item: "Pant", price: 300 },
+  { date: "2023-11-22", item: "Shirt", price: 200 },
+  { date: "2023-11-22", item: "Blouse", price: 250 },
+  { date: "2023-11-24", item: "Saree", price: 1000 },
+  { date: "2023-11-24", item: "Saree", price: 1000 },
+  { date: "2023-11-27", item: "Dress", price: 500 },
+  { date: "2023-11-27", item: "Dress", price: 500 },
+  { date: "2023-11-27", item: "Pant", price: 300 },
+  { date: "2023-11-29", item: "Saree", price: 1000 },
+  { date: "2023-11-29", item: "Blouse", price: 250 },
+  { date: "2023-11-29", item: "Shirt", price: 200 },
   
-  // July 2024
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-07-01') },
-  { type: 'income', amount: 1500, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-07-10') },
-  { type: 'expense', amount: 900, category: 'inventory', description: 'कपड़े खरीदे', date: new Date('2024-07-20') },
+  // December 2023
+  { date: "2023-12-01", item: "Saree", price: 1000 },
+  { date: "2023-12-01", item: "Blouse", price: 250 },
+  { date: "2023-12-01", item: "Shirt", price: 200 },
+  { date: "2023-12-03", item: "Dress", price: 500 },
+  { date: "2023-12-03", item: "Dress", price: 500 },
+  { date: "2023-12-03", item: "Pant", price: 300 },
+  { date: "2023-12-05", item: "Saree", price: 1000 },
+  { date: "2023-12-05", item: "Saree", price: 1000 },
+  { date: "2023-12-07", item: "Shirt", price: 200 },
+  { date: "2023-12-07", item: "Shirt", price: 200 },
+  { date: "2023-12-07", item: "Pant", price: 300 },
+  { date: "2023-12-07", item: "Blouse", price: 250 },
+  { date: "2023-12-09", item: "Saree", price: 1000 },
+  { date: "2023-12-09", item: "Dress", price: 500 },
+  { date: "2023-12-11", item: "Pant", price: 300 },
+  { date: "2023-12-11", item: "Pant", price: 300 },
+  { date: "2023-12-11", item: "Shirt", price: 200 },
+  { date: "2023-12-13", item: "Saree", price: 1000 },
+  { date: "2023-12-13", item: "Blouse", price: 250 },
+  { date: "2023-12-15", item: "Saree", price: 1000 },
+  { date: "2023-12-15", item: "Saree", price: 1000 },
+  { date: "2023-12-15", item: "Blouse", price: 250 },
+  { date: "2023-12-17", item: "Dress", price: 500 },
+  { date: "2023-12-17", item: "Dress", price: 500 },
+  { date: "2023-12-17", item: "Pant", price: 300 },
+  { date: "2023-12-19", item: "Shirt", price: 200 },
+  { date: "2023-12-19", item: "Shirt", price: 200 },
+  { date: "2023-12-19", item: "Shirt", price: 200 },
+  { date: "2023-12-19", item: "Blouse", price: 250 },
+  { date: "2023-12-21", item: "Saree", price: 1000 },
+  { date: "2023-12-21", item: "Dress", price: 500 },
+  { date: "2023-12-23", item: "Pant", price: 300 },
+  { date: "2023-12-23", item: "Shirt", price: 200 },
+  { date: "2023-12-23", item: "Blouse", price: 250 },
+  { date: "2023-12-26", item: "Saree", price: 1000 },
+  { date: "2023-12-26", item: "Saree", price: 1000 },
+  { date: "2023-12-28", item: "Dress", price: 500 },
+  { date: "2023-12-28", item: "Pant", price: 300 },
+  { date: "2023-12-30", item: "Saree", price: 1000 },
+  { date: "2023-12-30", item: "Blouse", price: 250 },
+  { date: "2023-12-30", item: "Shirt", price: 200 },
   
-  // June 2024
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-06-01') },
-  { type: 'income', amount: 1800, category: 'clothing', description: 'कपड़े बेचे', date: new Date('2024-06-12') },
-  { type: 'expense', amount: 800, category: 'utilities', description: 'बिजली और पानी', date: new Date('2024-06-25') },
+  // January 2024
+  { date: "2024-01-02", item: "Shirt", price: 200 },
+  { date: "2024-01-02", item: "Pant", price: 300 },
+  { date: "2024-01-02", item: "Blouse", price: 250 },
+  { date: "2024-01-04", item: "Saree", price: 1000 },
+  { date: "2024-01-06", item: "Dress", price: 500 },
+  { date: "2024-01-06", item: "Dress", price: 500 },
+  { date: "2024-01-08", item: "Shirt", price: 200 },
+  { date: "2024-01-08", item: "Shirt", price: 200 },
+  { date: "2024-01-08", item: "Pant", price: 300 },
+  { date: "2024-01-11", item: "Saree", price: 1000 },
+  { date: "2024-01-11", item: "Blouse", price: 250 },
+  { date: "2024-01-14", item: "Pant", price: 300 },
+  { date: "2024-01-14", item: "Pant", price: 300 },
+  { date: "2024-01-14", item: "Shirt", price: 200 },
+  { date: "2024-01-17", item: "Saree", price: 1000 },
+  { date: "2024-01-17", item: "Dress", price: 500 },
+  { date: "2024-01-19", item: "Blouse", price: 250 },
+  { date: "2024-01-19", item: "Shirt", price: 200 },
+  { date: "2024-01-22", item: "Saree", price: 1000 },
+  { date: "2024-01-22", item: "Saree", price: 1000 },
+  { date: "2024-01-25", item: "Shirt", price: 200 },
+  { date: "2024-01-25", item: "Pant", price: 300 },
+  { date: "2024-01-25", item: "Blouse", price: 250 },
+  { date: "2024-01-27", item: "Dress", price: 500 },
+  { date: "2024-01-27", item: "Pant", price: 300 },
+  { date: "2024-01-30", item: "Saree", price: 1000 },
+  { date: "2024-01-30", item: "Shirt", price: 200 },
   
-  // May 2024 - Wedding Season
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-05-01') },
-  { type: 'expense', amount: 1600, category: 'inventory', description: 'शादी के कपड़े - स्टॉक', date: new Date('2024-05-05') },
-  { type: 'income', amount: 2000, category: 'clothing', description: 'लहंगा बेचा', date: new Date('2024-05-08') },
-  { type: 'expense', amount: 600, category: 'transport', description: 'डिलीवरी खर्च', date: new Date('2024-05-22') },
-  
-  // April 2024 - Wedding Season Start
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-04-01') },
-  { type: 'expense', amount: 2000, category: 'inventory', description: 'शादी सीजन स्टॉक', date: new Date('2024-04-05') },
-  { type: 'income', amount: 2500, category: 'clothing', description: 'शादी का लहंगा', date: new Date('2024-04-15') },
-  { type: 'income', amount: 1800, category: 'clothing', description: 'साड़ी बेची', date: new Date('2024-04-28') },
+  // February 2024
+  { date: "2024-02-02", item: "Shirt", price: 200 },
+  { date: "2024-02-02", item: "Pant", price: 300 },
+  { date: "2024-02-02", item: "Blouse", price: 250 },
+  { date: "2024-02-04", item: "Saree", price: 1000 },
+  { date: "2024-02-06", item: "Dress", price: 500 },
+  { date: "2024-02-06", item: "Dress", price: 500 },
+  { date: "2024-02-08", item: "Shirt", price: 200 },
+  { date: "2024-02-08", item: "Shirt", price: 200 },
+  { date: "2024-02-08", item: "Pant", price: 300 },
+  { date: "2024-02-10", item: "Saree", price: 1000 },
+  { date: "2024-02-10", item: "Blouse", price: 250 },
+  { date: "2024-02-12", item: "Pant", price: 300 },
+  { date: "2024-02-12", item: "Pant", price: 300 },
+  { date: "2024-02-12", item: "Shirt", price: 200 },
+  { date: "2024-02-15", item: "Saree", price: 1000 },
+  { date: "2024-02-15", item: "Dress", price: 500 },
+  { date: "2024-02-18", item: "Blouse", price: 250 },
+  { date: "2024-02-18", item: "Shirt", price: 200 },
+  { date: "2024-02-20", item: "Saree", price: 1000 },
+  { date: "2024-02-20", item: "Saree", price: 1000 },
+  { date: "2024-02-23", item: "Shirt", price: 200 },
+  { date: "2024-02-23", item: "Pant", price: 300 },
+  { date: "2024-02-23", item: "Blouse", price: 250 },
+  { date: "2024-02-27", item: "Dress", price: 500 },
+  { date: "2024-02-27", item: "Pant", price: 300 },
   
   // March 2024
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-03-01') },
-  { type: 'income', amount: 1500, category: 'clothing', description: 'कपड़े', date: new Date('2024-03-10') },
-  { type: 'expense', amount: 900, category: 'inventory', description: 'नया स्टॉक', date: new Date('2024-03-20') },
+  { date: "2024-03-01", item: "Saree", price: 1000 },
+  { date: "2024-03-01", item: "Blouse", price: 250 },
+  { date: "2024-03-01", item: "Shirt", price: 200 },
+  { date: "2024-03-03", item: "Dress", price: 500 },
+  { date: "2024-03-03", item: "Dress", price: 500 },
+  { date: "2024-03-03", item: "Pant", price: 300 },
+  { date: "2024-03-05", item: "Saree", price: 1000 },
+  { date: "2024-03-05", item: "Saree", price: 1000 },
+  { date: "2024-03-07", item: "Shirt", price: 200 },
+  { date: "2024-03-07", item: "Shirt", price: 200 },
+  { date: "2024-03-07", item: "Pant", price: 300 },
+  { date: "2024-03-07", item: "Blouse", price: 250 },
+  { date: "2024-03-09", item: "Saree", price: 1000 },
+  { date: "2024-03-09", item: "Dress", price: 500 },
+  { date: "2024-03-11", item: "Pant", price: 300 },
+  { date: "2024-03-11", item: "Pant", price: 300 },
+  { date: "2024-03-11", item: "Shirt", price: 200 },
+  { date: "2024-03-13", item: "Saree", price: 1000 },
+  { date: "2024-03-13", item: "Blouse", price: 250 },
+  { date: "2024-03-15", item: "Saree", price: 1000 },
+  { date: "2024-03-15", item: "Saree", price: 1000 },
+  { date: "2024-03-15", item: "Blouse", price: 250 },
+  { date: "2024-03-17", item: "Dress", price: 500 },
+  { date: "2024-03-17", item: "Dress", price: 500 },
+  { date: "2024-03-17", item: "Pant", price: 300 },
+  { date: "2024-03-19", item: "Shirt", price: 200 },
+  { date: "2024-03-19", item: "Shirt", price: 200 },
+  { date: "2024-03-19", item: "Shirt", price: 200 },
+  { date: "2024-03-19", item: "Blouse", price: 250 },
+  { date: "2024-03-21", item: "Saree", price: 1000 },
+  { date: "2024-03-21", item: "Dress", price: 500 },
+  { date: "2024-03-23", item: "Pant", price: 300 },
+  { date: "2024-03-23", item: "Shirt", price: 200 },
+  { date: "2024-03-23", item: "Blouse", price: 250 },
+  { date: "2024-03-25", item: "Saree", price: 1000 },
+  { date: "2024-03-25", item: "Saree", price: 1000 },
+  { date: "2024-03-27", item: "Dress", price: 500 },
+  { date: "2024-03-27", item: "Pant", price: 300 },
+  { date: "2024-03-29", item: "Saree", price: 1000 },
+  { date: "2024-03-29", item: "Blouse", price: 250 },
+  { date: "2024-03-29", item: "Shirt", price: 200 },
   
-  // February 2024 - Post Festive (Lower)
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-02-01') },
-  { type: 'income', amount: 1000, category: 'clothing', description: 'कुर्ती', date: new Date('2024-02-14') },
-  { type: 'expense', amount: 500, category: 'utilities', description: 'बिजली बिल', date: new Date('2024-02-25') },
+  // April 2024
+  { date: "2024-04-01", item: "Saree", price: 1000 },
+  { date: "2024-04-01", item: "Blouse", price: 250 },
+  { date: "2024-04-01", item: "Shirt", price: 200 },
+  { date: "2024-04-03", item: "Dress", price: 500 },
+  { date: "2024-04-03", item: "Dress", price: 500 },
+  { date: "2024-04-03", item: "Pant", price: 300 },
+  { date: "2024-04-05", item: "Saree", price: 1000 },
+  { date: "2024-04-05", item: "Saree", price: 1000 },
+  { date: "2024-04-07", item: "Shirt", price: 200 },
+  { date: "2024-04-07", item: "Shirt", price: 200 },
+  { date: "2024-04-07", item: "Pant", price: 300 },
+  { date: "2024-04-07", item: "Blouse", price: 250 },
+  { date: "2024-04-09", item: "Saree", price: 1000 },
+  { date: "2024-04-09", item: "Dress", price: 500 },
+  { date: "2024-04-11", item: "Pant", price: 300 },
+  { date: "2024-04-11", item: "Pant", price: 300 },
+  { date: "2024-04-11", item: "Shirt", price: 200 },
+  { date: "2024-04-13", item: "Saree", price: 1000 },
+  { date: "2024-04-13", item: "Blouse", price: 250 },
+  { date: "2024-04-15", item: "Saree", price: 1000 },
+  { date: "2024-04-15", item: "Saree", price: 1000 },
+  { date: "2024-04-15", item: "Blouse", price: 250 },
+  { date: "2024-04-17", item: "Dress", price: 500 },
+  { date: "2024-04-17", item: "Dress", price: 500 },
+  { date: "2024-04-17", item: "Pant", price: 300 },
+  { date: "2024-04-19", item: "Shirt", price: 200 },
+  { date: "2024-04-19", item: "Shirt", price: 200 },
+  { date: "2024-04-19", item: "Shirt", price: 200 },
+  { date: "2024-04-19", item: "Blouse", price: 250 },
+  { date: "2024-04-21", item: "Saree", price: 1000 },
+  { date: "2024-04-21", item: "Dress", price: 500 },
+  { date: "2024-04-23", item: "Pant", price: 300 },
+  { date: "2024-04-23", item: "Shirt", price: 200 },
+  { date: "2024-04-23", item: "Blouse", price: 250 },
+  { date: "2024-04-25", item: "Saree", price: 1000 },
+  { date: "2024-04-25", item: "Saree", price: 1000 },
+  { date: "2024-04-27", item: "Dress", price: 500 },
+  { date: "2024-04-27", item: "Pant", price: 300 },
+  { date: "2024-04-29", item: "Saree", price: 1000 },
+  { date: "2024-04-29", item: "Blouse", price: 250 },
+  { date: "2024-04-29", item: "Shirt", price: 200 },
   
-  // January 2024 - Slow Month
-  { type: 'expense', amount: 1200, category: 'rent', description: 'दुकान का किराया', date: new Date('2024-01-01') },
-  { type: 'income', amount: 800, category: 'clothing', description: 'कपड़े', date: new Date('2024-01-15') },
-  { type: 'expense', amount: 700, category: 'inventory', description: 'छोटा स्टॉक', date: new Date('2024-01-28') },
+  // May 2024
+  { date: "2024-05-01", item: "Saree", price: 1000 },
+  { date: "2024-05-01", item: "Blouse", price: 250 },
+  { date: "2024-05-01", item: "Shirt", price: 200 },
+  { date: "2024-05-03", item: "Dress", price: 500 },
+  { date: "2024-05-03", item: "Dress", price: 500 },
+  { date: "2024-05-03", item: "Pant", price: 300 },
+  { date: "2024-05-05", item: "Saree", price: 1000 },
+  { date: "2024-05-05", item: "Saree", price: 1000 },
+  { date: "2024-05-07", item: "Shirt", price: 200 },
+  { date: "2024-05-07", item: "Shirt", price: 200 },
+  { date: "2024-05-07", item: "Pant", price: 300 },
+  { date: "2024-05-07", item: "Blouse", price: 250 },
+  { date: "2024-05-09", item: "Saree", price: 1000 },
+  { date: "2024-05-09", item: "Dress", price: 500 },
+  { date: "2024-05-11", item: "Pant", price: 300 },
+  { date: "2024-05-11", item: "Pant", price: 300 },
+  { date: "2024-05-11", item: "Shirt", price: 200 },
+  { date: "2024-05-13", item: "Saree", price: 1000 },
+  { date: "2024-05-13", item: "Blouse", price: 250 },
+  { date: "2024-05-15", item: "Saree", price: 1000 },
+  { date: "2024-05-15", item: "Saree", price: 1000 },
+  { date: "2024-05-15", item: "Blouse", price: 250 },
+  { date: "2024-05-17", item: "Dress", price: 500 },
+  { date: "2024-05-17", item: "Dress", price: 500 },
+  { date: "2024-05-17", item: "Pant", price: 300 },
+  { date: "2024-05-19", item: "Shirt", price: 200 },
+  { date: "2024-05-19", item: "Shirt", price: 200 },
+  { date: "2024-05-19", item: "Shirt", price: 200 },
+  { date: "2024-05-19", item: "Blouse", price: 250 },
+  { date: "2024-05-21", item: "Saree", price: 1000 },
+  { date: "2024-05-21", item: "Dress", price: 500 },
+  { date: "2024-05-23", item: "Pant", price: 300 },
+  { date: "2024-05-23", item: "Shirt", price: 200 },
+  { date: "2024-05-23", item: "Blouse", price: 250 },
+  { date: "2024-05-25", item: "Saree", price: 1000 },
+  { date: "2024-05-25", item: "Saree", price: 1000 },
+  { date: "2024-05-27", item: "Dress", price: 500 },
+  { date: "2024-05-27", item: "Pant", price: 300 },
+  { date: "2024-05-29", item: "Saree", price: 1000 },
+  { date: "2024-05-29", item: "Blouse", price: 250 },
+  { date: "2024-05-29", item: "Shirt", price: 200 },
+  
+  // June 2024
+  { date: "2024-06-02", item: "Shirt", price: 200 },
+  { date: "2024-06-02", item: "Pant", price: 300 },
+  { date: "2024-06-02", item: "Blouse", price: 250 },
+  { date: "2024-06-04", item: "Saree", price: 1000 },
+  { date: "2024-06-07", item: "Dress", price: 500 },
+  { date: "2024-06-07", item: "Dress", price: 500 },
+  { date: "2024-06-10", item: "Shirt", price: 200 },
+  { date: "2024-06-10", item: "Shirt", price: 200 },
+  { date: "2024-06-10", item: "Pant", price: 300 },
+  { date: "2024-06-13", item: "Saree", price: 1000 },
+  { date: "2024-06-13", item: "Blouse", price: 250 },
+  { date: "2024-06-16", item: "Pant", price: 300 },
+  { date: "2024-06-16", item: "Pant", price: 300 },
+  { date: "2024-06-16", item: "Shirt", price: 200 },
+  { date: "2024-06-19", item: "Saree", price: 1000 },
+  { date: "2024-06-19", item: "Dress", price: 500 },
+  { date: "2024-06-22", item: "Blouse", price: 250 },
+  { date: "2024-06-22", item: "Shirt", price: 200 },
+  { date: "2024-06-25", item: "Saree", price: 1000 },
+  { date: "2024-06-25", item: "Saree", price: 1000 },
+  { date: "2024-06-28", item: "Dress", price: 500 },
+  { date: "2024-06-28", item: "Pant", price: 300 },
+  
+  // July 2024
+  { date: "2024-07-01", item: "Shirt", price: 200 },
+  { date: "2024-07-01", item: "Pant", price: 300 },
+  { date: "2024-07-01", item: "Blouse", price: 250 },
+  { date: "2024-07-03", item: "Saree", price: 1000 },
+  { date: "2024-07-05", item: "Dress", price: 500 },
+  { date: "2024-07-05", item: "Dress", price: 500 },
+  { date: "2024-07-07", item: "Shirt", price: 200 },
+  { date: "2024-07-07", item: "Shirt", price: 200 },
+  { date: "2024-07-07", item: "Pant", price: 300 },
+  { date: "2024-07-10", item: "Saree", price: 1000 },
+  { date: "2024-07-10", item: "Blouse", price: 250 },
+  { date: "2024-07-13", item: "Pant", price: 300 },
+  { date: "2024-07-13", item: "Pant", price: 300 },
+  { date: "2024-07-13", item: "Shirt", price: 200 },
+  { date: "2024-07-16", item: "Saree", price: 1000 },
+  { date: "2024-07-16", item: "Dress", price: 500 },
+  { date: "2024-07-19", item: "Blouse", price: 250 },
+  { date: "2024-07-19", item: "Shirt", price: 200 },
+  { date: "2024-07-22", item: "Saree", price: 1000 },
+  { date: "2024-07-22", item: "Saree", price: 1000 },
+  { date: "2024-07-25", item: "Dress", price: 500 },
+  { date: "2024-07-25", item: "Pant", price: 300 },
+  { date: "2024-07-28", item: "Shirt", price: 200 },
+  { date: "2024-07-28", item: "Blouse", price: 250 },
+  
+  // August 2024
+  { date: "2024-08-02", item: "Shirt", price: 200 },
+  { date: "2024-08-02", item: "Pant", price: 300 },
+  { date: "2024-08-02", item: "Blouse", price: 250 },
+  { date: "2024-08-04", item: "Saree", price: 1000 },
+  { date: "2024-08-06", item: "Dress", price: 500 },
+  { date: "2024-08-06", item: "Dress", price: 500 },
+  { date: "2024-08-08", item: "Shirt", price: 200 },
+  { date: "2024-08-08", item: "Shirt", price: 200 },
+  { date: "2024-08-08", item: "Pant", price: 300 },
+  { date: "2024-08-10", item: "Saree", price: 1000 },
+  { date: "2024-08-10", item: "Blouse", price: 250 },
+  { date: "2024-08-12", item: "Pant", price: 300 },
+  { date: "2024-08-12", item: "Pant", price: 300 },
+  { date: "2024-08-12", item: "Shirt", price: 200 },
+  { date: "2024-08-14", item: "Saree", price: 1000 },
+  { date: "2024-08-14", item: "Dress", price: 500 },
+  { date: "2024-08-16", item: "Blouse", price: 250 },
+  { date: "2024-08-16", item: "Shirt", price: 200 },
+  { date: "2024-08-18", item: "Saree", price: 1000 },
+  { date: "2024-08-18", item: "Saree", price: 1000 },
+  { date: "2024-08-20", item: "Dress", price: 500 },
+  { date: "2024-08-20", item: "Pant", price: 300 },
+  { date: "2024-08-23", item: "Shirt", price: 200 },
+  { date: "2024-08-23", item: "Blouse", price: 250 },
+  { date: "2024-08-26", item: "Saree", price: 1000 },
+  { date: "2024-08-26", item: "Dress", price: 500 },
+  
+  // September 2024
+  { date: "2024-09-02", item: "Shirt", price: 200 },
+  { date: "2024-09-02", item: "Pant", price: 300 },
+  { date: "2024-09-02", item: "Blouse", price: 250 },
+  { date: "2024-09-04", item: "Saree", price: 1000 },
+  { date: "2024-09-06", item: "Dress", price: 500 },
+  { date: "2024-09-06", item: "Dress", price: 500 },
+  { date: "2024-09-08", item: "Shirt", price: 200 },
+  { date: "2024-09-08", item: "Shirt", price: 200 },
+  { date: "2024-09-08", item: "Pant", price: 300 },
+  { date: "2024-09-10", item: "Saree", price: 1000 },
+  { date: "2024-09-10", item: "Blouse", price: 250 },
+  { date: "2024-09-12", item: "Pant", price: 300 },
+  { date: "2024-09-12", item: "Pant", price: 300 },
+  { date: "2024-09-12", item: "Shirt", price: 200 },
+  { date: "2024-09-14", item: "Saree", price: 1000 },
+  { date: "2024-09-14", item: "Dress", price: 500 },
+  { date: "2024-09-16", item: "Blouse", price: 250 },
+  { date: "2024-09-16", item: "Shirt", price: 200 },
+  { date: "2024-09-18", item: "Saree", price: 1000 },
+  { date: "2024-09-18", item: "Saree", price: 1000 },
+  { date: "2024-09-20", item: "Dress", price: 500 },
+  { date: "2024-09-20", item: "Pant", price: 300 },
+  { date: "2024-09-23", item: "Shirt", price: 200 },
+  { date: "2024-09-23", item: "Blouse", price: 250 },
+  { date: "2024-09-26", item: "Saree", price: 1000 },
+  { date: "2024-09-26", item: "Dress", price: 500 },
+  
+  // October 2024
+  { date: "2024-10-01", item: "Shirt", price: 200 },
+  { date: "2024-10-01", item: "Pant", price: 300 },
+  { date: "2024-10-01", item: "Blouse", price: 250 },
+  { date: "2024-10-03", item: "Saree", price: 1000 },
+  { date: "2024-10-05", item: "Dress", price: 500 },
+  { date: "2024-10-05", item: "Dress", price: 500 },
+  { date: "2024-10-05", item: "Pant", price: 300 },
+  { date: "2024-10-07", item: "Shirt", price: 200 },
+  { date: "2024-10-07", item: "Shirt", price: 200 },
+  { date: "2024-10-07", item: "Pant", price: 300 },
+  { date: "2024-10-07", item: "Blouse", price: 250 },
+  { date: "2024-10-09", item: "Saree", price: 1000 },
+  { date: "2024-10-09", item: "Dress", price: 500 },
+  { date: "2024-10-11", item: "Pant", price: 300 },
+  { date: "2024-10-11", item: "Pant", price: 300 },
+  { date: "2024-10-11", item: "Shirt", price: 200 },
+  { date: "2024-10-13", item: "Saree", price: 1000 },
+  { date: "2024-10-13", item: "Blouse", price: 250 },
+  { date: "2024-10-15", item: "Saree", price: 1000 },
+  { date: "2024-10-15", item: "Saree", price: 1000 },
+  { date: "2024-10-15", item: "Blouse", price: 250 },
+  { date: "2024-10-17", item: "Dress", price: 500 },
+  { date: "2024-10-17", item: "Dress", price: 500 },
+  { date: "2024-10-17", item: "Pant", price: 300 },
+  { date: "2024-10-19", item: "Shirt", price: 200 },
+  { date: "2024-10-19", item: "Shirt", price: 200 },
+  { date: "2024-10-19", item: "Shirt", price: 200 },
+  { date: "2024-10-19", item: "Blouse", price: 250 },
+  { date: "2024-10-21", item: "Saree", price: 1000 },
+  { date: "2024-10-21", item: "Dress", price: 500 },
+  { date: "2024-10-23", item: "Pant", price: 300 },
+  { date: "2024-10-23", item: "Shirt", price: 200 },
+  { date: "2024-10-23", item: "Blouse", price: 250 },
+  { date: "2024-10-26", item: "Saree", price: 1000 },
+  { date: "2024-10-26", item: "Saree", price: 1000 },
+  { date: "2024-10-29", item: "Dress", price: 500 },
+  { date: "2024-10-29", item: "Pant", price: 300 },
+  
+  // November 2024
+  { date: "2024-11-01", item: "Saree", price: 1000 },
+  { date: "2024-11-01", item: "Blouse", price: 250 },
+  { date: "2024-11-01", item: "Shirt", price: 200 },
+  { date: "2024-11-03", item: "Dress", price: 500 },
+  { date: "2024-11-03", item: "Dress", price: 500 },
+  { date: "2024-11-03", item: "Pant", price: 300 },
+  { date: "2024-11-05", item: "Saree", price: 1000 },
+  { date: "2024-11-05", item: "Saree", price: 1000 },
+  { date: "2024-11-07", item: "Shirt", price: 200 },
+  { date: "2024-11-07", item: "Shirt", price: 200 },
+  { date: "2024-11-07", item: "Pant", price: 300 },
+  { date: "2024-11-07", item: "Blouse", price: 250 },
+  { date: "2024-11-09", item: "Saree", price: 1000 },
+  { date: "2024-11-09", item: "Dress", price: 500 },
+  { date: "2024-11-11", item: "Pant", price: 300 },
+  { date: "2024-11-11", item: "Pant", price: 300 },
+  { date: "2024-11-11", item: "Shirt", price: 200 },
+  { date: "2024-11-13", item: "Saree", price: 1000 },
+  { date: "2024-11-13", item: "Blouse", price: 250 },
+  { date: "2024-11-15", item: "Saree", price: 1000 },
+  { date: "2024-11-15", item: "Saree", price: 1000 },
+  { date: "2024-11-15", item: "Blouse", price: 250 },
+  { date: "2024-11-17", item: "Dress", price: 500 },
+  { date: "2024-11-17", item: "Dress", price: 500 },
+  { date: "2024-11-17", item: "Pant", price: 300 },
+  { date: "2024-11-19", item: "Shirt", price: 200 },
+  { date: "2024-11-19", item: "Shirt", price: 200 },
+  { date: "2024-11-19", item: "Shirt", price: 200 },
+  { date: "2024-11-19", item: "Blouse", price: 250 },
+  { date: "2024-11-21", item: "Saree", price: 1000 },
+  { date: "2024-11-21", item: "Dress", price: 500 },
+  { date: "2024-11-23", item: "Pant", price: 300 },
+  { date: "2024-11-23", item: "Shirt", price: 200 },
+  { date: "2024-11-23", item: "Blouse", price: 250 },
+  { date: "2024-11-25", item: "Saree", price: 1000 },
+  { date: "2024-11-25", item: "Saree", price: 1000 },
+  { date: "2024-11-27", item: "Dress", price: 500 },
+  { date: "2024-11-27", item: "Pant", price: 300 },
+  { date: "2024-11-29", item: "Saree", price: 1000 },
+  { date: "2024-11-29", item: "Blouse", price: 250 },
+  { date: "2024-11-29", item: "Shirt", price: 200 },
+  
+  // December 2024
+  { date: "2024-12-01", item: "Saree", price: 1000 },
+  { date: "2024-12-01", item: "Blouse", price: 250 },
+  { date: "2024-12-01", item: "Shirt", price: 200 },
+  { date: "2024-12-03", item: "Dress", price: 500 },
+  { date: "2024-12-03", item: "Dress", price: 500 },
+  { date: "2024-12-03", item: "Pant", price: 300 },
+  { date: "2024-12-05", item: "Saree", price: 1000 },
+  { date: "2024-12-05", item: "Saree", price: 1000 },
+  { date: "2024-12-07", item: "Shirt", price: 200 },
+  { date: "2024-12-07", item: "Shirt", price: 200 },
+  { date: "2024-12-07", item: "Pant", price: 300 },
+  { date: "2024-12-07", item: "Blouse", price: 250 },
+  { date: "2024-12-09", item: "Saree", price: 1000 },
+  { date: "2024-12-09", item: "Dress", price: 500 },
+  { date: "2024-12-11", item: "Pant", price: 300 },
+  { date: "2024-12-11", item: "Pant", price: 300 },
+  { date: "2024-12-11", item: "Shirt", price: 200 },
+  { date: "2024-12-13", item: "Saree", price: 1000 },
+  { date: "2024-12-13", item: "Blouse", price: 250 },
+  { date: "2024-12-15", item: "Saree", price: 1000 },
+  { date: "2024-12-15", item: "Saree", price: 1000 },
+  { date: "2024-12-15", item: "Blouse", price: 250 },
+  { date: "2024-12-17", item: "Dress", price: 500 },
+  { date: "2024-12-17", item: "Dress", price: 500 },
+  { date: "2024-12-17", item: "Pant", price: 300 },
+  { date: "2024-12-19", item: "Shirt", price: 200 },
+  { date: "2024-12-19", item: "Shirt", price: 200 },
+  { date: "2024-12-19", item: "Shirt", price: 200 },
+  { date: "2024-12-19", item: "Blouse", price: 250 },
+  { date: "2024-12-21", item: "Saree", price: 1000 },
+  { date: "2024-12-21", item: "Dress", price: 500 },
+  { date: "2024-12-23", item: "Pant", price: 300 },
+  { date: "2024-12-23", item: "Shirt", price: 200 },
+  { date: "2024-12-23", item: "Blouse", price: 250 },
+  { date: "2024-12-25", item: "Saree", price: 1000 },
+  { date: "2024-12-25", item: "Saree", price: 1000 },
+  { date: "2024-12-27", item: "Dress", price: 500 },
+  { date: "2024-12-27", item: "Pant", price: 300 },
+  { date: "2024-12-29", item: "Saree", price: 1000 },
+  { date: "2024-12-29", item: "Blouse", price: 250 },
+  { date: "2024-12-29", item: "Shirt", price: 200 },
+  
+  // January 2025
+  { date: "2025-01-02", item: "Shirt", price: 200 },
+  { date: "2025-01-02", item: "Pant", price: 300 },
+  { date: "2025-01-02", item: "Blouse", price: 250 },
+  { date: "2025-01-05", item: "Saree", price: 1000 },
+  { date: "2025-01-08", item: "Dress", price: 500 },
+  { date: "2025-01-08", item: "Dress", price: 500 },
+  { date: "2025-01-11", item: "Shirt", price: 200 },
+  { date: "2025-01-11", item: "Shirt", price: 200 },
+  { date: "2025-01-11", item: "Pant", price: 300 },
+  { date: "2025-01-14", item: "Saree", price: 1000 },
+  { date: "2025-01-14", item: "Blouse", price: 250 },
+  { date: "2025-01-17", item: "Pant", price: 300 },
+  { date: "2025-01-17", item: "Pant", price: 300 },
+  { date: "2025-01-17", item: "Shirt", price: 200 },
+  { date: "2025-01-20", item: "Saree", price: 1000 },
+  { date: "2025-01-20", item: "Dress", price: 500 },
+  { date: "2025-01-23", item: "Blouse", price: 250 },
+  { date: "2025-01-23", item: "Shirt", price: 200 },
+  { date: "2025-01-26", item: "Saree", price: 1000 },
+  { date: "2025-01-26", item: "Saree", price: 1000 },
+  { date: "2025-01-29", item: "Dress", price: 500 },
+  { date: "2025-01-29", item: "Pant", price: 300 },
+  
+  // February 2025
+  { date: "2025-02-01", item: "Shirt", price: 200 },
+  { date: "2025-02-01", item: "Pant", price: 300 },
+  { date: "2025-02-01", item: "Blouse", price: 250 },
+  { date: "2025-02-04", item: "Saree", price: 1000 },
+  { date: "2025-02-07", item: "Dress", price: 500 },
+  { date: "2025-02-07", item: "Dress", price: 500 },
+  { date: "2025-02-10", item: "Shirt", price: 200 },
+  { date: "2025-02-10", item: "Shirt", price: 200 },
+  { date: "2025-02-10", item: "Pant", price: 300 },
+  { date: "2025-02-13", item: "Saree", price: 1000 },
+  { date: "2025-02-13", item: "Blouse", price: 250 },
+  { date: "2025-02-16", item: "Pant", price: 300 },
+  { date: "2025-02-16", item: "Pant", price: 300 },
+  { date: "2025-02-16", item: "Shirt", price: 200 },
+  { date: "2025-02-19", item: "Saree", price: 1000 },
+  { date: "2025-02-19", item: "Dress", price: 500 },
+  { date: "2025-02-22", item: "Blouse", price: 250 },
+  { date: "2025-02-22", item: "Shirt", price: 200 },
+  { date: "2025-02-25", item: "Saree", price: 1000 },
+  { date: "2025-02-25", item: "Saree", price: 1000 },
+  { date: "2025-02-28", item: "Dress", price: 500 },
+  { date: "2025-02-28", item: "Pant", price: 300 },
+  
+  // March 2025
+  { date: "2025-03-01", item: "Saree", price: 1000 },
+  { date: "2025-03-01", item: "Blouse", price: 250 },
+  { date: "2025-03-01", item: "Shirt", price: 200 },
+  { date: "2025-03-03", item: "Dress", price: 500 },
+  { date: "2025-03-03", item: "Dress", price: 500 },
+  { date: "2025-03-03", item: "Pant", price: 300 },
+  { date: "2025-03-05", item: "Saree", price: 1000 },
+  { date: "2025-03-05", item: "Saree", price: 1000 },
+  { date: "2025-03-07", item: "Shirt", price: 200 },
+  { date: "2025-03-07", item: "Shirt", price: 200 },
+  { date: "2025-03-07", item: "Pant", price: 300 },
+  { date: "2025-03-07", item: "Blouse", price: 250 },
+  { date: "2025-03-09", item: "Saree", price: 1000 },
+  { date: "2025-03-09", item: "Dress", price: 500 },
+  { date: "2025-03-11", item: "Pant", price: 300 },
+  { date: "2025-03-11", item: "Pant", price: 300 },
+  { date: "2025-03-11", item: "Shirt", price: 200 },
+  { date: "2025-03-13", item: "Saree", price: 1000 },
+  { date: "2025-03-13", item: "Blouse", price: 250 },
+  { date: "2025-03-15", item: "Saree", price: 1000 },
+  { date: "2025-03-15", item: "Saree", price: 1000 },
+  { date: "2025-03-15", item: "Blouse", price: 250 },
+  { date: "2025-03-17", item: "Dress", price: 500 },
+  { date: "2025-03-17", item: "Dress", price: 500 },
+  { date: "2025-03-17", item: "Pant", price: 300 },
+  { date: "2025-03-19", item: "Shirt", price: 200 },
+  { date: "2025-03-19", item: "Shirt", price: 200 },
+  { date: "2025-03-19", item: "Shirt", price: 200 },
+  { date: "2025-03-19", item: "Blouse", price: 250 },
+  { date: "2025-03-21", item: "Saree", price: 1000 },
+  { date: "2025-03-21", item: "Dress", price: 500 },
+  { date: "2025-03-23", item: "Pant", price: 300 },
+  { date: "2025-03-23", item: "Shirt", price: 200 },
+  { date: "2025-03-23", item: "Blouse", price: 250 },
+  { date: "2025-03-25", item: "Saree", price: 1000 },
+  { date: "2025-03-25", item: "Saree", price: 1000 },
+  { date: "2025-03-27", item: "Dress", price: 500 },
+  { date: "2025-03-27", item: "Pant", price: 300 },
+  { date: "2025-03-29", item: "Saree", price: 1000 },
+  { date: "2025-03-29", item: "Blouse", price: 250 },
+  { date: "2025-03-29", item: "Shirt", price: 200 },
+  
+  // April 2025
+  { date: "2025-04-01", item: "Saree", price: 1000 },
+  { date: "2025-04-01", item: "Blouse", price: 250 },
+  { date: "2025-04-01", item: "Shirt", price: 200 },
+  { date: "2025-04-03", item: "Dress", price: 500 },
+  { date: "2025-04-03", item: "Dress", price: 500 },
+  { date: "2025-04-03", item: "Pant", price: 300 },
+  { date: "2025-04-05", item: "Saree", price: 1000 },
+  { date: "2025-04-05", item: "Saree", price: 1000 },
+  { date: "2025-04-07", item: "Shirt", price: 200 },
+  { date: "2025-04-07", item: "Shirt", price: 200 },
+  { date: "2025-04-07", item: "Pant", price: 300 },
+  { date: "2025-04-07", item: "Blouse", price: 250 },
+  { date: "2025-04-09", item: "Saree", price: 1000 },
+  { date: "2025-04-09", item: "Dress", price: 500 },
+  { date: "2025-04-11", item: "Pant", price: 300 },
+  { date: "2025-04-11", item: "Pant", price: 300 },
+  { date: "2025-04-11", item: "Shirt", price: 200 },
+  { date: "2025-04-13", item: "Saree", price: 1000 },
+  { date: "2025-04-13", item: "Blouse", price: 250 },
+  { date: "2025-04-15", item: "Saree", price: 1000 },
+  { date: "2025-04-15", item: "Saree", price: 1000 },
+  { date: "2025-04-15", item: "Blouse", price: 250 },
+  { date: "2025-04-17", item: "Dress", price: 500 },
+  { date: "2025-04-17", item: "Dress", price: 500 },
+  { date: "2025-04-17", item: "Pant", price: 300 },
+  { date: "2025-04-19", item: "Shirt", price: 200 },
+  { date: "2025-04-19", item: "Shirt", price: 200 },
+  { date: "2025-04-19", item: "Shirt", price: 200 },
+  { date: "2025-04-19", item: "Blouse", price: 250 },
+  { date: "2025-04-21", item: "Saree", price: 1000 },
+  { date: "2025-04-21", item: "Dress", price: 500 },
+  { date: "2025-04-23", item: "Pant", price: 300 },
+  { date: "2025-04-23", item: "Shirt", price: 200 },
+  { date: "2025-04-23", item: "Blouse", price: 250 },
+  { date: "2025-04-25", item: "Saree", price: 1000 },
+  { date: "2025-04-25", item: "Saree", price: 1000 },
+  { date: "2025-04-27", item: "Dress", price: 500 },
+  { date: "2025-04-27", item: "Pant", price: 300 },
+  { date: "2025-04-29", item: "Saree", price: 1000 },
+  { date: "2025-04-29", item: "Blouse", price: 250 },
+  { date: "2025-04-29", item: "Shirt", price: 200 },
+  
+  // May 2025
+  { date: "2025-05-01", item: "Saree", price: 1000 },
+  { date: "2025-05-01", item: "Blouse", price: 250 },
+  { date: "2025-05-01", item: "Shirt", price: 200 },
+  { date: "2025-05-03", item: "Dress", price: 500 },
+  { date: "2025-05-03", item: "Dress", price: 500 },
+  { date: "2025-05-03", item: "Pant", price: 300 },
+  { date: "2025-05-05", item: "Saree", price: 1000 },
+  { date: "2025-05-05", item: "Saree", price: 1000 },
+  { date: "2025-05-07", item: "Shirt", price: 200 },
+  { date: "2025-05-07", item: "Shirt", price: 200 },
+  { date: "2025-05-07", item: "Pant", price: 300 },
+  { date: "2025-05-07", item: "Blouse", price: 250 },
+  { date: "2025-05-09", item: "Saree", price: 1000 },
+  { date: "2025-05-09", item: "Dress", price: 500 },
+  { date: "2025-05-11", item: "Pant", price: 300 },
+  { date: "2025-05-11", item: "Pant", price: 300 },
+  { date: "2025-05-11", item: "Shirt", price: 200 },
+  { date: "2025-05-13", item: "Saree", price: 1000 },
+  { date: "2025-05-13", item: "Blouse", price: 250 },
+  { date: "2025-05-15", item: "Saree", price: 1000 },
+  { date: "2025-05-15", item: "Saree", price: 1000 },
+  { date: "2025-05-15", item: "Blouse", price: 250 },
+  { date: "2025-05-17", item: "Dress", price: 500 },
+  { date: "2025-05-17", item: "Dress", price: 500 },
+  { date: "2025-05-17", item: "Pant", price: 300 },
+  { date: "2025-05-19", item: "Shirt", price: 200 },
+  { date: "2025-05-19", item: "Shirt", price: 200 },
+  { date: "2025-05-19", item: "Shirt", price: 200 },
+  { date: "2025-05-19", item: "Blouse", price: 250 },
+  { date: "2025-05-21", item: "Saree", price: 1000 },
+  { date: "2025-05-21", item: "Dress", price: 500 },
+  { date: "2025-05-23", item: "Pant", price: 300 },
+  { date: "2025-05-23", item: "Shirt", price: 200 },
+  { date: "2025-05-23", item: "Blouse", price: 250 },
+  { date: "2025-05-25", item: "Saree", price: 1000 },
+  { date: "2025-05-25", item: "Saree", price: 1000 },
+  { date: "2025-05-27", item: "Dress", price: 500 },
+  { date: "2025-05-27", item: "Pant", price: 300 },
+  { date: "2025-05-29", item: "Saree", price: 1000 },
+  { date: "2025-05-29", item: "Blouse", price: 250 },
+  { date: "2025-05-29", item: "Shirt", price: 200 },
+  
+  // June 2025
+  { date: "2025-06-02", item: "Shirt", price: 200 },
+  { date: "2025-06-02", item: "Pant", price: 300 },
+  { date: "2025-06-02", item: "Blouse", price: 250 },
+  { date: "2025-06-05", item: "Saree", price: 1000 },
+  { date: "2025-06-08", item: "Dress", price: 500 },
+  { date: "2025-06-08", item: "Dress", price: 500 },
+  { date: "2025-06-11", item: "Shirt", price: 200 },
+  { date: "2025-06-11", item: "Shirt", price: 200 },
+  { date: "2025-06-11", item: "Pant", price: 300 },
+  { date: "2025-06-14", item: "Saree", price: 1000 },
+  { date: "2025-06-14", item: "Blouse", price: 250 },
+  { date: "2025-06-17", item: "Pant", price: 300 },
+  { date: "2025-06-17", item: "Pant", price: 300 },
+  { date: "2025-06-17", item: "Shirt", price: 200 },
+  { date: "2025-06-20", item: "Saree", price: 1000 },
+  { date: "2025-06-20", item: "Dress", price: 500 },
+  { date: "2025-06-23", item: "Blouse", price: 250 },
+  { date: "2025-06-23", item: "Shirt", price: 200 },
+  { date: "2025-06-26", item: "Saree", price: 1000 },
+  { date: "2025-06-26", item: "Saree", price: 1000 },
+  { date: "2025-06-29", item: "Dress", price: 500 },
+  { date: "2025-06-29", item: "Pant", price: 300 },
+  
+  // July 2025
+  { date: "2025-07-02", item: "Shirt", price: 200 },
+  { date: "2025-07-02", item: "Pant", price: 300 },
+  { date: "2025-07-02", item: "Blouse", price: 250 },
+  { date: "2025-07-05", item: "Saree", price: 1000 },
+  { date: "2025-07-08", item: "Dress", price: 500 },
+  { date: "2025-07-08", item: "Dress", price: 500 },
+  { date: "2025-07-11", item: "Shirt", price: 200 },
+  { date: "2025-07-11", item: "Shirt", price: 200 },
+  { date: "2025-07-11", item: "Pant", price: 300 },
+  { date: "2025-07-14", item: "Saree", price: 1000 },
+  { date: "2025-07-14", item: "Blouse", price: 250 },
+  { date: "2025-07-17", item: "Pant", price: 300 },
+  { date: "2025-07-17", item: "Pant", price: 300 },
+  { date: "2025-07-17", item: "Shirt", price: 200 },
+  { date: "2025-07-20", item: "Saree", price: 1000 },
+  { date: "2025-07-20", item: "Dress", price: 500 },
+  { date: "2025-07-23", item: "Blouse", price: 250 },
+  { date: "2025-07-23", item: "Shirt", price: 200 },
+  { date: "2025-07-26", item: "Saree", price: 1000 },
+  { date: "2025-07-29", item: "Saree", price: 1000 },
+  { date: "2025-07-29", item: "Dress", price: 500 },
+  { date: "2025-07-29", item: "Pant", price: 300 },
+  
+  // August 2025
+  { date: "2025-08-02", item: "Shirt", price: 200 },
+  { date: "2025-08-02", item: "Pant", price: 300 },
+  { date: "2025-08-02", item: "Blouse", price: 250 },
+  { date: "2025-08-05", item: "Saree", price: 1000 },
+  { date: "2025-08-08", item: "Dress", price: 500 },
+  { date: "2025-08-08", item: "Dress", price: 500 },
+  { date: "2025-08-11", item: "Shirt", price: 200 },
+  { date: "2025-08-11", item: "Shirt", price: 200 },
+  { date: "2025-08-11", item: "Pant", price: 300 },
+  { date: "2025-08-14", item: "Saree", price: 1000 },
+  { date: "2025-08-14", item: "Blouse", price: 250 },
+  { date: "2025-08-17", item: "Pant", price: 300 },
+  { date: "2025-08-17", item: "Pant", price: 300 },
+  { date: "2025-08-17", item: "Shirt", price: 200 },
+  { date: "2025-08-20", item: "Saree", price: 1000 },
+  { date: "2025-08-20", item: "Dress", price: 500 },
+  { date: "2025-08-23", item: "Blouse", price: 250 },
+  { date: "2025-08-23", item: "Shirt", price: 200 },
+  { date: "2025-08-26", item: "Saree", price: 1000 },
+  { date: "2025-08-26", item: "Saree", price: 1000 },
+  { date: "2025-08-29", item: "Dress", price: 500 },
+  { date: "2025-08-29", item: "Pant", price: 300 },
+  
+  // September 2025
+  { date: "2025-09-02", item: "Saree", price: 1000 },
+  { date: "2025-09-02", item: "Blouse", price: 250 },
+  { date: "2025-09-02", item: "Shirt", price: 200 },
+  { date: "2025-09-04", item: "Dress", price: 500 },
+  { date: "2025-09-04", item: "Dress", price: 500 },
+  { date: "2025-09-04", item: "Pant", price: 300 },
+  { date: "2025-09-06", item: "Saree", price: 1000 },
+  { date: "2025-09-06", item: "Saree", price: 1000 },
+  { date: "2025-09-08", item: "Shirt", price: 200 },
+  { date: "2025-09-08", item: "Shirt", price: 200 },
+  { date: "2025-09-08", item: "Pant", price: 300 },
+  { date: "2025-09-08", item: "Blouse", price: 250 },
+  { date: "2025-09-10", item: "Saree", price: 1000 },
+  { date: "2025-09-10", item: "Dress", price: 500 },
+  { date: "2025-09-12", item: "Pant", price: 300 },
+  { date: "2025-09-12", item: "Pant", price: 300 },
+  { date: "2025-09-12", item: "Shirt", price: 200 },
+  { date: "2025-09-14", item: "Saree", price: 1000 },
+  { date: "2025-09-14", item: "Blouse", price: 250 },
+  { date: "2025-09-16", item: "Saree", price: 1000 },
+  { date: "2025-09-16", item: "Saree", price: 1000 },
+  { date: "2025-09-16", item: "Blouse", price: 250 },
+  { date: "2025-09-18", item: "Dress", price: 500 },
+  { date: "2025-09-18", item: "Dress", price: 500 },
+  { date: "2025-09-18", item: "Pant", price: 300 },
+  { date: "2025-09-20", item: "Shirt", price: 200 },
+  { date: "2025-09-20", item: "Shirt", price: 200 },
+  { date: "2025-09-20", item: "Shirt", price: 200 },
+  { date: "2025-09-20", item: "Blouse", price: 250 },
+  { date: "2025-09-22", item: "Saree", price: 1000 },
+  { date: "2025-09-22", item: "Dress", price: 500 },
+  { date: "2025-09-24", item: "Pant", price: 300 },
+  { date: "2025-09-24", item: "Shirt", price: 200 },
+  { date: "2025-09-24", item: "Blouse", price: 250 },
+  { date: "2025-09-26", item: "Saree", price: 1000 },
+  { date: "2025-09-26", item: "Saree", price: 1000 },
+  
+  // October 2025
+  { date: "2025-10-02", item: "Saree", price: 1000 },
+  { date: "2025-10-02", item: "Blouse", price: 250 },
+  { date: "2025-10-02", item: "Shirt", price: 200 },
+  { date: "2025-10-04", item: "Dress", price: 500 },
+  { date: "2025-10-04", item: "Dress", price: 500 },
+  { date: "2025-10-04", item: "Pant", price: 300 },
+  { date: "2025-10-06", item: "Saree", price: 1000 },
+  { date: "2025-10-06", item: "Saree", price: 1000 },
+  { date: "2025-10-08", item: "Shirt", price: 200 },
+  { date: "2025-10-08", item: "Shirt", price: 200 },
+  { date: "2025-10-08", item: "Pant", price: 300 },
+  { date: "2025-10-08", item: "Blouse", price: 250 },
+  { date: "2025-10-10", item: "Saree", price: 1000 },
+  { date: "2025-10-10", item: "Dress", price: 500 },
+  { date: "2025-10-12", item: "Pant", price: 300 },
+  { date: "2025-10-12", item: "Pant", price: 300 },
+  { date: "2025-10-12", item: "Shirt", price: 200 },
+  { date: "2025-10-14", item: "Saree", price: 1000 },
+  { date: "2025-10-14", item: "Blouse", price: 250 },
+  { date: "2025-10-16", item: "Saree", price: 1000 },
+  { date: "2025-10-16", item: "Saree", price: 1000 },
+  { date: "2025-10-16", item: "Blouse", price: 250 },
+  { date: "2025-10-18", item: "Dress", price: 500 },
+  { date: "2025-10-18", item: "Dress", price: 500 },
+  { date: "2025-10-18", item: "Pant", price: 300 },
+  { date: "2025-10-20", item: "Shirt", price: 200 },
+  { date: "2025-10-20", item: "Shirt", price: 200 },
+  { date: "2025-10-20", item: "Shirt", price: 200 },
+  { date: "2025-10-20", item: "Blouse", price: 250 },
+  { date: "2025-10-22", item: "Saree", price: 1000 },
+  { date: "2025-10-22", item: "Dress", price: 500 },
+  { date: "2025-10-24", item: "Pant", price: 300 },
+  { date: "2025-10-24", item: "Shirt", price: 200 },
+  { date: "2025-10-24", item: "Blouse", price: 250 },
+  { date: "2025-10-26", item: "Saree", price: 1000 },
+  { date: "2025-10-26", item: "Saree", price: 1000 },
+  
+  // November 2025
+  { date: "2025-11-01", item: "Saree", price: 1000 },
+  { date: "2025-11-01", item: "Blouse", price: 250 },
+  { date: "2025-11-01", item: "Shirt", price: 200 },
+  { date: "2025-11-03", item: "Dress", price: 500 },
+  { date: "2025-11-03", item: "Dress", price: 500 },
+  { date: "2025-11-03", item: "Pant", price: 300 },
+  { date: "2025-11-05", item: "Saree", price: 1000 },
+  { date: "2025-11-05", item: "Saree", price: 1000 },
+  { date: "2025-11-07", item: "Shirt", price: 200 },
+  { date: "2025-11-07", item: "Shirt", price: 200 },
+  { date: "2025-11-07", item: "Pant", price: 300 },
+  { date: "2025-11-07", item: "Blouse", price: 250 },
+  { date: "2025-11-09", item: "Saree", price: 1000 },
+  { date: "2025-11-09", item: "Dress", price: 500 },
+  { date: "2025-11-11", item: "Pant", price: 300 },
+  { date: "2025-11-11", item: "Pant", price: 300 },
+  { date: "2025-11-11", item: "Shirt", price: 200 },
+  { date: "2025-11-13", item: "Saree", price: 1000 },
+  { date: "2025-11-13", item: "Blouse", price: 250 },
+  { date: "2025-11-15", item: "Saree", price: 1000 },
+  { date: "2025-11-15", item: "Saree", price: 1000 },
+  { date: "2025-11-15", item: "Blouse", price: 250 },
+  { date: "2025-11-17", item: "Dress", price: 500 },
+  { date: "2025-11-17", item: "Dress", price: 500 },
+  { date: "2025-11-17", item: "Pant", price: 300 },
+  { date: "2025-11-19", item: "Shirt", price: 200 },
+  { date: "2025-11-19", item: "Shirt", price: 200 },
+  { date: "2025-11-19", item: "Shirt", price: 200 },
+  { date: "2025-11-19", item: "Blouse", price: 250 },
+  { date: "2025-11-21", item: "Saree", price: 1000 },
+  { date: "2025-11-21", item: "Dress", price: 500 },
+  { date: "2025-11-23", item: "Pant", price: 300 },
+  { date: "2025-11-23", item: "Shirt", price: 200 },
+  { date: "2025-11-23", item: "Blouse", price: 250 },
+  { date: "2025-11-25", item: "Saree", price: 1000 },
+  { date: "2025-11-25", item: "Saree", price: 1000 },
+  { date: "2025-11-27", item: "Dress", price: 500 },
+  { date: "2025-11-27", item: "Pant", price: 300 },
+  { date: "2025-11-29", item: "Saree", price: 1000 },
+  { date: "2025-11-29", item: "Blouse", price: 250 },
+  { date: "2025-11-29", item: "Shirt", price: 200 }
 ];
+
+// Map English to Hindi/Marathi
+const itemMapping = {
+  'Shirt': 'शर्ट',
+  'Pant': 'पैंट',
+  'Saree': 'साड़ी',
+  'Blouse': 'ब्लाउज',
+  'Dress': 'ड्रेस'
+};
 
 async function seedData() {
   try {
+    console.log('🌱 Seeding historical sales & expenses data (July 2023 - November 2025)...\n');
+    
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/didi-digital-twin');
-    console.log('✅ Connected to MongoDB');
-
-    // Get userId from command line or use default
-    const userId = process.argv[2] || 'demo-user-for-testing';
+    await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connected to MongoDB\n');
     
-    console.log(`📊 Seeding historical data for userId: ${userId}`);
-
-    // Add userId to all transactions
-    const transactionsWithUser = historicalData.map(t => ({
-      ...t,
-      userId
-    }));
-
-    // 🗑️ CLEANUP: Delete existing data before seeding to prevent duplicates
-    console.log('🗑️ Cleaning up old data...');
-    const deleteResult = await Transaction.deleteMany({ userId });
-    console.log(`   Deleted ${deleteResult.deletedCount} existing transactions`);
+    // Delete old transactions for this user
+    console.log('🗑️  Clearing old data...');
+    const deleted = await Transaction.deleteMany({ userId: USER_ID });
+    console.log(`   Deleted ${deleted.deletedCount} old transactions\n`);
     
-    // Insert transactions with explicit date preservation
-    // Use insertMany with timestamps: false to prevent default Date.now
-    const result = await Transaction.insertMany(transactionsWithUser, { 
-      timestamps: false // Don't auto-update createdAt/updatedAt
+    // Create income transactions
+    console.log('📝 Creating income transactions...');
+    let incomeCount = 0;
+    
+    for (const sale of salesData) {
+      await Transaction.create({
+        userId: USER_ID,
+        type: 'income',
+        category: 'clothing',
+        amount: sale.price,
+        description: `${itemMapping[sale.item]} बेचा`,
+        date: new Date(sale.date)
+      });
+      incomeCount++;
+      
+      if (incomeCount % 50 === 0) {
+        console.log(`   Created ${incomeCount} income transactions...`);
+      }
+    }
+    
+    console.log(`\n✅ Created ${incomeCount} income transactions!\n`);
+    
+    // Create expense transactions (monthly)
+    console.log('💸 Creating monthly expense transactions...');
+    let expenseCount = 0;
+    
+    // Generate expenses for each month from July 2023 to November 2025
+    const startDate = new Date('2023-07-01');
+    const endDate = new Date('2025-11-30');
+    
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      // Monthly expenses total: ₹10,019 to achieve ₹1.5L profit from ₹4.4L income
+      
+      // Rent - ₹4,500 on 1st of each month
+      await Transaction.create({
+        userId: USER_ID,
+        type: 'expense',
+        category: 'rent',
+        amount: 4500,
+        description: 'दुकान का किराया',
+        date: new Date(year, month, 1)
+      });
+      expenseCount++;
+      
+      // Groceries - ₹2,500 spread across month (3 transactions)
+      const groceryExpenses = [
+        { amount: 800, day: 5 },
+        { amount: 850, day: 15 },
+        { amount: 850, day: 25 }
+      ];
+      for (const grocery of groceryExpenses) {
+        await Transaction.create({
+          userId: USER_ID,
+          type: 'expense',
+          category: 'groceries',
+          amount: grocery.amount,
+          description: 'घर का राशन',
+          date: new Date(year, month, grocery.day)
+        });
+        expenseCount++;
+      }
+      
+      // Other expenses - ₹3,019 spread across month (utilities, transport, supplies)
+      const otherExpenses = [
+        { amount: 1200, desc: 'बिजली का बिल', day: 7 },
+        { amount: 900, desc: 'यात्रा खर्च', day: 12 },
+        { amount: 919, desc: 'अन्य खर्चे', day: 20 }
+      ];
+      
+      for (const expense of otherExpenses) {
+        await Transaction.create({
+          userId: USER_ID,
+          type: 'expense',
+          category: 'utilities',
+          amount: expense.amount,
+          description: expense.desc,
+          date: new Date(year, month, expense.day)
+        });
+        expenseCount++;
+      }
+      
+      // Move to next month
+      currentDate = new Date(year, month + 1, 1);
+    }
+    
+    console.log(`✅ Created ${expenseCount} expense transactions!\n`);
+    
+    // Summary by month
+    console.log('📊 Monthly Summary:');
+    console.log('='.repeat(80));
+    
+    const summary = {};
+    
+    // Summarize income
+    salesData.forEach(sale => {
+      const date = new Date(sale.date);
+      const monthKey = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      
+      if (!summary[monthKey]) {
+        summary[monthKey] = { income: 0, expenses: 0, count: 0 };
+      }
+      summary[monthKey].income += sale.price;
+      summary[monthKey].count += 1;
     });
     
-    console.log(`✅ Successfully added ${result.length} historical transactions!`);
+    // Add expenses to summary (₹10,019 per month for ₹1.5L profit target)
+    Object.keys(summary).forEach(month => {
+      summary[month].expenses = 10019; // Rent 4.5k + Groceries 2.5k + Other 3k
+    });
     
-    // Verify dates were saved correctly
-    const firstTransaction = await Transaction.findOne({ userId }).sort({ date: 1 });
-    const lastTransaction = await Transaction.findOne({ userId }).sort({ date: -1 });
-    console.log(`\n🔍 Date Verification:`);
-    console.log(`   Oldest: ${firstTransaction?.date?.toISOString().split('T')[0]}`);
-    console.log(`   Newest: ${lastTransaction?.date?.toISOString().split('T')[0]}`);
-    console.log('\n📈 Data Summary:');
-    console.log(`   Year: 2024 (Last Year)`);
-    console.log(`   Total Transactions: ${result.length}`);
-    console.log(`   Festive Season (Nov-Dec): High sales recorded`);
-    console.log(`   Wedding Season (Apr-May): Good performance`);
-    console.log(`   Regular Months: Baseline data available`);
+    Object.keys(summary).sort((a, b) => new Date(a) - new Date(b)).forEach(month => {
+      const data = summary[month];
+      const profit = data.income - data.expenses;
+      console.log(`${month.padEnd(20)} Income: ₹${String(data.income).padStart(7)} | Expenses: ₹${String(data.expenses).padStart(7)} | Profit: ₹${String(profit).padStart(7)}`);
+    });
     
-    process.exit(0);
+    const totalIncome = Object.values(summary).reduce((sum, m) => sum + m.income, 0);
+    const totalExpenses = Object.values(summary).reduce((sum, m) => sum + m.expenses, 0);
+    const totalProfit = totalIncome - totalExpenses;
+    
+    console.log('='.repeat(80));
+    console.log(`TOTAL INCOME:       ₹${totalIncome.toLocaleString('en-IN')}`);
+    console.log(`TOTAL EXPENSES:     ₹${totalExpenses.toLocaleString('en-IN')}`);
+    console.log(`TOTAL PROFIT:       ₹${totalProfit.toLocaleString('en-IN')}`);
+    console.log(`SAVINGS (20%):      ₹${Math.round(totalProfit * 0.2).toLocaleString('en-IN')}\n`);
+    
+    // Disconnect
+    await mongoose.connection.close();
+    console.log('👋 Done! Database updated with 29 months of sales & expenses (July 2023 - November 2025).');
+    
   } catch (error) {
-    console.error('❌ Error seeding data:', error);
+    console.error('❌ Error:', error);
     process.exit(1);
   }
 }
 
-// Run if called directly
-if (require.main === module) {
-  seedData();
-}
-
-module.exports = { historicalData };
+seedData();

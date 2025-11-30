@@ -1,5 +1,6 @@
-// utils/aiInsights.js - Intelligent seasonal insights generator
+// utils/aiInsights.js - Intelligent seasonal insights generator with Prophet AI
 const Transaction = require("../models/Transaction");
+const prophetAIService = require('../services/prophetAIService');
 
 /**
  * Extract specific clothing items from transaction descriptions
@@ -11,15 +12,15 @@ function extractClothingItem(description) {
   const clothingPatterns = {
     'साड़ी': /साड़ी|saree|sari/i,
     'लहंगा': /लहंगा|लेहंगा|lehenga/i,
+    'ब्लाउज': /ब्लाउज|blouse/i,
     'कुर्ती': /कुर्ती|kurti/i,
     'कुर्ता': /कुर्ता|kurta/i,
+    'शर्ट': /shirt/i,
+    'पैंट': /pant/i,
+    'ड्रेस': /dress/i,
     'दुपट्टा': /दुपट्टा|dupatta/i,
-    'ब्लाउज': /ब्लाउज|blouse/i,
     'सलवार': /सलवार|salwar/i,
     'चुड़ीदार': /चुड़ीदार|churidar/i,
-    'शर्ट': /शर्ट|shirt/i,
-    'पैंट': /पैंट|pant/i,
-    'ड्रेस': /ड्रेस|dress/i,
   };
   
   for (const [item, pattern] of Object.entries(clothingPatterns)) {
@@ -28,11 +29,12 @@ function extractClothingItem(description) {
     }
   }
   
-  return 'कपड़े'; // Generic clothing
+  return 'अन्य'; // Generic clothing
 }
 
 /**
  * Generate intelligent AI insights based on historical patterns
+ * Uses Prophet AI for ML-powered predictions + seasonal analysis
  * Compares current period with same period last year
  */
 async function generateAIInsights(userId, currentTransactions = []) {
@@ -48,10 +50,47 @@ async function generateAIInsights(userId, currentTransactions = []) {
     if (allTransactions.length === 0) {
       return [{
         type: 'info',
-        title: '� Start tracking to see insights',
+        title: '📊 Start tracking to see insights',
         message: 'Add more transactions to get personalized recommendations!',
         priority: 'low'
       }];
+    }
+    
+    // === PROPHET AI INSIGHT: ML-Powered Forecast ===
+    try {
+      console.log('🤖 Fetching Prophet AI predictions for insights...');
+      const prophetPredictions = await prophetAIService.generateDemandPredictions(userId);
+      
+      if (prophetPredictions.success && prophetPredictions.model === 'prophet_ai' && prophetPredictions.predictions?.length > 0) {
+        // Use the first FULL prediction (should be next month, not partial current month)
+        const nextMonth = prophetPredictions.predictions[0];
+        const monthName = nextMonth.month;
+        const revenue = nextMonth.predictedRevenue;
+        const demand = nextMonth.demand;
+        
+        // Skip if revenue seems too low (likely partial month data)
+        if (revenue < 5000) {
+          console.log('⚠️ Skipping Prophet insight - revenue too low (partial month)');
+        } else {
+          let demandEmoji = '📈';
+          if (demand === 'very-high') demandEmoji = '🔥';
+          else if (demand === 'high') demandEmoji = '📈';
+          else if (demand === 'medium') demandEmoji = '📊';
+          
+          insights.push({
+            type: 'prophet',
+            title: `${demandEmoji} Prophet AI: ${monthName} Forecast`,
+            message: `AI predicts ₹${revenue.toLocaleString('en-IN')} revenue next month with ${demand} demand.${nextMonth.festival ? ' ' + nextMonth.festival + ' approaching!' : ''}`,
+            priority: 'high',
+            model: 'prophet_ai'
+          });
+          
+          console.log('✅ Added Prophet AI insight');
+        }
+      }
+    } catch (prophetError) {
+      console.log('⚠️ Prophet AI insight generation failed:', prophetError.message);
+      // Continue with other insights even if Prophet fails
     }
     
     // Separate historical (last year) and current year data
@@ -193,7 +232,12 @@ async function generateAIInsights(userId, currentTransactions = []) {
       });
     }
     
-    return insights.slice(0, 4); // Return top 4 insights
+    // Prioritize Prophet AI insights first, then others
+    const prophetInsights = insights.filter(i => i.model === 'prophet_ai');
+    const otherInsights = insights.filter(i => i.model !== 'prophet_ai');
+    const sortedInsights = [...prophetInsights, ...otherInsights];
+    
+    return sortedInsights.slice(0, 4); // Return top 4 insights with Prophet first
     
   } catch (error) {
     console.error('❌ Error generating AI insights:', error);

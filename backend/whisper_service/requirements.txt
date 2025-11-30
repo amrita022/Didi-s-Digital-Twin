@@ -12,7 +12,12 @@ flask-cors==4.0.0
 numpy>=1.24.0
 torch>=2.0.0
 torchaudio>=2.0.0
-soundfile>=0.12.0  # ← ADD THIS LINE
-librosa>=0.10.0    # ← ALSO ADD THIS FOR BETTER AUDIO SUPPORT
+soundfile>=0.12.0
+librosa>=0.10.0
+
+# Demand Forecasting with Prophet
+prophet>=1.1.5
+pandas>=2.0.0
+
 # Additional dependencies
 requests>=2.31.0

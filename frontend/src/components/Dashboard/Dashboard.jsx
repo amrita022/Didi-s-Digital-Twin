@@ -458,13 +458,21 @@ const Dashboard = () => {
 
           {/* AI Recommendations */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                <Sparkles size={20} className="text-blue-500" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                  <Sparkles size={20} className="text-blue-500" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {language === 'hindi' ? 'एआई सिफारिशें' : 'AI Recommendations'}
+                </h2>
               </div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {language === 'hindi' ? 'एआई सिफारिशें' : 'AI Recommendations'}
-              </h2>
+              {dashboard?.aiInsights && dashboard.aiInsights.some(i => i.model === 'prophet_ai') && (
+                <span className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full text-xs font-medium text-purple-700 border border-purple-300">
+                  <Sparkles size={12} />
+                  Prophet AI
+                </span>
+              )}
             </div>
             <div className="space-y-3">
               {dashboard?.aiInsights && dashboard.aiInsights.length > 0 ? (
@@ -472,7 +480,9 @@ const Dashboard = () => {
                   <div 
                     key={`ai-insight-${index}`} 
                     className={`p-4 rounded-lg border ${
-                      insight.priority === 'high' 
+                      insight.model === 'prophet_ai'
+                        ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-200'
+                        : insight.priority === 'high' 
                         ? 'bg-orange-50 border-orange-200' 
                         : insight.priority === 'medium'
                         ? 'bg-blue-50 border-blue-200'

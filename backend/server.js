@@ -6,7 +6,7 @@ const helmet = require('helmet');
 require('dotenv').config();
 const aiService = require('./services/aiService'); 
 const dbService = require('./services/dbService'); 
-
+const prophetAIService = require('./services/prophetAIService');
 // Import models
 const User = require('./models/User');
 const Transaction = require('./models/Transaction');
@@ -129,8 +129,8 @@ app.get('/api/dashboard', async (req, res) => {
     // But calculate income/expenses/profit dynamically from transactions
     const savedDashboard = user.dashboard || {};
     
-    // Calculate cumulative savings (30% of all-time profit, or use saved value)
-    const calculatedSavings = Math.max(0, Math.round(allTimeTotals.profit * 0.3));
+    // Calculate cumulative savings (20% of all-time profit, or use saved value)
+    const calculatedSavings = Math.max(0, Math.round(allTimeTotals.profit * 0.2));
     const totalSavings = savedDashboard.totalSavings !== undefined && savedDashboard.totalSavings > 0 
       ? savedDashboard.totalSavings 
       : calculatedSavings;
@@ -143,7 +143,7 @@ app.get('/api/dashboard', async (req, res) => {
     console.log('💸 Calculated Month Expenses:', monthTotals.totalExpenses);
     console.log('🎯 Calculated Month Profit:', monthTotals.profit);
     console.log('💎 All-Time Profit:', allTimeTotals.profit);
-    console.log('🏦 Calculated Savings (30%):', calculatedSavings);
+    console.log('🏦 Calculated Savings (20%):', calculatedSavings);
     console.log('🎯 Total Savings (used):', totalSavings);
     console.log('📈 Health Score:', healthScore);
     
@@ -229,24 +229,33 @@ app.get('/api/dashboard', async (req, res) => {
 const { generateDemandPredictions } = require('./utils/demandPredictions');
 
 app.get('/api/demand-predictions', async (req, res) => {
-  try {
-    const { userId } = req.query;
-    
-    if (!userId) {
-      return res.status(400).json({ success: false, error: 'User ID required' });
+    try {
+        const { userId } = req.query;
+        const { useProphet } = req.query; // Optional: ?useProphet=true to use Prophet
+        
+        if (!userId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'User ID required' 
+            });
+        }
+
+        console.log(`🎯 Generating demand predictions for: ${userId}`);
+        
+        // Use Prophet if requested, otherwise use rule-based
+        const predictions = useProphet === 'true' 
+            ? await prophetAIService.generateDemandPredictions(userId)
+            : await generateDemandPredictions(userId);
+        
+        res.json(predictions);
+    } catch (error) {
+        console.error('❌ Demand predictions error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
     }
-
-    console.log('📈 Generating demand predictions for user:', userId);
-
-    const predictions = await generateDemandPredictions(userId);
-    
-    res.json(predictions);
-  } catch (error) {
-    console.error('❌ Demand predictions error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
 });
-
 // ======================
 // PRICING RECOMMENDATIONS
 // ======================

@@ -5,15 +5,18 @@ const Transaction = require('../models/Transaction');
  * Extract clothing item from description
  */
 function extractClothingItem(description) {
-  if (!description) return 'कपड़े';
+  if (!description) return 'अन्य';
   
   const clothingPatterns = {
     'साड़ी': /साड़ी|saree|sari/i,
     'लहंगा': /लहंगा|लेहंगा|lehenga/i,
+    'ब्लाउज': /ब्लाउज|blouse/i,
     'कुर्ती': /कुर्ती|kurti/i,
     'कुर्ता': /कुर्ता|kurta/i,
+    'शर्ट': /शर्ट|shirt/i,
+    'पैंट': /पैंट|pant/i,
+    'ड्रेस': /ड्रेस|dress/i,
     'दुपट्टा': /दुपट्टा|dupatta/i,
-    'ब्लाउज': /ब्लाउज|blouse/i,
     'सलवार': /सलवार|salwar/i,
   };
   
@@ -23,7 +26,7 @@ function extractClothingItem(description) {
     }
   }
   
-  return 'कपड़े';
+  return 'अन्य';
 }
 
 /**
@@ -159,14 +162,30 @@ async function generateDemandPredictions(userId) {
         max: Math.round(predictedRevenue * 1.1)
       };
       
-      // Stock recommendations (top 3 items)
-      const stockRecommendations = lastYearData.topItems.slice(0, 3).map(item => ({
-        item: item.item,
-        recommendedStock: Math.ceil(item.quantity * multiplier),
-        expectedSales: item.quantity,
-        avgPrice: item.avgPrice,
-        expectedRevenue: Math.round(item.revenue * multiplier)
-      }));
+      // Stock recommendations with profit analysis (top 3 items)
+      // Filter out 'अन्य' and get top 3 actual named items
+      // If less than 3 named items, pad with remaining items
+      const profitMargin = 0.35;
+      const namedItems = lastYearData.topItems.filter(item => item.item !== 'अन्य');
+      const itemsToRecommend = namedItems.length >= 3 ? namedItems.slice(0, 3) : namedItems;
+      
+      const stockRecommendations = itemsToRecommend.map(item => {
+        const recommendedQty = Math.ceil(item.quantity * multiplier);
+        const expectedRevenue = Math.round(item.revenue * multiplier);
+        const expectedProfit = Math.round(expectedRevenue * profitMargin);
+        const investmentNeeded = Math.round(expectedRevenue * (1 - profitMargin));
+        
+        return {
+          item: item.item,
+          recommendedStock: recommendedQty,
+          expectedSales: item.quantity,
+          avgPrice: item.avgPrice,
+          expectedRevenue,
+          expectedProfit,
+          investmentNeeded,
+          profitMargin: `${Math.round(profitMargin * 100)}%`
+        };
+      });
       
       predictions.push({
         month: monthName,
@@ -181,7 +200,7 @@ async function generateDemandPredictions(userId) {
         confidence,
         stockRecommendations,
         lastYearRevenue: lastYearData.totalRevenue,
-        reasoning: `Based on ${monthName} ${lastYear} sales: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}. ${seasonalInfo.festival ? seasonalInfo.festival + ' season.' : ''}`
+        reasoning: `Based on ${monthName} ${lastYear} sales: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' approaching!' : ''}`
       });
     }
     
@@ -190,22 +209,28 @@ async function generateDemandPredictions(userId) {
     if (predictions.length > 0) {
       const nextMonth = predictions[0];
       if (nextMonth.demand === 'very-high') {
+        const topItem = nextMonth.stockRecommendations[0]?.item || 'तैयार माल';
         alert = {
           type: 'high',
-          message: `${nextMonth.festival || nextMonth.season} demand will be very high in ${nextMonth.month}. Stock up on ${nextMonth.stockRecommendations[0]?.item || 'popular items'} now!`
+          message: `${nextMonth.festival || nextMonth.season} demand will be very high in ${nextMonth.month}. Stock up on ${topItem} now!`
         };
       } else if (nextMonth.demand === 'high') {
+        const topItem = nextMonth.stockRecommendations[0]?.item || 'top sellers';
         alert = {
           type: 'medium',
-          message: `${nextMonth.month} shows good demand potential. Prepare stock of ${nextMonth.stockRecommendations[0]?.item || 'top sellers'}.`
+          message: `${nextMonth.month} shows good demand potential. Prepare stock of ${topItem}.`
         };
       }
     }
+    
+    // Generate dynamic market insights
+    const marketInsights = await generateMarketInsights(userId);
     
     return {
       success: true,
       predictions,
       alert,
+      marketInsights,
       generatedAt: new Date()
     };
     
@@ -217,6 +242,131 @@ async function generateDemandPredictions(userId) {
       predictions: []
     };
   }
+}
+
+/**
+ * Generate dynamic market insights from historical data
+ */
+async function generateMarketInsights(userId) {
+  try {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Get all transactions for analysis
+    const allTransactions = await Transaction.find({
+      userId,
+      type: 'income',
+      category: 'clothing'
+    });
+    
+    if (allTransactions.length < 30) {
+      return getDefaultInsights();
+    }
+    
+    // Insight 1: Best selling items in peak season
+    const peakMonths = [3, 4, 11]; // Apr, May, Dec
+    const peakSales = allTransactions.filter(t => {
+      const month = new Date(t.date).getMonth();
+      return peakMonths.includes(month);
+    });
+    
+    const peakItems = {};
+    peakSales.forEach(t => {
+      const item = extractClothingItem(t.description);
+      if (item !== 'अन्य') {
+        peakItems[item] = (peakItems[item] || 0) + t.amount;
+      }
+    });
+    
+    const topPeakItems = Object.entries(peakItems)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([item]) => item);
+    
+    // Insight 2: Festive season boost calculation
+    const festiveSales = allTransactions.filter(t => {
+      const month = new Date(t.date).getMonth();
+      return month === 10 || month === 11; // Nov-Dec
+    });
+    
+    const regularSales = allTransactions.filter(t => {
+      const month = new Date(t.date).getMonth();
+      return month >= 6 && month <= 8; // Jul-Sep (regular)
+    });
+    
+    const festiveAvg = festiveSales.length > 0 
+      ? festiveSales.reduce((sum, t) => sum + t.amount, 0) / festiveSales.length 
+      : 0;
+    const regularAvg = regularSales.length > 0
+      ? regularSales.reduce((sum, t) => sum + t.amount, 0) / regularSales.length
+      : 0;
+    
+    const festiveBoost = regularAvg > 0 
+      ? Math.round(((festiveAvg - regularAvg) / regularAvg) * 100)
+      : 120;
+    
+    // Insight 3: Best profit margins by item
+    const itemStats = {};
+    allTransactions.forEach(t => {
+      const item = extractClothingItem(t.description);
+      if (item !== 'अन्य') {
+        if (!itemStats[item]) {
+          itemStats[item] = { total: 0, count: 0 };
+        }
+        itemStats[item].total += t.amount;
+        itemStats[item].count += 1;
+      }
+    });
+    
+    const highValueItem = Object.entries(itemStats)
+      .map(([item, stats]) => ({
+        item,
+        avgPrice: Math.round(stats.total / stats.count)
+      }))
+      .sort((a, b) => b.avgPrice - a.avgPrice)[0];
+    
+    return {
+      weddingSeason: {
+        title: 'Wedding Season',
+        description: topPeakItems.length > 0
+          ? `Dec & Apr-May see highest demand for ${topPeakItems.join(' and ')}`
+          : 'Peak wedding season drives highest sales in Apr-May & Dec'
+      },
+      festive: {
+        title: 'Festive Period',
+        description: festiveBoost > 0
+          ? `Diwali (Nov-Dec) boosts sales by ${festiveBoost}% compared to regular months`
+          : 'Festive season shows increased customer demand'
+      },
+      stockPlanning: {
+        title: 'Stock Planning',
+        description: highValueItem
+          ? `Focus on ${highValueItem.item} (avg ₹${highValueItem.avgPrice}) for better profit margins`
+          : 'Order inventory 1 month before peak seasons for best pricing'
+      }
+    };
+    
+  } catch (error) {
+    console.error('Error generating market insights:', error);
+    return getDefaultInsights();
+  }
+}
+
+function getDefaultInsights() {
+  return {
+    weddingSeason: {
+      title: 'Wedding Season',
+      description: 'Dec & Apr-May typically see highest demand'
+    },
+    festive: {
+      title: 'Festive Period',
+      description: 'Festive seasons boost sales significantly'
+    },
+    stockPlanning: {
+      title: 'Stock Planning',
+      description: 'Order inventory 1 month before peak seasons'
+    }
+  };
 }
 
 module.exports = {
