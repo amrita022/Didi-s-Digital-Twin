@@ -10,11 +10,14 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import useStore from '../../store/useStore';
+import { getTranslation } from '../../utils/translations';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
 const DemandPredictions = () => {
   const { user } = useAuth();
+  const { language } = useStore();
   const [predictions, setPredictions] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,13 +59,13 @@ const DemandPredictions = () => {
   };
 
   const getDemandLabel = (demand) => {
-    switch (demand) {
-      case 'very-high': return 'बहुत अधिक';
-      case 'high': return 'अधिक';
-      case 'medium': return 'मध्यम';
-      case 'low': return 'कम';
-      default: return demand;
-    }
+    const labels = {
+      'very-high': getTranslation('veryHigh', language),
+      'high': getTranslation('high', language),
+      'medium': getTranslation('medium', language),
+      'low': getTranslation('low', language)
+    };
+    return labels[demand] || demand;
   };
 
   const getWeatherIcon = (weather) => {
@@ -129,7 +132,7 @@ const DemandPredictions = () => {
                   </span>
                 )}
               </div>
-              <p className="text-white/90">मौसम और त्योहारों के आधार पर मांग का पूर्वानुमान</p>
+              <p className="text-white/90">{getTranslation('demandForecast', language)}</p>
             </div>
           </div>
           <button
