@@ -69,9 +69,9 @@ const PricingAdvisor = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔄 Fetching pricing recommendations for:', user.uid);
+      console.log('🔄 Fetching pricing recommendations for:', user.uid, 'Language:', language);
       
-      const response = await fetch(`http://localhost:5002/api/pricing-recommendations?userId=${user.uid}`);
+      const response = await fetch(`http://localhost:5002/api/pricing-recommendations?userId=${user.uid}&language=${language}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -102,7 +102,7 @@ const PricingAdvisor = () => {
       setLoading(false);
       setError('कृपया लॉगिन करें');
     }
-  }, [user]);
+  }, [user, language]);
 
   // Safety: ensure products is always an array with proper validation
   let products = [];

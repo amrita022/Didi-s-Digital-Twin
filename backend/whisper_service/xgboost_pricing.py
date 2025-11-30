@@ -171,7 +171,7 @@ class PricingAdvisor:
         
         return float(predicted_price)
     
-    def generate_recommendations(self, transactions):
+    def generate_recommendations(self, transactions, language='hindi'):
         """Generate comprehensive pricing recommendations"""
         # Train model
         training_result = self.train_model(transactions)
@@ -291,12 +291,18 @@ class PricingAdvisor:
         total_potential = sum(r['potentialMonthlyIncrease'] for r in recommendations)
         avg_underpricing = np.mean([r['percentDifference'] for r in recommendations if r['percentDifference'] > 0])
         
+        # Generate message in appropriate language
+        if language == 'english':
+            message = f"According to XGBoost model ({training_result['test_r2']:.2%} accuracy), adjusting prices could yield ₹{total_potential:.0f}/month additional profit."
+        else:
+            message = f"XGBoost मॉडल ({training_result['test_r2']:.2%} सटीकता) के अनुसार कीमतें समायोजित करने से ₹{total_potential:.0f}/माह अतिरिक्त लाभ हो सकता है।"
+        
         insights = {
             'totalPotentialIncrease': float(total_potential),
             'averageUnderpricing': float(avg_underpricing) if not np.isnan(avg_underpricing) else 0,
             'modelAccuracy': float(training_result['test_r2']),
             'itemsAnalyzed': len(recommendations),
-            'message': f"XGBoost मॉडल ({training_result['test_r2']:.2%} सटीकता) के अनुसार कीमतें समायोजित करने से ₹{total_potential:.0f}/माह अतिरिक्त लाभ हो सकता है।"
+            'message': message
         }
         
         return {
@@ -323,14 +329,26 @@ def main():
     # Parse transactions from command line argument or file
     try:
         transactions_arg = sys.argv[1]
+        language = 'hindi'  # Default language
         
         # Check if argument is a file path (starts with @)
         if transactions_arg.startswith('@'):
             filepath = transactions_arg[1:]
             with open(filepath, 'r', encoding='utf-8') as f:
-                transactions = json.load(f)
+                data = json.load(f)
+                # Check if data has language field
+                if isinstance(data, dict) and 'language' in data:
+                    language = data.get('language', 'hindi')
+                    transactions = data.get('transactions', [])
+                else:
+                    transactions = data
         else:
-            transactions = json.loads(transactions_arg)
+            data = json.loads(transactions_arg)
+            if isinstance(data, dict) and 'language' in data:
+                language = data.get('language', 'hindi')
+                transactions = data.get('transactions', [])
+            else:
+                transactions = data
             
     except Exception as e:
         print(json.dumps({
@@ -341,7 +359,7 @@ def main():
     
     # Create advisor and generate recommendations
     advisor = PricingAdvisor()
-    result = advisor.generate_recommendations(transactions)
+    result = advisor.generate_recommendations(transactions, language)
     
     # Output JSON result with UTF-8 encoding
     if sys.stdout.encoding != 'utf-8':

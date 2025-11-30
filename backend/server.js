@@ -293,21 +293,22 @@ const { generateXGBoostPricingRecommendations } = require('./services/xgboostPri
 
 app.get('/api/pricing-recommendations', async (req, res) => {
   try {
-    const { userId, useXGBoost } = req.query;
+    const { userId, useXGBoost, language } = req.query;
     
     if (!userId) {
       return res.status(400).json({ success: false, error: 'userId is required' });
     }
 
-    console.log(`💰 Generating pricing recommendations for: ${userId} (XGBoost: ${useXGBoost !== 'false'})`);
+    const userLanguage = language || 'hindi'; // Default to Hindi
+    console.log(`💰 Generating pricing recommendations for: ${userId} (XGBoost: ${useXGBoost !== 'false'}, Language: ${userLanguage})`);
 
     // Use XGBoost by default, fallback to rule-based if specified
     let recommendations;
     if (useXGBoost === 'false') {
       const { generatePricingRecommendations } = require('./utils/pricingAdvisor');
-      recommendations = await generatePricingRecommendations(userId);
+      recommendations = await generatePricingRecommendations(userId, userLanguage);
     } else {
-      recommendations = await generateXGBoostPricingRecommendations(userId);
+      recommendations = await generateXGBoostPricingRecommendations(userId, userLanguage);
     }
     
     res.json({

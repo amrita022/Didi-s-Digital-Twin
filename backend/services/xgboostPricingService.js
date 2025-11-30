@@ -6,7 +6,7 @@ const Transaction = require('../models/Transaction');
 /**
  * Generate pricing recommendations using XGBoost ML model
  */
-async function generateXGBoostPricingRecommendations(userId) {
+async function generateXGBoostPricingRecommendations(userId, language = 'hindi') {
   try {
     console.log('🤖 Generating XGBoost pricing recommendations for:', userId);
     
@@ -18,13 +18,16 @@ async function generateXGBoostPricingRecommendations(userId) {
     }).sort({ date: -1 }).limit(500); // Limit to last 500 transactions for performance
 
     if (!salesTransactions.length) {
+      const noDataMessage = language === 'english' 
+        ? 'No sales data found. Add transactions.'
+        : 'कोई बिक्री डेटा नहीं मिला। लेनदेन जोड़ें।';
       return {
         success: false,
         error: 'No sales data found',
         products: [],
         insights: {
           totalPotentialIncrease: 0,
-          message: 'कोई बिक्री डेटा नहीं मिला। लेनदेन जोड़ें।'
+          message: noDataMessage
         }
       };
     }
@@ -40,12 +43,12 @@ async function generateXGBoostPricingRecommendations(userId) {
     }));
 
     // Call Python XGBoost service
-    const result = await callXGBoostService(transactionData);
+    const result = await callXGBoostService(transactionData, language);
 
     if (!result.success) {
       console.error('❌ XGBoost service error:', result.error);
       // Fallback to rule-based recommendations
-      return generateFallbackRecommendations(salesTransactions);
+      return generateFallbackRecommendations(salesTransactions, language);
     }
 
     console.log('✅ XGBoost recommendations generated successfully');
@@ -71,14 +74,14 @@ async function generateXGBoostPricingRecommendations(userId) {
       category: 'clothing'
     }).sort({ date: -1 });
 
-    return generateFallbackRecommendations(salesTransactions);
+    return generateFallbackRecommendations(salesTransactions, language);
   }
 }
 
 /**
  * Call Python XGBoost service
  */
-function callXGBoostService(transactions) {
+function callXGBoostService(transactions, language = 'hindi') {
   return new Promise((resolve, reject) => {
     const fs = require('fs');
     const os = require('os');
@@ -89,11 +92,15 @@ function callXGBoostService(transactions) {
     // Use venv Python if available, otherwise system Python
     const pythonCmd = require('fs').existsSync(venvPython) ? venvPython : 'python';
     
-    // Write transactions to temp file (avoid command line length limits)
+    // Write transactions and language to temp file (avoid command line length limits)
     const tempFile = path.join(os.tmpdir(), `xgboost_data_${Date.now()}.json`);
     
     try {
-      fs.writeFileSync(tempFile, JSON.stringify(transactions), 'utf8');
+      // Include language in data sent to Python
+      fs.writeFileSync(tempFile, JSON.stringify({
+        transactions: transactions,
+        language: language
+      }), 'utf8');
     } catch (error) {
       resolve({
         success: false,
@@ -167,9 +174,9 @@ function callXGBoostService(transactions) {
 }
 
 /**
- * Fallback to rule-based recommendations if XGBoost fails
+ * Fallback rule-based recommendations (when XGBoost fails)
  */
-function generateFallbackRecommendations(salesTransactions) {
+function generateFallbackRecommendations(salesTransactions, language = 'hindi') {
   console.log('⚠️ Using fallback rule-based recommendations');
   
   if (!salesTransactions.length) {
@@ -312,21 +319,24 @@ function generateFallbackRecommendations(salesTransactions) {
     });
   }
   
-  const totalPotential = recommendations.reduce((sum, r) => sum + r.potentialMonthlyIncrease, 0);
+    const totalPotential = recommendations.reduce((sum, r) => sum + r.potentialMonthlyIncrease, 0);
+  
+  // Generate bilingual fallback message
+  const fallbackMessage = language === 'english'
+    ? `Adjusting prices could yield ₹${totalPotential}/month additional profit.`
+    : `कीमतें समायोजित करने से ₹${totalPotential}/माह अतिरिक्त लाभ हो सकता है।`;
   
   return {
     success: true,
     products: recommendations.sort((a, b) => b.potentialMonthlyIncrease - a.potentialMonthlyIncrease),
     insights: {
       totalPotentialIncrease: totalPotential,
-      message: `कीमतें समायोजित करने से ₹${totalPotential}/माह अतिरिक्त लाभ हो सकता है।`,
+      message: fallbackMessage,
       averageUnderpricing: 0
     },
     method: 'fallback',
     totalProducts: recommendations.length
   };
-}
-
-module.exports = {
+}module.exports = {
   generateXGBoostPricingRecommendations
 };

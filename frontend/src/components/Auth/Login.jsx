@@ -238,7 +238,7 @@ const Login = () => {
 
             {/* Signup Link */}
             <div className="text-center">
-              <p className="text-gray-600 mb-3">New to Didi's Digital Twin?</p>
+              <p className="text-gray-600 mb-3">New to Didi's Digital Sathi?</p>
               <Link
                 to="/signup"
                 className="text-orange-600 hover:text-pink-600 font-bold text-lg underline decoration-2 underline-offset-4 transition-colors"
