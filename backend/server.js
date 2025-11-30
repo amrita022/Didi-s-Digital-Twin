@@ -287,18 +287,28 @@ app.get('/api/analytics', async (req, res) => {
 });
 
 // ======================
-// PRICING RECOMMENDATIONS
+// PRICING RECOMMENDATIONS (XGBoost)
 // ======================
+const { generateXGBoostPricingRecommendations } = require('./services/xgboostPricingService');
+
 app.get('/api/pricing-recommendations', async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, useXGBoost } = req.query;
     
     if (!userId) {
       return res.status(400).json({ success: false, error: 'userId is required' });
     }
 
-    const { generatePricingRecommendations } = require('./utils/pricingAdvisor');
-    const recommendations = await generatePricingRecommendations(userId);
+    console.log(`💰 Generating pricing recommendations for: ${userId} (XGBoost: ${useXGBoost !== 'false'})`);
+
+    // Use XGBoost by default, fallback to rule-based if specified
+    let recommendations;
+    if (useXGBoost === 'false') {
+      const { generatePricingRecommendations } = require('./utils/pricingAdvisor');
+      recommendations = await generatePricingRecommendations(userId);
+    } else {
+      recommendations = await generateXGBoostPricingRecommendations(userId);
+    }
     
     res.json({
       success: true,

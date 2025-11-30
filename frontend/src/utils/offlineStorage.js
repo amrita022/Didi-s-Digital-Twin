@@ -114,15 +114,19 @@ class OfflineStorage {
       const tx = this.db.transaction([STORE_NAME], 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const index = store.index('synced');
-      const request = index.getAll(false);
+      
+      // Use IDBKeyRange for proper key query
+      const range = IDBKeyRange.only(false);
+      const request = index.getAll(range);
 
       request.onsuccess = () => {
-        resolve(request.result);
+        resolve(request.result || []);
       };
 
       request.onerror = () => {
         console.error('❌ Failed to get unsynced transactions:', request.error);
-        reject(request.error);
+        // Resolve with empty array instead of rejecting to prevent app crash
+        resolve([]);
       };
     });
   }

@@ -10,6 +10,45 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('PricingAdvisor Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
+            <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+            <h3 className="text-center text-red-700 font-bold mb-2">त्रुटि हुई</h3>
+            <p className="text-center text-red-600 text-sm">
+              {this.state.error?.message || 'कुछ गलत हो गया'}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+            >
+              पेज रीफ्रेश करें
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const PricingAdvisor = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -17,30 +56,72 @@ const PricingAdvisor = () => {
   const [error, setError] = useState(null);
 
   const fetchPricingRecommendations = async () => {
+    if (!user?.uid) {
+      console.log('⏳ Waiting for user authentication...');
+      setLoading(false);
+      setError('कृपया लॉगिन करें');
+      return;
+    }
+
     try {
       setLoading(true);
+      setError(null);
+      console.log('🔄 Fetching pricing recommendations for:', user.uid);
+      
       const response = await fetch(`http://localhost:5002/api/pricing-recommendations?userId=${user.uid}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('📊 Pricing API Response:', data);
       
       if (data.success) {
         setPricingData(data);
+        setError(null);
       } else {
         setError(data.error || 'Failed to fetch recommendations');
       }
     } catch (err) {
-      console.error('Error fetching pricing recommendations:', err);
-      setError('Unable to load pricing recommendations');
+      console.error('❌ Error fetching pricing recommendations:', err);
+      setError('सर्वर से कनेक्ट नहीं हो पा रहा है। कृपया सुनिश्चित करें कि सर्वर चल रहा है।');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('🔍 Auth state:', { user: user?.uid, loading });
     if (user?.uid) {
       fetchPricingRecommendations();
+    } else if (user === null) {
+      setLoading(false);
+      setError('कृपया लॉगिन करें');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Safety: ensure products is always an array with proper validation
+  let products = [];
+  let insights = {};
+  
+  try {
+    if (pricingData && typeof pricingData === 'object') {
+      products = Array.isArray(pricingData.products) ? pricingData.products : [];
+      insights = pricingData.insights || {};
+    }
+  } catch (err) {
+    console.error('❌ Error parsing pricing data:', err);
+    products = [];
+    insights = {};
+  }
+
+  console.log('🔍 Render state:', { 
+    loading, 
+    error, 
+    productsCount: products.length, 
+    hasInsights: !!insights.totalPotentialIncrease 
+  });
 
   const getPriorityBadge = (priority) => {
     const badges = {
@@ -78,15 +159,45 @@ const PricingAdvisor = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <p className="text-center text-red-700">{error}</p>
+          <p className="text-center text-red-700 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchPricingRecommendations();
+            }}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+          >
+            फिर से कोशिश करें
+          </button>
         </div>
       </div>
     );
   }
 
-  const { products = [], insights } = pricingData || {};
+  // Final safety check before rendering
+  if (!pricingData && !loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 max-w-md">
+          <AlertCircle className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+          <p className="text-center text-yellow-700 mb-4">कोई डेटा उपलब्ध नहीं है</p>
+          <button
+            onClick={() => {
+              setLoading(true);
+              fetchPricingRecommendations();
+            }}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+          >
+            लोड करें
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  return (
+  try {
+    return (
     <div className="space-y-6">
       {/* Header */}
       <div className="mb-8">
@@ -99,7 +210,7 @@ const PricingAdvisor = () => {
       </div>
 
       {/* AI Insight Banner */}
-      {insights && insights.potentialIncrease > 0 && (
+      {insights && ((insights.totalPotentialIncrease || 0) > 0 || (insights.potentialIncrease || 0) > 0) && (
         <div className="bg-gradient-to-r from-orange-400 to-amber-500 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-start gap-3">
             <Lightbulb className="h-6 w-6 flex-shrink-0 mt-1" />
@@ -108,7 +219,7 @@ const PricingAdvisor = () => {
                 💡 मूल्य निर्धारण अंतर्दृष्टि
               </h3>
               <p className="text-sm">
-                {insights.message}
+                {insights.message || 'मूल्य निर्धारण सिफारिशें उपलब्ध हैं'}
               </p>
             </div>
           </div>
@@ -134,64 +245,93 @@ const PricingAdvisor = () => {
       {/* Products List */}
       {products.length > 0 && (
         <div className="space-y-4">
-          {products.map((product, index) => (
-            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    {getPriorityIcon(product.priority)}
-                    <h3 className="font-bold text-xl text-gray-900">
-                      {product.name}
-                    </h3>
-                    {getPriorityBadge(product.priority)}
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-600 mb-1">वर्तमान मूल्य</p>
-                      <p className="text-xl font-bold text-gray-900">₹{product.currentPrice.toLocaleString('en-IN')}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {product.totalSales} बिक्री
-                      </p>
-                    </div>
-                    <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                      <p className="text-xs text-gray-600 mb-1">एआई सुझाव</p>
-                      <p className="text-xl font-bold text-green-600">₹{product.suggestedPrice.toLocaleString('en-IN')}</p>
-                      {product.percentDifference > 0 && (
-                        <p className="text-xs text-green-600 mt-1 font-semibold">
-                          +{product.percentDifference}% बढ़ाएं
-                        </p>
-                      )}
-                    </div>
-                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                      <p className="text-xs text-gray-600 mb-1">प्रतियोगी औसत</p>
-                      <p className="text-xl font-bold text-blue-600">₹{product.competitorPrice.toLocaleString('en-IN')}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {product.optimalMargin}% मार्जिन
-                      </p>
-                    </div>
-                  </div>
+          {products.map((product, index) => {
+            try {
+              // Safely extract all values with defaults
+              const name = product?.name || product?.itemName || 'अज्ञात';
+              const currentPrice = Number(product?.currentPrice) || 0;
+              const suggestedPrice = Number(product?.suggestedPrice) || 0;
+              const totalSales = Number(product?.totalSales) || 0;
+              const percentDiff = Number(product?.percentDifference) || 0;
+              const potentialIncrease = Number(product?.potentialMonthlyIncrease) || 0;
+              const reason = product?.reason || 'कोई कारण नहीं';
+              const priority = product?.priority || 'low';
 
-                  <div className="flex items-start gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900 font-medium mb-1">
-                        {product.reason}
-                      </p>
-                      {product.potentialMonthlyIncrease > 0 && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                          <span className="text-sm text-green-600 font-semibold">
-                            संभावित लाभ वृद्धि: ₹{product.potentialMonthlyIncrease.toLocaleString('en-IN')}/माह
-                          </span>
-                        </div>
-                      )}
+              return (
+              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      {getPriorityIcon(priority)}
+                      <h3 className="font-bold text-xl text-gray-900">
+                        {name}
+                      </h3>
+                      {getPriorityBadge(priority)}
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">वर्तमान मूल्य</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          ₹{currentPrice.toLocaleString('en-IN')}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {totalSales} बिक्री
+                        </p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                        <p className="text-xs text-gray-600 mb-1">एआई सुझाव</p>
+                        <p className="text-xl font-bold text-green-600">
+                          ₹{Math.round(suggestedPrice).toLocaleString('en-IN')}
+                        </p>
+                        {percentDiff > 0 && (
+                          <p className="text-xs text-green-600 mt-1 font-semibold">
+                            +{Math.round(percentDiff)}% बढ़ाएं
+                          </p>
+                        )}
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                        <p className="text-xs text-gray-600 mb-1">संभावित लाभ</p>
+                        <p className="text-xl font-bold text-blue-600">
+                          ₹{potentialIncrease.toLocaleString('en-IN')}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          प्रति माह
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900 font-medium mb-1">
+                          {reason}
+                        </p>
+                        {potentialIncrease > 0 && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <TrendingUp className="h-4 w-4 text-green-600" />
+                            <span className="text-sm text-green-600 font-semibold">
+                              संभावित लाभ वृद्धि: ₹{potentialIncrease.toLocaleString('en-IN')}/माह
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+              );
+            } catch (itemError) {
+              console.error(`❌ Error rendering product ${index}:`, itemError, product);
+              return (
+                <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <p className="text-yellow-700 text-sm">
+                    आइटम #{index + 1} लोड करने में त्रुटि
+                  </p>
+                </div>
+              );
+            }
+          })}
         </div>
       )}
 
@@ -202,17 +342,23 @@ const PricingAdvisor = () => {
             💰 लाभ मार्जिन विश्लेषण
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-100 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">वर्तमान मार्जिन</p>
-              <p className="text-3xl font-bold text-gray-900">{insights.currentMargin}%</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-sm text-gray-600 mb-1">सुझाया गया मार्जिन</p>
-              <p className="text-3xl font-bold text-green-600">{insights.suggestedMargin}%</p>
-            </div>
+            {insights.currentMargin !== undefined && (
+              <div className="p-4 bg-gray-100 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">वर्तमान मार्जिन</p>
+                <p className="text-3xl font-bold text-gray-900">{insights.currentMargin}%</p>
+              </div>
+            )}
+            {insights.suggestedMargin !== undefined && (
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-gray-600 mb-1">सुझाया गया मार्जिन</p>
+                <p className="text-3xl font-bold text-green-600">{insights.suggestedMargin}%</p>
+              </div>
+            )}
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-gray-600 mb-1">अतिरिक्त लाभ/माह</p>
-              <p className="text-3xl font-bold text-blue-600">₹{insights.potentialIncrease.toLocaleString('en-IN')}</p>
+              <p className="text-3xl font-bold text-blue-600">
+                ₹{(insights.potentialIncrease || insights.totalPotentialIncrease || 0).toLocaleString('en-IN')}
+              </p>
             </div>
           </div>
         </div>
@@ -263,7 +409,33 @@ const PricingAdvisor = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (renderError) {
+    console.error('❌ Render error:', renderError);
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
+          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+          <h3 className="text-center text-red-700 font-bold mb-2">रेंडर त्रुटि</h3>
+          <p className="text-center text-red-600 text-sm mb-4">
+            {renderError.message || 'कुछ गलत हो गया'}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+          >
+            पेज रीफ्रेश करें
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
-export default PricingAdvisor;
+const PricingAdvisorWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <PricingAdvisor />
+  </ErrorBoundary>
+);
+
+export default PricingAdvisorWithErrorBoundary;

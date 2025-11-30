@@ -208,91 +208,14 @@ const BusinessAnalytics = () => {
       </div>
 
       {/* Income vs Expenses Chart */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-[#3A2B4D] mb-6">
-          {getTranslation('incomeVsExpenses', language)}
-        </h2>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={incomeExpenseData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="month" 
-                tick={{ fill: '#3A2B4D', fontSize: 12 }}
-                axisLine={{ stroke: '#3A2B4D' }}
-              />
-              <YAxis 
-                tick={{ fill: '#3A2B4D', fontSize: 12 }}
-                axisLine={{ stroke: '#3A2B4D' }}
-                tickFormatter={(value) => `₹${value}`}
-              />
-              <Tooltip 
-                formatter={(value, name) => [`₹${value}`, name === 'income' ? 'Income' : 'Expenses']}
-                labelStyle={{ color: '#3A2B4D' }}
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px'
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="income"
-                stackId="1"
-                stroke="#3B7A6D"
-                fill="#3B7A6D"
-                fillOpacity={0.6}
-              />
-              <Area
-                type="monotone"
-                dataKey="expenses"
-                stackId="2"
-                stroke="#C85D3A"
-                fill="#C85D3A"
-                fillOpacity={0.6}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category-wise Spending */}
+      {incomeExpenseData.length > 0 && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-xl font-bold text-[#3A2B4D] mb-6">
-            {getTranslation('categorySpending', language)}
+            {getTranslation('incomeVsExpenses', language)}
           </h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categorySpendingData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categorySpendingData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `₹${value}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Monthly Profit Trend */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-[#3A2B4D] mb-6">
-            {getTranslation('monthlyTrend', language)}
-          </h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={profitTrendData}>
+              <AreaChart data={incomeExpenseData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="month" 
@@ -305,12 +228,94 @@ const BusinessAnalytics = () => {
                   tickFormatter={(value) => `₹${value}`}
                 />
                 <Tooltip 
-                  formatter={(value) => [`₹${value}`, 'Profit']}
+                  formatter={(value, name) => [`₹${value}`, name === 'income' ? 'Income' : 'Expenses']}
                   labelStyle={{ color: '#3A2B4D' }}
                   contentStyle={{ 
                     backgroundColor: 'white', 
                     border: '1px solid #e0e0e0',
                     borderRadius: '8px'
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="income"
+                  stackId="1"
+                  stroke="#3B7A6D"
+                  fill="#3B7A6D"
+                  fillOpacity={0.6}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="expenses"
+                  stackId="2"
+                  stroke="#C85D3A"
+                  fill="#C85D3A"
+                  fillOpacity={0.6}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Category-wise Spending */}
+        {categorySpendingData.length > 0 && (
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold text-[#3A2B4D] mb-6">
+              {getTranslation('categorySpending', language)}
+            </h2>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categorySpendingData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categorySpendingData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `₹${value}`} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* Monthly Profit Trend */}
+        {profitTrendData.length > 0 && (
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold text-[#3A2B4D] mb-6">
+              {getTranslation('monthlyTrend', language)}
+            </h2>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={profitTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ fill: '#3A2B4D', fontSize: 12 }}
+                    axisLine={{ stroke: '#3A2B4D' }}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#3A2B4D', fontSize: 12 }}
+                    axisLine={{ stroke: '#3A2B4D' }}
+                    tickFormatter={(value) => `₹${value}`}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`₹${value}`, 'Profit']}
+                    labelStyle={{ color: '#3A2B4D' }}
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '8px'
                   }}
                 />
                 <Bar 
@@ -322,6 +327,7 @@ const BusinessAnalytics = () => {
             </ResponsiveContainer>
           </div>
         </div>
+        )}
       </div>
 
       {/* Insights */}
