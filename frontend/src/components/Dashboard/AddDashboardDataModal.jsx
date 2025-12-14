@@ -222,14 +222,14 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
             {/* Auto-calculated profit notice */}
             <div className="mt-4 p-3 bg-blue-100 rounded-lg border border-blue-300">
               <p className="text-sm text-blue-800">
-                💡 <strong>Tip:</strong> Profit is usually calculated as Sales - Expenses. Make sure your numbers match!
+                <strong>Tip:</strong> Profit is usually calculated as Sales - Expenses. Make sure your numbers match!
               </p>
             </div>
           </div>
 
           {/* Summary Card */}
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200">
-            <h3 className="text-lg font-semibold text-indigo-900 mb-3">📊 Quick Summary</h3>
+            <h3 className="text-lg font-semibold text-indigo-900 mb-3">Quick Summary</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="bg-white rounded-lg p-3 shadow-sm">
                 <p className="text-xs text-gray-600 mb-1">Savings</p>

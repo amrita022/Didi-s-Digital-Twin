@@ -16,17 +16,24 @@ import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
 
 // Main Layout Component for authenticated routes
-const MainLayout = ({ children }) => (
-  <div className="min-h-screen bg-gray-50">
-    <Sidebar />
-    <div className="lg:ml-64 flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 p-4 lg:p-6 overflow-auto">
-        {children}
-      </main>
+const MainLayout = ({ children }) => {
+  React.useEffect(() => {
+    // Initialize CSS variable
+    document.documentElement.style.setProperty('--sidebar-width', '300px');
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Sidebar />
+      <div style={{ marginLeft: 'var(--sidebar-width, 300px)' }} className="transition-all duration-300 flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {

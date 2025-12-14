@@ -35,7 +35,7 @@ const Dashboard = () => {
   // Function to refresh dashboard data
   const refreshDashboard = () => {
     if (uid) {
-      console.log('🔄 Refreshing dashboard...');
+      console.log('Refreshing dashboard...');
       fetchDashboardData(uid);
     }
   };
@@ -43,7 +43,7 @@ const Dashboard = () => {
   // Listen for custom 'refreshDashboard' events from voice assistant
   useEffect(() => {
     const handleRefresh = () => {
-      console.log('📢 Dashboard refresh event received');
+      console.log('Dashboard refresh event received');
       if (uid) {
         fetchDashboardData(uid);
       }
@@ -72,9 +72,9 @@ const Dashboard = () => {
         });
         
         if (!res.ok) throw new Error('User sync failed');
-        console.log('✅ User synced with MongoDB');
+        console.log('User synced with MongoDB');
       } catch (error) {
-        console.error('❌ User sync error:', error);
+        console.error('User sync error:', error);
       }
     };
 
@@ -87,26 +87,26 @@ const Dashboard = () => {
   const fetchDashboardData = async (userId) => {
     try {
       setLoading(true);
-      console.log("🌐 Fetching dashboard for userId:", userId);
+      console.log("Fetching dashboard for userId:", userId);
       
       const res = await fetch(`${API_URL}/api/dashboard?userId=${userId}`);
       
       if (!res.ok) throw new Error('Failed to fetch dashboard data');
       
       const data = await res.json();
-      console.log("📊 Raw API Response:", data);
+      console.log("Raw API Response:", data);
       
       if (data.success) {
-        console.log("✅ Dashboard data received:", data.data);
-        console.log("💰 Total Savings from API:", data.data.totalSavings);
-        console.log("🎯 Goal Target from API:", data.data.goalTarget);
-        console.log("📝 Goal Name from API:", data.data.goalName);
+        console.log("Dashboard data received:", data.data);
+        console.log("Total Savings from API:", data.data.totalSavings);
+        console.log("Goal Target from API:", data.data.goalTarget);
+        console.log("Goal Name from API:", data.data.goalName);
         setDashboard(data.data);
       } else {
         throw new Error(data.error || 'Unknown error');
       }
     } catch (error) {
-      console.error("❌ Error fetching dashboard:", error);
+      console.error("Error fetching dashboard:", error);
       console.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
@@ -134,14 +134,14 @@ const Dashboard = () => {
       const data = await res.json();
       
       if (data.success) {
-        console.log("✅ Dashboard updated successfully!");
+        console.log("Dashboard updated successfully!");
         fetchDashboardData(uid);
         setShowModal(false);
       } else {
         throw new Error(data.error || 'Save failed');
       }
     } catch (error) {
-      console.error("❌ Error saving dashboard:", error);
+      console.error("Error saving dashboard:", error);
       console.error("Failed to save data");
     }
   };

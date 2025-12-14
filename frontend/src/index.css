@@ -26,21 +26,28 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--primary-blue);
-  border-radius: 3px;
+  background: #9ca3af;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-gray);
+  background: #6b7280;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: #9ca3af transparent;
+  scrollbar-width: thin;
 }
 
 /* Animation Classes */
