@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
   TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  PiggyBank,
   ArrowUpRight,
   ArrowDownRight,
   Sparkles,
@@ -12,15 +9,11 @@ import {
   Target,
   AlertCircle,
   Edit3,
-  Plus,
   RefreshCw
 } from 'lucide-react';
-//import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
-// import { getTranslation } from '../../utils/translations';
 import AddDashboardDataModal from './AddDashboardDataModal';
-// import AddTransactionModal from './AddTransactionModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
@@ -31,14 +24,6 @@ const Dashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-
-  // Function to refresh dashboard data
-  const refreshDashboard = () => {
-    if (uid) {
-      console.log('Refreshing dashboard...');
-      fetchDashboardData(uid);
-    }
-  };
 
   // Listen for custom 'refreshDashboard' events from voice assistant
   useEffect(() => {
@@ -199,7 +184,6 @@ const Dashboard = () => {
   const savingsPercentage = savingsGoal > 0 ? Math.round((totalSavings / savingsGoal) * 100) : 0;
   console.log("  savingsPercentage:", savingsPercentage);
   
-  const healthColor = healthScore >= 80 ? "text-green-600" : healthScore >= 60 ? "text-yellow-600" : "text-red-600";
   const healthText = healthScore >= 80 ? "Excellent" : healthScore >= 60 ? "Good" : "Needs Attention";
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
 
@@ -267,54 +251,29 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 bg-black rounded-xl p-6">
       {/* Welcome Section */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          {language === 'hindi' 
-            ? `नमस्ते, ${userName}! 🌸` 
-            : `Namaste, ${userName}! 🌸`
-          }
-        </h1>
-        <p className="text-gray-400 text-lg">
-          {language === 'hindi' 
-            ? 'आपका व्यापार कैसा चल रहा है?' 
-            : 'How is your business doing today?'
-          }
-        </p>
-      </div>
-
-      {/* Business Insights Section */}
-      <div className="bg-gradient-to-r from-black to-gray-900 rounded-xl p-6 shadow-lg border border-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-rose-900/30 rounded-full flex items-center justify-center border border-rose-500/30">
-              <span className="text-3xl">💼</span>
-            </div>
-            <div>
-              <p className="text-gray-300">
-                {language === 'hindi' 
-                  ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
-                  : 'Here are some great insights for your business today'
-                }
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={refreshDashboard}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl shadow transition-colors duration-200"
-              title={language === 'hindi' ? 'रीफ्रेश करें' : 'Refresh'}
-            >
-              <RefreshCw size={18} /> 
-              {language === 'hindi' ? 'रीफ्रेश' : 'Refresh'}
-            </button>
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl shadow transition-colors duration-200"
-            >
-              <Edit3 size={18} /> 
-              {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
-            </button>
-          </div>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {language === 'hindi' 
+              ? `नमस्ते, ${userName}!` 
+              : `Namaste, ${userName}!`
+            }
+          </h1>
+          <p className="text-gray-400 text-lg">
+            {language === 'hindi' 
+              ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
+              : 'Here are some great insights for your business today'
+            }
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl shadow transition-colors duration-200"
+          >
+            <Edit3 size={18} /> 
+            {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
+          </button>
         </div>
       </div>
 
@@ -377,7 +336,7 @@ const Dashboard = () => {
 
         <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
           <div 
-            className={`h-3 rounded-full transition-all duration-500 bg-rose-500`}
+            className={`h-3 rounded-full transition-all duration-500 bg-white`}
             style={{ width: `${healthScore}%` }}
           ></div>
         </div>

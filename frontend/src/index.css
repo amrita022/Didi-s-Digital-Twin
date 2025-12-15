@@ -339,3 +339,13 @@ button, input, select {
   animation: slideInRight 0.5s ease-out;
 }
 
+/* Glowing Effect Styles */
+.glow {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.glow::after {
+  pointer-events: none;
+}
