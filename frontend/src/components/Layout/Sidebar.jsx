@@ -67,9 +67,7 @@ const SidebarContent = () => {
         {/* Logo - Only show when sidebar is open */}
         {open && (
           <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">DS</span>
-            </div>
+            <img src="/logo.jpg" alt="Didi's Digital Sathi" className="w-12 h-12 object-contain rounded-lg" />
             <div>
               <h1 className="text-white font-bold text-lg">Didi's Digital Sathi</h1>
               <p className="text-gray-400 text-sm">AI Business Advisor</p>
