@@ -133,18 +133,18 @@ const SavingsGoals = () => {
     const isOverdue = daysRemaining === 0 && !isCompleted;
 
     return (
-      <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 ${
-        isCompleted ? 'ring-2 ring-green-500' : ''
+      <div className={`bg-neutral-900 rounded-xl p-6 shadow-sm border border-gray-800 ${
+        isCompleted ? 'ring-2 ring-rose-500' : ''
       }`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-[#3A2B4D] mb-1">{language === 'hindi' ? goal.titleHindi || goal.title : goal.title}</h3>
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
+            <h3 className="text-lg font-bold text-white mb-1">{language === 'hindi' ? goal.titleHindi || goal.title : goal.title}</h3>
+            <div className="flex items-center space-x-4 text-sm text-gray-400">
               <span>₹{(goal.currentAmount ?? 0).toLocaleString()} / ₹{(goal.targetAmount ?? 0).toLocaleString()}</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                isCompleted ? 'bg-green-100 text-green-600' :
-                isOverdue ? 'bg-red-100 text-red-600' :
-                'bg-blue-100 text-blue-600'
+                isCompleted ? 'bg-rose-500/25 text-rose-300' :
+                isOverdue ? 'bg-rose-500/25 text-rose-300' :
+                'bg-rose-500/15 text-rose-300'
               }`}>
                 {isCompleted ? 'Completed' : 
                  isOverdue ? 'Overdue' : 
@@ -156,14 +156,14 @@ const SavingsGoals = () => {
             {!isCompleted && (
               <button
                 onClick={() => updateGoalProgress(goal._id, 100)}
-                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
               >
                 <Plus size={16} />
               </button>
             )}
             <button
               onClick={() => deleteGoal(goal._id)}
-              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+              className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
             >
               <Trash2 size={16} />
             </button>
@@ -172,17 +172,13 @@ const SavingsGoals = () => {
 
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-3">
+          <div className="w-full bg-gray-800 rounded-full h-3">
             <div 
-              className={`h-3 rounded-full transition-all duration-500 ${
-                isCompleted 
-                  ? 'bg-linear-to-r from-green-500 to-green-600' 
-                  : 'bg-linear-to-r from-[#3B7A6D] to-[#D9A441]'
-              }`}
+              className="h-3 rounded-full transition-all duration-500 bg-rose-500"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-sm text-gray-600 mt-1">
+          <div className="flex justify-between text-sm text-gray-400 mt-1">
             <span>{progress}%</span>
             <span>₹{Math.max((goal.targetAmount ?? 0) - (goal.currentAmount ?? 0), 0).toLocaleString()} remaining</span>
           </div>
@@ -190,11 +186,11 @@ const SavingsGoals = () => {
 
         {/* Completion Celebration */}
         {isCompleted && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+          <div className="bg-rose-500/15 border border-rose-500/30 rounded-lg p-3 mb-4">
             <div className="flex items-center space-x-2">
-              <CheckCircle size={20} className="text-green-600" />
-              <span className="text-green-800 font-medium">
-                {language === 'hindi' ? '🎉 लक्ष्य पूरा हो गया!' : '🎉 Goal Achieved!'}
+              <CheckCircle size={20} className="text-rose-400" />
+              <span className="text-rose-300 font-medium">
+                {language === 'hindi' ? 'लक्ष्य पूरा हो गया!' : 'Goal Achieved!'}
               </span>
             </div>
           </div>
@@ -204,19 +200,19 @@ const SavingsGoals = () => {
         <div className="flex space-x-2">
           <button
             onClick={() => updateGoalProgress(goal._id, 50)}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-neutral-800 border border-gray-800 text-gray-300 hover:bg-neutral-700 rounded text-sm transition-colors"
           >
             +₹50
           </button>
           <button
             onClick={() => updateGoalProgress(goal._id, 100)}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-neutral-800 border border-gray-800 text-gray-300 hover:bg-neutral-700 rounded text-sm transition-colors"
           >
             +₹100
           </button>
           <button
             onClick={() => updateGoalProgress(goal._id, 500)}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-neutral-800 border border-gray-800 text-gray-300 hover:bg-neutral-700 rounded text-sm transition-colors"
           >
             +₹500
           </button>
@@ -226,38 +222,38 @@ const SavingsGoals = () => {
   };
 
   const AchievementCard = ({ achievement }) => (
-    <div className={`bg-white rounded-xl p-4 shadow-sm border ${
+    <div className={`bg-neutral-900 rounded-xl p-4 shadow-sm border ${
       achievement.unlocked 
-        ? 'border-green-200 bg-green-50' 
-        : 'border-gray-200'
+        ? 'border-rose-500/30 bg-rose-500/10' 
+        : 'border-gray-800'
     }`}>
       <div className="flex items-center space-x-3">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
           achievement.unlocked 
-            ? 'bg-green-500 text-white' 
-            : 'bg-gray-200 text-gray-500'
+            ? 'bg-rose-500 text-white' 
+            : 'bg-gray-800 text-gray-500'
         }`}>
           {achievement.unlocked ? <Trophy size={20} /> : <Clock size={20} />}
         </div>
         <div className="flex-1">
           <h3 className={`font-bold ${
-            achievement.unlocked ? 'text-green-800' : 'text-gray-600'
+            achievement.unlocked ? 'text-rose-300' : 'text-gray-400'
           }`}>
             {achievement.name}
           </h3>
           <p className={`text-sm ${
-            achievement.unlocked ? 'text-green-600' : 'text-gray-500'
+            achievement.unlocked ? 'text-rose-300/80' : 'text-gray-500'
           }`}>
             {achievement.description}
           </p>
           {achievement.unlocked && achievement.date && (
-            <p className="text-xs text-green-500 mt-1">
+            <p className="text-xs text-rose-400/70 mt-1">
               Unlocked on {new Date(achievement.date).toLocaleDateString()}
             </p>
           )}
         </div>
         {achievement.unlocked && (
-          <Sparkles size={20} className="text-yellow-500" />
+          <Sparkles size={20} className="text-rose-400" />
         )}
       </div>
     </div>
@@ -266,16 +262,16 @@ const SavingsGoals = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-linear-to-r from-[#D9A441] to-[#EBAE82] rounded-xl p-6 text-white">
+      <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-            <PiggyBank size={32} className="text-white" />
+          <div className="w-16 h-16 bg-rose-400/20 rounded-full flex items-center justify-center">
+            <PiggyBank size={32} className="text-rose-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-2xl font-bold text-white">
               {getTranslation('savingsGoals', language)}
             </h1>
-            <p className="text-white/90">
+            <p className="text-gray-300">
               {language === 'hindi' 
                 ? 'अपने सपनों को पूरा करने के लिए बचत करें' 
                 : 'Save to achieve your dreams'
@@ -286,21 +282,21 @@ const SavingsGoals = () => {
       </div>
 
       {/* Total Savings Overview */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-neutral-900 rounded-xl p-6 shadow-sm border border-gray-800">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-[#3A2B4D]">
+          <h2 className="text-xl font-bold text-white">
             {language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
           </h2>
           <div className="text-right">
-            <div className="text-3xl font-bold text-[#3A2B4D]">₹{savings.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">
+            <div className="text-3xl font-bold text-rose-400">₹{savings.toLocaleString()}</div>
+            <div className="text-sm text-gray-400">
               {language === 'hindi' ? 'सभी लक्ष्यों के लिए' : 'Across all goals'}
             </div>
           </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-gray-800 rounded-full h-3">
           <div 
-            className="bg-linear-to-r from-[#3B7A6D] to-[#D9A441] h-3 rounded-full transition-all duration-500"
+            className="bg-rose-500 h-3 rounded-full transition-all duration-500"
             style={{ width: `${Math.min((savings / 50000) * 100, 100)}%` }}
           ></div>
         </div>
@@ -308,12 +304,12 @@ const SavingsGoals = () => {
 
       {/* Goals Section */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[#3A2B4D]">
+        <h2 className="text-xl font-bold text-white">
           {getTranslation('myGoals', language)}
         </h2>
         <button
           onClick={() => setShowAddGoal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-[#3B7A6D] text-white rounded-lg hover:bg-[#2D5F52] transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
         >
           <Plus size={16} />
           <span>{getTranslation('addGoal', language)}</span>
@@ -323,59 +319,59 @@ const SavingsGoals = () => {
       {/* Add Goal Modal */}
       {showAddGoal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold text-[#3A2B4D] mb-4">
+          <div className="bg-neutral-900 rounded-xl p-6 w-full max-w-md mx-4 border border-gray-800">
+            <h3 className="text-lg font-bold text-white mb-4">
               {language === 'hindi' ? 'नया लक्ष्य जोड़ें' : 'Add New Goal'}
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   {language === 'hindi' ? 'लक्ष्य का नाम' : 'Goal Name'}
                 </label>
                 <input
                   type="text"
                   value={newGoal.name}
                   onChange={(e) => setNewGoal({ ...newGoal, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3B7A6D] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                   placeholder={language === 'hindi' ? 'उदाहरण: नई सिलाई मशीन' : 'Example: New Sewing Machine'}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   {language === 'hindi' ? 'लक्ष्य राशि' : 'Target Amount'}
                 </label>
                 <input
                   type="number"
                   value={newGoal.target}
                   onChange={(e) => setNewGoal({ ...newGoal, target: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3B7A6D] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                   placeholder="15000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   {language === 'hindi' ? 'समय सीमा' : 'Deadline'}
                 </label>
                 <input
                   type="date"
                   value={newGoal.deadline}
                   onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3B7A6D] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                 />
               </div>
             </div>
             <div className="flex space-x-3 mt-6">
               <button
                 onClick={addGoal}
-                className="flex-1 px-4 py-2 bg-[#3B7A6D] text-white rounded-lg hover:bg-[#2D5F52] transition-colors"
+                className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
                 disabled={!newGoal.name || !newGoal.target || !newGoal.deadline}
               >
                 {getTranslation('add', language)}
               </button>
               <button
                 onClick={() => setShowAddGoal(false)}
-                className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                className="flex-1 px-4 py-2 bg-neutral-800 border border-gray-700 text-gray-300 rounded-lg hover:bg-neutral-700 transition-colors"
               >
                 {getTranslation('cancel', language)}
               </button>
@@ -391,13 +387,13 @@ const SavingsGoals = () => {
             <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
           </div>
         ) : error ? (
-          <div className="col-span-2 bg-red-50 border border-red-100 rounded-xl p-6 text-center">
-            <div className="text-red-600 mb-2">Error loading goals</div>
-            <div className="text-red-500 text-sm">{error}</div>
+          <div className="col-span-2 bg-rose-500/10 border border-rose-500/30 rounded-xl p-6 text-center">
+            <div className="text-rose-400 mb-2">Error loading goals</div>
+            <div className="text-rose-300 text-sm">{error}</div>
           </div>
         ) : goals.length === 0 ? (
-          <div className="col-span-2 bg-gray-50 border border-gray-100 rounded-xl p-6 text-center">
-            <div className="text-gray-600 mb-2">No savings goals yet</div>
+          <div className="col-span-2 bg-neutral-900 border border-gray-800 rounded-xl p-6 text-center">
+            <div className="text-gray-300 mb-2">No savings goals yet</div>
             <div className="text-gray-500 text-sm">Add your first goal to start tracking!</div>
           </div>
         ) : goals.map((goal) => (
@@ -406,8 +402,8 @@ const SavingsGoals = () => {
       </div>
 
       {/* Achievements */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-[#3A2B4D] mb-6">
+      <div className="bg-neutral-900 rounded-xl p-6 shadow-sm border border-gray-800">
+        <h2 className="text-xl font-bold text-white mb-6">
           {getTranslation('achievement', language)}s
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -418,14 +414,14 @@ const SavingsGoals = () => {
       </div>
 
       {/* Motivational Message */}
-      <div className="bg-linear-to-r from-[#3A2B4D] to-[#3B7A6D] rounded-xl p-6 text-white text-center">
+      <div className="bg-neutral-900 rounded-xl p-6 text-white text-center border border-gray-800">
         <div className="flex items-center justify-center space-x-3 mb-4">
-          <Gift size={24} />
-          <h2 className="text-xl font-bold">
+          <Gift size={24} className="text-rose-400" />
+          <h2 className="text-xl font-bold text-rose-300">
             {language === 'hindi' ? 'आपका सपना सच हो सकता है!' : 'Your Dream Can Come True!'}
           </h2>
         </div>
-        <p className="text-white/90">
+        <p className="text-gray-300">
           {language === 'hindi' 
             ? 'प्रतिदिन ₹100 बचाने से 6 महीने में आप ₹18,000 बचा सकते हैं। यह आपके नए सिलाई मशीन के लिए पर्याप्त है!' 
             : 'Saving ₹100 daily for 6 months will give you ₹18,000. That\'s enough for your new sewing machine!'
