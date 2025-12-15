@@ -22,13 +22,16 @@ import {
   TrendingUp, 
   TrendingDown,
   DollarSign,
-  Calendar
+  Calendar,
+  ChevronRight,
+  AlertTriangle,
+  CheckCircle,
+  Lightbulb  
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
 import { fetchAnalytics } from '../../utils/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
 const BusinessAnalytics = () => {
   const { businessData, language, userId } = useStore();
@@ -56,11 +59,10 @@ const BusinessAnalytics = () => {
           setAnalyticsData(data);
         } else {
           console.error('❌ Analytics error:', data.error);
-          setAnalyticsData(data); // Set it anyway to show empty state
+          setAnalyticsData(data);
         }
       } catch (error) {
         console.error('❌ Failed to load analytics:', error);
-        // Set empty data to stop loading
         setAnalyticsData({
           success: false,
           last6MonthsData: [],
@@ -86,7 +88,6 @@ const BusinessAnalytics = () => {
     loadAnalytics();
   }, [userId]);
 
-  // Use real data if available, otherwise show loading
   const incomeExpenseData = analyticsData?.last6MonthsData || [];
   const categorySpendingData = analyticsData?.categorySpending || [];
   const profitTrendData = analyticsData?.monthlyProfitTrend || [];
@@ -102,7 +103,8 @@ const BusinessAnalytics = () => {
   };
   const insights = analyticsData?.insights || [];
 
-  const COLORS = ['#C85D3A', '#EBAE82', '#3B7A6D', '#3A2B4D', '#D9A441'];
+  // Different shades of rose/pink that match the dashboard theme
+  const ROSE_COLORS = ['#fb7185', '#f43f5e', '#e11d48', '#be123c', '#9f1239', '#881337'];
 
   const StatCard = ({ title, value, change, icon: Icon, color }) => (
     <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
@@ -123,7 +125,6 @@ const BusinessAnalytics = () => {
   );
 
   const handleExport = () => {
-    // In a real app, this would generate and download a PDF/Excel file
     alert(language === 'hindi' ? 'रिपोर्ट डाउनलोड हो रही है...' : 'Downloading report...');
   };
 
@@ -131,7 +132,6 @@ const BusinessAnalytics = () => {
     window.print();
   };
 
-  // Show loading state
   if (loading) {
     return (
       <div className="space-y-6">
@@ -185,7 +185,7 @@ const BusinessAnalytics = () => {
           value={`₹${keyMetrics.totalIncome.toLocaleString()}`}
           change={keyMetrics.incomeChange}
           icon={DollarSign}
-          color="bg-emerald-500"
+          color="bg-rose-500"
         />
         <StatCard
           title={language === 'hindi' ? 'कुल खर्च' : 'Total Expenses'}
@@ -220,14 +220,8 @@ const BusinessAnalytics = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer
-              config={{
-                income: { label: 'Income', color: 'var(--color-income)' },
-                expenses: { label: 'Expenses', color: 'var(--color-expenses)' },
-              }}
-            >
+            <ResponsiveContainer width="100%" height={300}>
               <AreaChart
-                accessibilityLayer
                 data={incomeExpenseData}
                 margin={{ left: 12, right: 12, top: 12, bottom: 12 }}
               >
@@ -261,21 +255,22 @@ const BusinessAnalytics = () => {
                 <Area
                   dataKey="expenses"
                   type="natural"
-                  fill="var(--color-expenses)"
+                  fill="#ef4444"
                   fillOpacity={0.4}
-                  stroke="var(--color-expenses)"
+                  stroke="#ef4444"
                   stackId="a"
                 />
                 <Area
                   dataKey="income"
                   type="natural"
-                  fill="var(--color-income)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-income)"
+                  fill="#fb7185"
+                  fillOpacity={0.5}
+                  stroke="#fb7185"
+                  strokeWidth={2}
                   stackId="a"
                 />
               </AreaChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </CardContent>
           <CardFooter className="flex-col gap-2 text-sm">
             <div className="flex items-center gap-2 leading-none font-medium text-white">
@@ -299,44 +294,38 @@ const BusinessAnalytics = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
-              <ChartContainer
-                config={{
-                  value: { label: 'Amount' },
-                  category: { label: 'Category' },
-                }}
-                className="mx-auto aspect-square max-h-[280px]"
-              >
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
-                    <Tooltip
-                      cursor={false}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
-                              <p className="font-medium">{payload[0].payload.name}</p>
-                              <p>₹{payload[0].value.toLocaleString()}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Pie
-                      data={categorySpendingData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {categorySpendingData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-              </ChartContainer>
+                  <Tooltip
+                    cursor={false}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
+                            <p className="font-medium">{payload[0].payload.name}</p>
+                            <p>₹{payload[0].value.toLocaleString()}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Pie
+                    data={categorySpendingData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {categorySpendingData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={ROSE_COLORS[index % ROSE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
               <div className="flex items-center gap-2 leading-none font-medium text-white">
@@ -359,13 +348,8 @@ const BusinessAnalytics = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer
-                config={{
-                  profit: { label: 'Profit', color: 'var(--chart-1)' },
-                }}
-              >
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart
-                  accessibilityLayer
                   data={profitTrendData}
                   margin={{ top: 20, left: 12, right: 12, bottom: 12 }}
                 >
@@ -385,7 +369,7 @@ const BusinessAnalytics = () => {
                         return (
                           <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
                             <p className="font-medium">{payload[0].payload.month}</p>
-                            <p className="text-emerald-400">
+                            <p className="text-[#fb7185]">
                               Profit: ₹{payload[0].value.toLocaleString()}
                             </p>
                           </div>
@@ -394,7 +378,7 @@ const BusinessAnalytics = () => {
                       return null;
                     }}
                   />
-                  <Bar dataKey="profit" fill="var(--chart-1)" radius={8}>
+                  <Bar dataKey="profit" fill="#fb7185" radius={8}>
                     <LabelList
                       position="top"
                       offset={12}
@@ -403,11 +387,11 @@ const BusinessAnalytics = () => {
                     />
                   </Bar>
                 </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
               <div className="flex items-center gap-2 leading-none font-medium text-white">
-                {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-emerald-400" />
+                {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-[#fb7185]" />
               </div>
               <div className="text-gray-400 leading-none">
                 {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल लाभ दिखा रहा है' : 'Showing total profit for the last 6 months'}
@@ -417,27 +401,59 @@ const BusinessAnalytics = () => {
         )}
       </div>
 
-      {/* Insights */}
-      <div className="bg-gradient-to-r from-rose-600 to-rose-700 rounded-xl p-6 text-white">
-        <h2 className="text-xl font-bold mb-4">
-          {language === 'hindi' ? 'मुख्य अंतर्दृष्टि' : 'Key Insights'}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {insights.map((insight, index) => (
-            <div key={index} className={`bg-white/10 rounded-lg p-4 ${
-              insight.type === 'warning' ? 'border-l-4 border-yellow-400' : 
-              insight.type === 'positive' ? 'border-l-4 border-emerald-400' : ''
-            }`}>
-              <h3 className="font-bold mb-2">
-                {language === 'hindi' ? insight.title.hi : insight.title.en}
-              </h3>
-              <p className="text-sm">
-                {language === 'hindi' ? insight.message.hi : insight.message.en}
-              </p>
+      {/* Insights Section */}
+      {insights.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-rose-500" />
+              {language === 'hindi' ? 'मुख्य अंतर्दृष्टि' : 'Key Insights'}
+            </CardTitle>
+            <CardDescription>
+              {language === 'hindi' 
+                ? 'आपके व्यापार के लिए AI-संचालित सिफारिशें' 
+                : 'AI-powered recommendations for your business'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {insights.map((insight, index) => (
+                <div 
+                  key={index} 
+                  className="group p-4 bg-gray-900/30 rounded-lg border border-gray-800 hover:border-rose-500/50 transition-all duration-200"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-0.5 p-2 rounded-lg ${
+                      insight.type === 'warning' 
+                        ? 'bg-yellow-500/10 border border-yellow-500/20' 
+                        : insight.type === 'positive' 
+                        ? 'bg-emerald-500/10 border border-emerald-500/20' 
+                        : 'bg-rose-500/10 border border-rose-500/20'
+                    }`}>
+                      {insight.type === 'warning' ? (
+                        <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                      ) : insight.type === 'positive' ? (
+                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                      ) : (
+                        <Lightbulb className="h-4 w-4 text-rose-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-white text-sm mb-1">
+                        {language === 'hindi' ? insight.title.hi : insight.title.en}
+                      </h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        {language === 'hindi' ? insight.message.hi : insight.message.en}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
