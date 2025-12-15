@@ -26,7 +26,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
 const Dashboard = () => {
   const { uid, loading: authLoading, user } = useAuth();
-  const { language } = useStore();
+  const { language, userName } = useStore();
   
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -204,33 +204,33 @@ const Dashboard = () => {
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
 
   const StatCard = ({ title, value, icon, trend, trendValue, color, bgColor }) => (
-    <div className={`${bgColor} rounded-xl p-6 shadow-sm border border-gray-200`}>
+    <div className={`bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800 hover:border-rose-500/50 transition-all duration-300`}>
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg ${color}`}>
           {React.createElement(icon, { size: 24, className: "text-white" })}
         </div>
         {trend && (
           <div className={`flex items-center space-x-1 ${
-            trend === 'up' ? 'text-green-600' : 'text-red-600'
+            trend === 'up' ? 'text-rose-400' : 'text-gray-400'
           }`}>
             {trend === 'up' ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
             <span className="text-sm font-medium">{trendValue}%</span>
           </div>
         )}
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-1">{value}</h3>
-      <p className="text-gray-600 text-sm">{title}</p>
+      <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
+      <p className="text-gray-400 text-sm">{title}</p>
     </div>
   );
 
   const TransactionItem = ({ transaction }) => (
-    <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-500/50 transition-all duration-300 bg-white">
+    <div className="p-4 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 bg-gray-800/50">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
             transaction.type === "income" 
-              ? "bg-green-100 text-green-600" 
-              : "bg-red-100 text-red-600"
+              ? "bg-emerald-500/20 text-emerald-400" 
+              : "bg-rose-500/20 text-rose-400"
           }`}>
             {transaction.type === "income" ? (
               <ArrowUpRight className="h-5 w-5" />
@@ -239,14 +239,14 @@ const Dashboard = () => {
             )}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-gray-100">
               {transaction.description}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-400 mt-0.5">
               {transaction.descriptionHindi || transaction.description}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
                 {transaction.category}
               </span>
               <span className="text-xs text-gray-500">
@@ -256,7 +256,7 @@ const Dashboard = () => {
           </div>
         </div>
         <p className={`text-lg font-bold ${
-          transaction.type === "income" ? "text-green-600" : "text-red-600"
+          transaction.type === "income" ? "text-emerald-400" : "text-rose-400"
         }`}>
           {transaction.type === "income" ? "+" : "-"}₹{transaction.amount}
         </p>
@@ -265,16 +265,32 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section with Edit and Refresh Buttons */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div className="space-y-6 bg-black rounded-xl p-6">
+      {/* Welcome Section */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-white mb-2">
+          {language === 'hindi' 
+            ? `नमस्ते, ${userName}! 🌸` 
+            : `Namaste, ${userName}! 🌸`
+          }
+        </h1>
+        <p className="text-gray-400 text-lg">
+          {language === 'hindi' 
+            ? 'आपका व्यापार कैसा चल रहा है?' 
+            : 'How is your business doing today?'
+          }
+        </p>
+      </div>
+
+      {/* Business Insights Section */}
+      <div className="bg-gradient-to-r from-black to-gray-900 rounded-xl p-6 shadow-lg border border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
-              <span className="text-3xl">👩‍🍳</span>
+            <div className="w-16 h-16 bg-rose-900/30 rounded-full flex items-center justify-center border border-rose-500/30">
+              <span className="text-3xl">💼</span>
             </div>
             <div>
-              <p className="text-gray-600">
+              <p className="text-gray-300">
                 {language === 'hindi' 
                   ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
                   : 'Here are some great insights for your business today'
@@ -285,7 +301,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={refreshDashboard}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl shadow transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl shadow transition-colors duration-200"
               title={language === 'hindi' ? 'रीफ्रेश करें' : 'Refresh'}
             >
               <RefreshCw size={18} /> 
@@ -293,7 +309,7 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl shadow transition-colors duration-200"
             >
               <Edit3 size={18} /> 
               {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
@@ -310,8 +326,8 @@ const Dashboard = () => {
           icon={IndianRupee}
           trend={todayIncome > 0 ? "up" : null}
           trendValue="12"
-          color="bg-blue-500"
-          bgColor="bg-white"
+          color="bg-rose-500"
+          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
         <StatCard
           title={language === 'hindi' ? 'मासिक लाभ' : 'Monthly Profit'}
@@ -319,8 +335,8 @@ const Dashboard = () => {
           icon={TrendingUp}
           trend={monthlyProfit > 0 ? "up" : monthlyProfit < 0 ? "down" : null}
           trendValue="25"
-          color="bg-green-500"
-          bgColor="bg-white"
+          color="bg-rose-500"
+          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
         <StatCard
           title={language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
@@ -328,8 +344,8 @@ const Dashboard = () => {
           icon={Wallet}
           trend={totalSavings > 0 ? "up" : null}
           trendValue="8"
-          color="bg-purple-500"
-          bgColor="bg-white"
+          color="bg-rose-500"
+          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
         <StatCard
           title={language === 'hindi' ? 'लक्ष्य प्रगति' : 'Goal Progress'}
@@ -337,63 +353,61 @@ const Dashboard = () => {
           icon={Target}
           trend={savingsPercentage > 50 ? "up" : null}
           trendValue="15"
-          color="bg-orange-500"
-          bgColor="bg-white"
+          color="bg-rose-500"
+          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
       </div>
 
       {/* Business Health Score */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 col-span-full">
+      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800 col-span-full">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-500" />
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-rose-400" />
               {language === 'hindi' ? 'व्यापार स्वास्थ्य स्कोर' : 'Business Health Score'}
             </h2>
           </div>
           <div className="text-right">
-            <p className={`text-3xl font-bold ${healthColor}`}>{healthScore}/100</p>
-            <p className="text-sm text-gray-600">
+            <p className={`text-3xl font-bold ${healthScore >= 80 ? 'text-rose-400' : healthScore >= 60 ? 'text-rose-400' : 'text-rose-400'}`}>{healthScore}/100</p>
+            <p className="text-sm text-gray-400">
               {language === 'hindi' ? healthTextHindi : healthText}
             </p>
           </div>
         </div>
 
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+        <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
           <div 
-            className={`h-3 rounded-full transition-all duration-500 ${
-              healthScore >= 80 ? 'bg-green-500' : healthScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-            }`}
+            className={`h-3 rounded-full transition-all duration-500 bg-rose-500`}
             style={{ width: `${healthScore}%` }}
           ></div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-            <p className="text-sm text-gray-600 mb-1">
+          <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-700">
+            <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-green-600">₹{allTimeSales.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-white">₹{allTimeSales.toLocaleString()}</p>
           </div>
-          <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-            <p className="text-sm text-gray-600 mb-1">
+          <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-700">
+            <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-red-600">₹{allTimeExpenses.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-white">₹{allTimeExpenses.toLocaleString()}</p>
           </div>
-          <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-            <p className="text-sm text-gray-600 mb-1">
+          <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-700">
+            <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-blue-600">₹{allTimeProfit.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-white">₹{allTimeProfit.toLocaleString()}</p>
           </div>
         </div>
 
         {healthScore < 70 && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div className="mt-4 p-3 bg-rose-950/30 border border-rose-500/30 rounded-lg flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-200">
                 {language === 'hindi' 
                   ? 'एआई सिफारिश: लाभ मार्जिन में सुधार के लिए अपनी मूल्य निर्धारण रणनीति की समीक्षा करें।'
                   : 'AI Recommendation: Review your pricing strategy to improve profit margins.'
@@ -407,9 +421,9 @@ const Dashboard = () => {
       {/* Two Column Layout for Recent Transactions and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Transactions */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900">
+            <h3 className="text-lg font-bold text-white">
               {language === 'hindi' ? 'हाल के लेनदेन' : 'Recent Transactions'}
             </h3>
           </div>
@@ -423,9 +437,9 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <AlertCircle className="mx-auto text-gray-300 mb-3" size={40} />
-                <p className="text-gray-500">No transactions yet</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <AlertCircle className="mx-auto text-gray-600 mb-3" size={40} />
+                <p className="text-gray-400">No transactions yet</p>
+                <p className="text-sm text-gray-500 mt-1">
                   Add your first transaction to see it here
                 </p>
               </div>
@@ -436,39 +450,39 @@ const Dashboard = () => {
         {/* AI Insights Panel */}
         <div className="space-y-4">
           {/* Achievement Card */}
-          <div className="p-6 rounded-xl bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 shadow-sm">
-            <h3 className="text-lg font-bold text-pink-800 mb-2">
-              🎉 {language === 'hindi' ? 'उपलब्धि अनलॉक!' : 'Achievement Unlocked!'}
+          <div className="p-6 rounded-xl bg-neutral-700 dark:bg-neutral-800 border border-gray-800 shadow-lg">
+            <h3 className="text-lg font-bold text-rose-300 mb-2">
+              Achievement Unlocked!
             </h3>
-            <p className="text-sm text-pink-700 mb-1">
+            <p className="text-sm text-rose-200 mb-1">
               {language === 'hindi' 
                 ? `आपने अपने लक्ष्य के लिए ₹${totalSavings.toLocaleString()} बचाए हैं!` 
                 : `You've saved ₹${totalSavings.toLocaleString()} towards your goal!`
               }
             </p>
-            <div className="mt-4 p-3 bg-white/60 rounded-lg border border-pink-300">
-              <p className="text-sm text-pink-800">
+            <div className="mt-4 p-3 bg-gray-900/60 rounded-lg border border-gray-700">
+              <p className="text-sm text-rose-200">
                 {language === 'hindi' 
-                  ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और! 🪡` 
-                  : `Only ₹${(savingsGoal - totalSavings).toLocaleString()} more to reach your ${goalName} goal! 🪡`
+                  ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और!` 
+                  : `Only ₹${(savingsGoal - totalSavings).toLocaleString()} more to reach your ${goalName} goal!`
                 }
               </p>
             </div>
           </div>
 
           {/* AI Recommendations */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                  <Sparkles size={20} className="text-blue-500" />
+                <div className="w-10 h-10 bg-rose-500/20 rounded-full flex items-center justify-center">
+                  <Sparkles size={20} className="text-rose-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-white">
                   {language === 'hindi' ? 'एआई सिफारिशें' : 'AI Recommendations'}
                 </h2>
               </div>
               {dashboard?.aiInsights && dashboard.aiInsights.some(i => i.model === 'prophet_ai') && (
-                <span className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full text-xs font-medium text-purple-700 border border-purple-300">
+                <span className="flex items-center gap-1 px-3 py-1 bg-rose-500/20 rounded-full text-xs font-medium text-rose-300 border border-rose-500/50">
                   <Sparkles size={12} />
                   Prophet AI
                 </span>
@@ -479,25 +493,17 @@ const Dashboard = () => {
                 dashboard.aiInsights.map((insight, index) => (
                   <div 
                     key={`ai-insight-${index}`} 
-                    className={`p-4 rounded-lg border ${
-                      insight.model === 'prophet_ai'
-                        ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-200'
-                        : insight.priority === 'high' 
-                        ? 'bg-orange-50 border-orange-200' 
-                        : insight.priority === 'medium'
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-green-50 border-green-200'
-                    }`}
+                    className={`p-4 rounded-lg border bg-gray-900/50 border-gray-700`}
                   >
-                    <p className="text-sm font-bold text-gray-900 mb-1">{insight.title}</p>
-                    <p className="text-sm text-gray-700">{insight.message}</p>
+                    <p className={`text-sm font-bold mb-1 text-rose-300`}>{insight.title}</p>
+                    <p className="text-sm text-gray-300">{insight.message}</p>
                   </div>
                 ))
               ) : (
                 <>
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-sm font-medium text-gray-900">
-                      🌶️ {language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights'}
+                  <div className="p-3 bg-gray-900/50 rounded-lg border border-gray-700">
+                    <p className="text-sm font-medium text-gray-300">
+                      {language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights'}
                     </p>
                   </div>
                 </>

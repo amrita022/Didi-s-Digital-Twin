@@ -445,56 +445,13 @@ const handleVoiceInput = async (transcript) => {
 
   return (
     <div className="space-y-6">
-      {/* Online/Offline Status Banner */}
-      <div className={`rounded-xl p-4 shadow-sm border ${
-        isOnline 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-orange-50 border-orange-200'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {isOnline ? (
-              <>
-                <Wifi size={20} className="text-green-600" />
-                <span className="text-green-800 font-medium">
-                  {language === 'hindi' ? '🟢 ऑनलाइन' : '🟢 Online'}
-                </span>
-              </>
-            ) : (
-              <>
-                <WifiOff size={20} className="text-orange-600" />
-                <span className="text-orange-800 font-medium">
-                  {language === 'hindi' ? '🔴 ऑफ़लाइन - डेटा स्थानीय रूप से सहेजा जाएगा' : '🔴 Offline - Data will be saved locally'}
-                </span>
-              </>
-            )}
-          </div>
-          
-          {syncStatus.needsSync && isOnline && (
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
-            >
-              <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
-              <span>
-                {isSyncing 
-                  ? (language === 'hindi' ? 'सिंक हो रहा है...' : 'Syncing...') 
-                  : `${language === 'hindi' ? 'सिंक करें' : 'Sync'} (${syncStatus.unsyncedCount})`
-                }
-              </span>
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Voice Interface */}
-      <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center">
+      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-8 shadow-lg border border-gray-800 text-center">
         <div className="mb-6">
           <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-4 transition-all duration-300 ${
             voiceState.isListening 
-              ? 'bg-gradient-to-r from-[#C85D3A] to-[#D9A441] animate-pulse shadow-lg' 
-              : 'bg-gradient-to-r from-[#3B7A6D] to-[#3A2B4D] hover:shadow-lg'
+              ? 'bg-gradient-to-r from-rose-500 to-rose-600 animate-pulse shadow-lg' 
+              : 'bg-gradient-to-r from-rose-500 to-rose-600 hover:shadow-lg'
           }`}>
             {voiceState.isListening ? (
               <MicOff size={40} className="text-white" />
@@ -503,14 +460,14 @@ const handleVoiceInput = async (transcript) => {
             )}
           </div>
           
-          <h2 className="text-2xl font-bold text-[#3A2B4D] mb-2">
+          <h2 className="text-2xl font-bold text-white mb-2">
             {voiceState.isListening 
               ? getTranslation('listening', language) 
               : getTranslation('speakNow', language)
             }
           </h2>
           
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-300 mb-6">
             {language === 'hindi' 
               ? 'माइक पर टैप करें और बोलें' 
               : 'Tap the mic and start speaking'
@@ -523,7 +480,7 @@ const handleVoiceInput = async (transcript) => {
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
                 voiceState.isListening
                   ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-[#3B7A6D] hover:bg-[#2D5F52] text-white'
+                  : 'bg-rose-500 hover:bg-rose-600 text-white'
               }`}
             >
               {voiceState.isListening ? (
@@ -543,8 +500,8 @@ const handleVoiceInput = async (transcript) => {
       </div>
 
       {/* Quick Commands */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-[#3A2B4D] mb-4">
+      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+        <h3 className="text-lg font-bold text-white mb-4">
           {getTranslation('quickCommands', language)}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -552,27 +509,27 @@ const handleVoiceInput = async (transcript) => {
             <button
               key={index}
               onClick={() => handleVoiceInput(cmd.command)}
-              className="p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-3 text-left bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <span className="text-[#3A2B4D] font-medium">{cmd.text}</span>
+              <span className="text-white font-medium">{cmd.text}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Text Input */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
         <form onSubmit={handleTextSubmit} className="flex space-x-3">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder={language === 'hindi' ? 'यहाँ टाइप करें...' : 'Type here...'}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3B7A6D] focus:border-transparent"
+            className="flex-1 px-4 py-3 bg-gray-600 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
           />
           <button
             type="submit"
-            className="px-6 py-3 bg-[#3B7A6D] text-white rounded-lg hover:bg-[#2D5F52] transition-colors"
+            className="px-6 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
           >
             <Send size={20} />
           </button>
@@ -580,15 +537,15 @@ const handleVoiceInput = async (transcript) => {
       </div>
 
       {/* Chat Messages */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-[#3A2B4D] flex items-center">
+          <h3 className="text-lg font-bold text-white flex items-center">
             <MessageCircle size={20} className="mr-2" />
             {language === 'hindi' ? 'बातचीत' : 'Conversation'}
           </h3>
           <button
             onClick={() => setMessages([messages[0]])}
-            className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-200 transition-colors"
           >
             <RotateCcw size={16} />
           </button>
@@ -603,13 +560,13 @@ const handleVoiceInput = async (transcript) => {
               <div
                 className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
                   message.type === 'user'
-                    ? 'bg-[#3B7A6D] text-white'
-                    : 'bg-gray-100 text-[#3A2B4D]'
+                    ? 'bg-rose-600 text-white'
+                    : 'bg-gray-600 text-gray-100'
                 }`}
               >
                 <p className="text-sm">{message.text}</p>
                 <p className={`text-xs mt-1 ${
-                  message.type === 'user' ? 'text-white/70' : 'text-gray-500'
+                  message.type === 'user' ? 'text-white/70' : 'text-gray-300'
                 }`}>
                   {message.timestamp.toLocaleTimeString()}
                 </p>

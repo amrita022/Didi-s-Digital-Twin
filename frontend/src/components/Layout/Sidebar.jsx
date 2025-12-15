@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Home, Mic, BarChart3, IndianRupee, Calendar, 
-  PiggyBank, Settings, Menu, X, Star
+  PiggyBank, Settings, Menu, X, Star, LogOut, Bell
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,16 +21,30 @@ const SidebarContent = () => {
     language, 
     sidebarOpen, 
     setSidebarOpen,
-    userName 
+    userName,
+    setLanguage
   } = useStore();
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { open } = useSidebar();
 
   const displayName = userName || user?.email?.split('@')[0] || 'User';
   const userEmail = user?.email || '';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
+  };
 
   const menuItems = [
     { id: 'dashboard', path: '/dashboard', icon: <Home size={20} className="text-white" />, label: getTranslation('dashboard', language) },
@@ -40,7 +54,6 @@ const SidebarContent = () => {
     { id: 'demand', path: '/demand', icon: <Calendar size={20} className="text-white" />, label: getTranslation('demandPredictions', language) },
     { id: 'savings', path: '/savings', icon: <PiggyBank size={20} className="text-white" />, label: getTranslation('savingsGoals', language) },
     { id: 'demo', path: '/demo', icon: <Star size={20} className="text-white" />, label: language === 'hindi' ? 'रेखा की कहानी' : 'Rekha\'s Story' },
-    { id: 'settings', path: '/settings', icon: <Settings size={20} className="text-white" />, label: getTranslation('settings', language) },
   ];
 
   const handleNavigation = (path) => {
@@ -86,9 +99,10 @@ const SidebarContent = () => {
         </div>
       </div>
 
-      {/* Footer - User Profile - Only show when sidebar is open */}
+      {/* Footer - User Profile, Language Toggle, Settings, Logout */}
       {open && (
-        <div>
+        <div className="space-y-4">
+          {/* User Profile */}
           <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -105,6 +119,48 @@ const SidebarContent = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Language Toggle */}
+          <div className="flex bg-gray-700 rounded-lg p-1 gap-1">
+            <button
+              onClick={() => setLanguage('english')}
+              className={`flex-1 px-2 py-2 rounded text-xs font-medium transition-colors ${
+                language === 'english' 
+                  ? 'bg-gray-600 text-white shadow-sm' 
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLanguage('hindi')}
+              className={`flex-1 px-2 py-2 rounded text-xs font-medium transition-colors ${
+                language === 'hindi' 
+                  ? 'bg-gray-600 text-white shadow-sm' 
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              हिं
+            </button>
+          </div>
+
+          {/* Settings & Logout Buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={handleSettingsClick}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              <Settings size={16} />
+              <span>{language === 'hindi' ? 'सेटिंग्स' : 'Settings'}</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              <LogOut size={16} />
+              <span>{language === 'hindi' ? 'लॉगआउट' : 'Logout'}</span>
+            </button>
           </div>
         </div>
       )}
