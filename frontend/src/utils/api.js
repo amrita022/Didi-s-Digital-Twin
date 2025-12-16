@@ -1,6 +1,5 @@
 /* API utilities for communicating with backend */
 
-import offlineStorage from './offlineStorage';
 const API_BASE_URL = 'http://localhost:5002/api';
 
 /* Savings Goals API */
@@ -121,78 +120,8 @@ export async function processVoiceCommand(text, userId) {
 
   } catch (error) {
     console.error('❌ API Error:', error);
-    
-    // If offline, queue the transaction
-    if (!navigator.onLine) {
-      console.log('📴 Offline - attempting to save locally...');
-      
-      // Try to extract transaction data locally
-      const localResult = await processOffline(text);
-      return localResult;
-    }
     throw error;
   }
-}
-
-/* Process voice command offline */
-async function processOffline(text) {
-  console.log('💾 Processing offline:', text);
-  
-  // Simple local processing
-  const lowerText = text.toLowerCase();
-  let type = 'expense';
-  let amount = null;
-  let category = 'general';
-  
-  // Extract amount
-  const amountMatch = text.match(/(\d+)/);
-  if (amountMatch) {
-    amount = parseInt(amountMatch[1]);
-  }
-  
-  // Detect type
-  if (lowerText.includes('sale') || lowerText.includes('बिक्री') || lowerText.includes('sold')) {
-    type = 'income';
-  }
-  
-  // Detect category
-  if (lowerText.includes('pickle') || lowerText.includes('अचार')) {
-    category = 'pickles';
-  } else if (lowerText.includes('cloth') || lowerText.includes('कपड़')) {
-    category = 'clothing';
-  } else if (lowerText.includes('material') || lowerText.includes('सामान')) {
-    category = 'raw_materials';
-  }
-  
-  if (amount && (type === 'expense' || type === 'income')) {
-    // Save offline
-    await offlineStorage.addTransaction({
-      type,
-      amount,
-      category,
-      description: text
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      response_english: `📴 Offline: Saved ${type} of ₹${amount}. Will sync when online.`,
-      response_hindi: `📴 ऑफलाइन: ₹${amount} का ${type} सहेजा गया। ऑनलाइन होने पर सिंक होगा।`,
-      response: `📴 Offline: Saved ${type} of ₹${amount}. Will sync when online.`,
-      intent: type,
-      amount,
-      category
-    };
-  }
-  
-  return {
-    success: true,
-    offline: true,
-    response_english: '📴 You are offline. Transaction will be saved when you come back online.',
-    response_hindi: '📴 आप ऑफलाइन हैं। लेन-देन ऑनलाइन आने पर सहेजा जाएगा।',
-    response: '📴 You are offline. Transaction will be saved when you come back online.',
-    intent: 'unknown'
-  };
 }
 
 /* Get dashboard data */
@@ -233,32 +162,6 @@ export async function getDashboardData(userId) {
   }
 }
 
-/* Sync offline transactions */
-export async function syncOfflineTransactions() {
-  if (!navigator.onLine) {
-    return { success: false, message: 'Still offline' };
-  }
-
-  return await offlineStorage.syncOfflineData();
-}
-
-/* Get sync status */
-export async function getSyncStatus() {
-  return await offlineStorage.getSyncStatus();
-}
-
-/* Check online status */
-export function isOnline() {
-  return navigator.onLine;
-}
-
-/* Setup auto-sync when coming online */
-export function setupAutoSync() {
-  window.addEventListener('online', async () => {
-    console.log('🌐 Back online! Auto-syncing...');
-    await syncOfflineTransactions();
-  });
-}
 
 /* Get business analytics */
 export async function fetchAnalytics(userId) {
@@ -300,5 +203,115 @@ export async function fetchAnalytics(userId) {
       monthlyProfitTrend: [],
       insights: []
     };
+  }
+}
+
+/* Get reminders/nudges */
+export async function getReminders(userId, language = 'english') {
+  if (!userId) {
+    throw new Error('userId is required for getReminders');
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/reminders?userId=${userId}&language=${language}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch reminders');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('❌ Get reminders error:', error);
+    return {
+      success: false,
+      reminders: [],
+      count: 0
+    };
+  }
+}
+
+/* Create a reminder */
+export async function createReminder(reminderData) {
+  if (!reminderData.userId) {
+    throw new Error('userId is required for createReminder');
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/reminders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(reminderData)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create reminder');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('❌ Create reminder error:', error);
+    throw error;
+  }
+}
+
+/* Dismiss a reminder */
+export async function dismissReminder(reminderId, userId) {
+  if (!userId || !reminderId) {
+    throw new Error('userId and reminderId are required');
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/reminders/${reminderId}/dismiss`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to dismiss reminder');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('❌ Dismiss reminder error:', error);
+    throw error;
+  }
+}
+
+/* Mark reminder as completed */
+export async function completeReminder(reminderId, userId) {
+  if (!userId || !reminderId) {
+    throw new Error('userId and reminderId are required');
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/reminders/${reminderId}/complete`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to complete reminder');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('❌ Complete reminder error:', error);
+    throw error;
   }
 }

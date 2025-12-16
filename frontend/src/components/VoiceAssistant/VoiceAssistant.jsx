@@ -2,19 +2,44 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Mic, 
   MicOff, 
-  Volume2, 
-  VolumeX, 
   Send,
   MessageCircle,
   RotateCcw,
-  Wifi,
-  WifiOff,
-  RefreshCw
+  Globe
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { useAuth } from '../../hooks/useAuth';
 import { getTranslation } from '../../utils/translations';
-import { processVoiceCommand as processVoiceAPI, getSyncStatus, syncOfflineTransactions, setupAutoSync } from '../../utils/api';
+import { processVoiceCommand as processVoiceAPI } from '../../utils/api';
+
+// Language mapping for Web Speech API
+const LANGUAGE_MAP = {
+  'english': 'en-US',
+  'hindi': 'hi-IN',
+  'bengali': 'bn-IN',
+  'tamil': 'ta-IN',
+  'telugu': 'te-IN',
+  'marathi': 'mr-IN',
+  'gujarati': 'gu-IN',
+  'kannada': 'kn-IN',
+  'malayalam': 'ml-IN',
+  'punjabi': 'pa-IN',
+  'urdu': 'ur-IN'
+};
+
+const LANGUAGE_NAMES = {
+  'english': 'English',
+  'hindi': 'हिंदी (Hindi)',
+  'bengali': 'বাংলা (Bengali)',
+  'tamil': 'தமிழ் (Tamil)',
+  'telugu': 'తెలుగు (Telugu)',
+  'marathi': 'मराठी (Marathi)',
+  'gujarati': 'ગુજરાતી (Gujarati)',
+  'kannada': 'ಕನ್ನಡ (Kannada)',
+  'malayalam': 'മലയാളം (Malayalam)',
+  'punjabi': 'ਪੰਜਾਬੀ (Punjabi)',
+  'urdu': 'اردو (Urdu)'
+};
 
 const VoiceAssistant = () => {
   const { uid } = useAuth();
@@ -25,6 +50,8 @@ const VoiceAssistant = () => {
     //addTransaction,
     //businessData 
   } = useStore();
+  
+  const [voiceLanguage, setVoiceLanguage] = useState(language === 'hindi' ? 'hindi' : 'english');
   
   const [messages, setMessages] = useState([
     {
@@ -38,48 +65,123 @@ const VoiceAssistant = () => {
   ]);
   
   const [inputText, setInputText] = useState('');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [syncStatus, setSyncStatus] = useState({ unsyncedCount: 0, needsSync: false });
-  const [isSyncing, setIsSyncing] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const recognitionRef = useRef(null);
   const synthRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const networkErrorCountRef = useRef(0);
+  const lastNetworkErrorRef = useRef(0);
 
   useEffect(() => {
-    // No longer using browser speech recognition
-    // We'll use MediaRecorder to capture audio and send to Whisper
+    // Initialize Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      // Reinitialize recognition if it doesn't exist or language changed
+      if (!recognitionRef.current || recognitionRef.current.lang !== LANGUAGE_MAP[voiceLanguage]) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+      }
+      recognitionRef.current.lang = LANGUAGE_MAP[voiceLanguage] || 'en-US';
+      
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        handleVoiceInput(transcript);
+      };
+      
+      recognitionRef.current.onerror = (event) => {
+        const isNetworkError = event.error === 'network';
+        const isAborted = event.error === 'aborted';
+        
+        updateVoiceState({ isListening: false, isProcessing: false });
+        
+        // Handle aborted errors silently (user stopped)
+        if (isAborted) {
+          return;
+        }
+        
+        // Handle network errors - track but don't spam console
+        if (isNetworkError) {
+          const now = Date.now();
+          lastNetworkErrorRef.current = now;
+          networkErrorCountRef.current++;
+          
+          // Only show message if we haven't shown one recently
+          if (networkErrorCountRef.current === 1 || now - lastNetworkErrorRef.current > 10000) {
+            const errorMessage = {
+              id: Date.now(),
+              type: 'ai',
+              text: language === 'hindi' 
+                ? '❌ नेटवर्क त्रुटि। वॉइस रिकॉग्निशन के लिए इंटरनेट कनेक्शन आवश्यक है।' 
+                : '❌ Network error. Internet connection required for voice recognition.',
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+          }
+          return;
+        }
+        
+        // Handle other errors with user feedback (but no console logging)
+        let errorText = '';
+        
+        switch (event.error) {
+          case 'not-allowed':
+            errorText = language === 'hindi' 
+              ? '❌ माइक्रोफ़ोन अनुमति नहीं मिली। कृपया ब्राउज़र सेटिंग्स में अनुमति दें।' 
+              : '❌ Microphone permission denied. Please allow microphone access in browser settings.';
+            break;
+          case 'no-speech':
+            errorText = language === 'hindi' 
+              ? '❌ कोई आवाज़ नहीं सुनी गई। कृपया फिर से बोलें।' 
+              : '❌ No speech detected. Please speak again.';
+            break;
+          default:
+            errorText = language === 'hindi' 
+              ? '❌ माइक्रोफ़ोन त्रुटि। कृपया फिर से प्रयास करें।' 
+              : '❌ Microphone error. Please try again.';
+        }
+        
+        const errorMessage = {
+          id: Date.now(),
+          type: 'ai',
+          text: errorText,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      };
+      
+      recognitionRef.current.onend = () => {
+        updateVoiceState({ isListening: false });
+      };
+    }
 
     // Initialize speech synthesis
     synthRef.current = window.speechSynthesis;
 
-    // Setup auto-sync
-    setupAutoSync();
-
-    // Setup online/offline listeners
-    const handleOnline = async () => {
-      setIsOnline(true);
-      await updateSyncStatus();
+    // Listen for online/offline events to reset error count
+    const handleOnline = () => {
+      networkErrorCountRef.current = 0;
+      lastNetworkErrorRef.current = 0;
     };
 
     const handleOffline = () => {
-      setIsOnline(false);
+      if (recognitionRef.current && voiceState.isListening) {
+        recognitionRef.current.stop();
+        updateVoiceState({ isListening: false });
+      }
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initial sync status check
-    updateSyncStatus();
-
     return () => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [language, updateVoiceState]);
+  }, [language, updateVoiceState, voiceState.isListening, voiceLanguage]);
 
   useEffect(() => {
     scrollToBottom();
@@ -92,7 +194,7 @@ const VoiceAssistant = () => {
   const speak = (text) => {
     if (synthRef.current) {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language === 'hindi' ? 'hi-IN' : 'en-US';
+      utterance.lang = LANGUAGE_MAP[voiceLanguage] || 'en-US';
       utterance.rate = 0.8;
       utterance.pitch = 1;
       
@@ -100,175 +202,8 @@ const VoiceAssistant = () => {
     }
   };
 
-  const updateSyncStatus = async () => {
-    const status = await getSyncStatus();
-    setSyncStatus(status);
-  };
 
-  const handleSync = async () => {
-    setIsSyncing(true);
-    const result = await syncOfflineTransactions();
-    setIsSyncing(false);
-    
-    if (result.success) {
-      const message = language === 'hindi' 
-        ? '✅ सभी डेटा सिंक हो गया!' 
-        : '✅ All data synced successfully!';
-      
-      setMessages(prev => [...prev, {
-        id: Date.now(),
-        type: 'ai',
-        text: message,
-        timestamp: new Date()
-      }]);
-      
-      await updateSyncStatus();
-    }
-  };
-
-  // NEW: Convert audio to WAV format
-  const convertToWav = async (audioBlob) => {
-    return new Promise((resolve, reject) => {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const fileReader = new FileReader();
-      
-      fileReader.onload = async (e) => {
-        try {
-          const arrayBuffer = e.target.result;
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-          
-          // Convert to WAV
-          const wavBuffer = audioBufferToWav(audioBuffer);
-          const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
-          resolve(wavBlob);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      
-      fileReader.onerror = reject;
-      fileReader.readAsArrayBuffer(audioBlob);
-    });
-  };
-
-  // Helper: Convert AudioBuffer to WAV format
-  const audioBufferToWav = (audioBuffer) => {
-    const numberOfChannels = audioBuffer.numberOfChannels;
-    const sampleRate = audioBuffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16;
-    
-    const bytesPerSample = bitDepth / 8;
-    const blockAlign = numberOfChannels * bytesPerSample;
-    
-    const data = [];
-    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-      data.push(audioBuffer.getChannelData(i));
-    }
-    
-    const interleaved = interleave(data);
-    const dataLength = interleaved.length * bytesPerSample;
-    const buffer = new ArrayBuffer(44 + dataLength);
-    const view = new DataView(buffer);
-    
-    // Write WAV header
-    writeString(view, 0, 'RIFF');
-    view.setUint32(4, 36 + dataLength, true);
-    writeString(view, 8, 'WAVE');
-    writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, format, true);
-    view.setUint16(22, numberOfChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * blockAlign, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitDepth, true);
-    writeString(view, 36, 'data');
-    view.setUint32(40, dataLength, true);
-    
-    // Write audio data
-    floatTo16BitPCM(view, 44, interleaved);
-    
-    return buffer;
-  };
-
-  const writeString = (view, offset, string) => {
-    for (let i = 0; i < string.length; i++) {
-      view.setUint8(offset + i, string.charCodeAt(i));
-    }
-  };
-
-  const floatTo16BitPCM = (view, offset, input) => {
-    for (let i = 0; i < input.length; i++, offset += 2) {
-      const s = Math.max(-1, Math.min(1, input[i]));
-      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-    }
-  };
-
-  const interleave = (inputArrays) => {
-    const length = inputArrays[0].length;
-    const result = new Float32Array(length * inputArrays.length);
-    
-    let index = 0;
-    let inputIndex = 0;
-    
-    while (inputIndex < length) {
-      for (let i = 0; i < inputArrays.length; i++) {
-        result[index++] = inputArrays[i][inputIndex];
-      }
-      inputIndex++;
-    }
-    return result;
-  };
-
-  // NEW: Send audio to Whisper for transcription
-  const transcribeAudio = async (audioBlob) => {
-    console.log('🎤 Transcribing audio with Whisper...');
-    
-    try {
-      // Convert to WAV format first
-      console.log('🔄 Converting audio to WAV...');
-      const wavBlob = await convertToWav(audioBlob);
-      console.log('✅ Audio converted to WAV');
-      
-      // Convert audio blob to base64
-      const reader = new FileReader();
-      const base64Audio = await new Promise((resolve) => {
-        reader.onloadend = () => {
-          const base64 = reader.result.split(',')[1];
-          resolve(base64);
-        };
-        reader.readAsDataURL(wavBlob);
-      });
-
-      // Send to Whisper service
-      const response = await fetch('http://localhost:5003/transcribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          audioData: base64Audio,
-          language: language === 'hindi' ? 'mr' : 'auto', // Force Marathi for Hindi users
-          forceLanguage: false  // Let it auto-detect with smart override
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Whisper transcription failed');
-      }
-
-      const data = await response.json();
-      console.log('✅ Whisper response:', data);
-      
-      return data.text;
-    } catch (error) {
-      console.error('❌ Transcription error:', error);
-      throw error;
-    }
-  };
-
-const handleVoiceInput = async (transcript) => {
+  const handleVoiceInput = async (transcript) => {
   const userMessage = {
     id: Date.now(),
     type: 'user',
@@ -310,11 +245,6 @@ const handleVoiceInput = async (transcript) => {
       window.dispatchEvent(new CustomEvent('refreshDashboard'));
     }
     
-    // Update sync status if saved offline
-    if (result.offline) {
-      await updateSyncStatus();
-    }
-    
   } catch (error) {
     console.error('Error processing voice:', error);
     
@@ -333,86 +263,69 @@ const handleVoiceInput = async (transcript) => {
   }
 };
 
-  const startListening = async () => {
-    if (voiceState.isListening) return;
+  const startListening = () => {
+    if (voiceState.isListening || !recognitionRef.current) return;
+    
+    // Check internet connectivity first - Web Speech API requires internet
+    if (!navigator.onLine) {
+      const errorMessage = {
+        id: Date.now(),
+        type: 'ai',
+        text: language === 'hindi' 
+          ? '❌ वॉइस रिकॉग्निशन के लिए इंटरनेट कनेक्शन आवश्यक है। कृपया अपना इंटरनेट जांचें।' 
+          : '❌ Internet connection required for voice recognition. Please check your internet connection.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+    
+    // Prevent repeated attempts if we've had multiple network errors recently
+    const now = Date.now();
+    if (networkErrorCountRef.current >= 2 && now - lastNetworkErrorRef.current < 15000) {
+      // Too many network errors recently, show message and don't attempt
+      const errorMessage = {
+        id: Date.now(),
+        type: 'ai',
+        text: language === 'hindi' 
+          ? '❌ नेटवर्क त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें और कुछ सेकंड बाद पुन: प्रयास करें।' 
+          : '❌ Network error. Please check your internet connection and try again in a few seconds.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+    
+    // Reset error count if enough time has passed
+    if (now - lastNetworkErrorRef.current > 30000) {
+      networkErrorCountRef.current = 0;
+    }
     
     try {
-      console.log('🎤 Starting audio recording...');
+      // Update language if needed
+      recognitionRef.current.lang = LANGUAGE_MAP[voiceLanguage] || 'en-US';
+      
       updateVoiceState({ isListening: true, isProcessing: false });
-      
-      // Get microphone access with enhanced audio constraints
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          channelCount: 1, // Mono audio
-          sampleRate: 16000, // 16kHz matches Whisper's requirements
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-      
-      // Create MediaRecorder with optimal settings for speech
-      const options = {
-        mimeType: 'audio/webm;codecs=opus',
-        audioBitsPerSecond: 128000 // 128kbps for better quality
-      };
-      
-      // Fallback if webm/opus not supported
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'audio/webm';
-      }
-      
-      mediaRecorderRef.current = new MediaRecorder(stream, options);
-      audioChunksRef.current = [];
-      
-      console.log(`🎙️ Recording with: ${options.mimeType} @ ${options.audioBitsPerSecond}bps`);
-      
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorderRef.current.onstop = async () => {
-        console.log('🔄 Processing recorded audio...');
-        updateVoiceState({ isListening: false, isProcessing: true });
-        
-        // Create audio blob from recorded chunks
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log(`📦 Audio blob created: ${audioBlob.size} bytes`);
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
-        
-        try {
-          // Transcribe with Whisper
-          const transcript = await transcribeAudio(audioBlob);
-          console.log('📝 Transcript:', transcript);
-          
-          updateVoiceState({ transcript, isProcessing: false });
-          
-          // Process the transcribed text
-          await handleVoiceInput(transcript);
-        } catch (error) {
-          console.error('❌ Error:', error);
-          updateVoiceState({ isProcessing: false });
-        }
-      };
-      
-      // Start recording
-      mediaRecorderRef.current.start();
-      console.log('🔴 Recording started');
+      recognitionRef.current.start();
       
     } catch (error) {
-      console.error('❌ Microphone error:', error);
       updateVoiceState({ isListening: false, isProcessing: false });
+      const errorMessage = {
+        id: Date.now(),
+        type: 'ai',
+        text: language === 'hindi' 
+          ? '❌ माइक्रोफ़ोन तक पहुंच नहीं मिली। कृपया अनुमति दें।' 
+          : '❌ Could not access microphone. Please grant permission.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
   const stopListening = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      console.log('⏹️ Stopping recording...');
-      mediaRecorderRef.current.stop();
+    if (recognitionRef.current && voiceState.isListening) {
+      recognitionRef.current.stop();
+      updateVoiceState({ isListening: false });
     }
   };
 
@@ -448,6 +361,27 @@ const handleVoiceInput = async (transcript) => {
       {/* Voice Interface */}
       <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-8 shadow-lg border border-gray-800 text-center">
         <div className="mb-6">
+          {/* Language Selector */}
+          <div className="mb-4 flex justify-center">
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <Globe size={16} className="inline mr-2" />
+                {language === 'hindi' ? 'भाषा चुनें' : 'Select Language'}
+              </label>
+              <select
+                value={voiceLanguage}
+                onChange={(e) => setVoiceLanguage(e.target.value)}
+                className="px-4 py-2 bg-gray-600 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-rose-500 focus:border-transparent min-w-[200px]"
+              >
+                {Object.entries(LANGUAGE_NAMES).map(([key, name]) => (
+                  <option key={key} value={key} className="bg-gray-600">
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-4 transition-all duration-300 ${
             voiceState.isListening 
               ? 'bg-gradient-to-r from-rose-500 to-rose-600 animate-pulse shadow-lg' 

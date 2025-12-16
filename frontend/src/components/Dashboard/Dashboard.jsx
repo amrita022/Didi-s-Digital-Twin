@@ -9,11 +9,14 @@ import {
   Target,
   AlertCircle,
   Edit3,
-  RefreshCw
+  RefreshCw,
+  Bell,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 import AddDashboardDataModal from './AddDashboardDataModal';
+import Reminders from '../Reminders/Reminders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
@@ -24,6 +27,7 @@ const Dashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showRemindersModal, setShowRemindersModal] = useState(false);
 
   // Listen for custom 'refreshDashboard' events from voice assistant
   useEffect(() => {
@@ -207,46 +211,66 @@ const Dashboard = () => {
     </div>
   );
 
-  const TransactionItem = ({ transaction }) => (
-    <div className="p-4 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 bg-gray-800/50">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-            transaction.type === "income" 
-              ? "bg-emerald-500/20 text-emerald-400" 
-              : "bg-rose-500/20 text-rose-400"
-          }`}>
-            {transaction.type === "income" ? (
-              <ArrowUpRight className="h-5 w-5" />
-            ) : (
-              <ArrowDownRight className="h-5 w-5" />
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-100">
-              {transaction.description}
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {transaction.descriptionHindi || transaction.description}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
-                {transaction.category}
-              </span>
-              <span className="text-xs text-gray-500">
-                {new Date(transaction.date).toLocaleDateString()}
-              </span>
+  const TransactionItem = ({ transaction }) => {
+    if (!transaction) return null;
+    
+    const transactionDate = transaction.date ? new Date(transaction.date) : new Date();
+    const formattedDate = transactionDate.toLocaleDateString(language === 'hindi' ? 'hi-IN' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+    
+    const description = transaction.description || transaction.descriptionHindi || 'No description';
+    const category = transaction.category || 'general';
+    const amount = transaction.amount || 0;
+    const type = transaction.type || 'expense';
+    
+    return (
+      <div className="p-4 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 bg-gray-800/50">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              type === "income" 
+                ? "bg-emerald-500/20 text-emerald-400" 
+                : "bg-rose-500/20 text-rose-400"
+            }`}>
+              {type === "income" ? (
+                <ArrowUpRight className="h-5 w-5" />
+              ) : (
+                <ArrowDownRight className="h-5 w-5" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-100 truncate">
+                {description}
+              </p>
+              {transaction.descriptionHindi && transaction.descriptionHindi !== description && (
+                <p className="text-xs text-gray-400 mt-0.5 truncate">
+                  {transaction.descriptionHindi}
+                </p>
+              )}
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
+                  {category}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {formattedDate}
+                </span>
+              </div>
             </div>
           </div>
+          <div className="flex-shrink-0">
+            <p className={`text-lg font-bold whitespace-nowrap ${
+              type === "income" ? "text-emerald-400" : "text-rose-400"
+            }`}>
+              {type === "income" ? "+" : "-"}₹{amount.toLocaleString('en-IN')}
+            </p>
+          </div>
         </div>
-        <p className={`text-lg font-bold ${
-          transaction.type === "income" ? "text-emerald-400" : "text-rose-400"
-        }`}>
-          {transaction.type === "income" ? "+" : "-"}₹{transaction.amount}
-        </p>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6 bg-black rounded-xl p-6">
@@ -267,6 +291,13 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowRemindersModal(true)}
+            className="relative flex items-center justify-center w-10 h-10 bg-neutral-700 hover:bg-neutral-600 text-white rounded-xl shadow transition-colors duration-200"
+            title={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
+          >
+            <Bell size={20} />
+          </button>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl shadow transition-colors duration-200"
@@ -373,19 +404,26 @@ const Dashboard = () => {
             </h3>
           </div>
 
-          <div className="h-[400px] pr-4 overflow-y-auto">
+          <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {dashboard?.recentTransactions && dashboard.recentTransactions.length > 0 ? (
               <div className="space-y-3">
-                {dashboard.recentTransactions.map((transaction) => (
-                  <TransactionItem key={transaction._id} transaction={transaction} />
+                {dashboard.recentTransactions.map((transaction, index) => (
+                  <TransactionItem 
+                    key={transaction._id || transaction.id || `txn-${index}`} 
+                    transaction={transaction} 
+                  />
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
                 <AlertCircle className="mx-auto text-gray-600 mb-3" size={40} />
-                <p className="text-gray-400">No transactions yet</p>
+                <p className="text-gray-400">
+                  {language === 'hindi' ? 'अभी तक कोई लेनदेन नहीं' : 'No transactions yet'}
+                </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Add your first transaction to see it here
+                  {language === 'hindi' 
+                    ? 'यहाँ देखने के लिए अपना पहला लेनदेन जोड़ें' 
+                    : 'Add your first transaction to see it here'}
                 </p>
               </div>
             )}
@@ -473,6 +511,34 @@ const Dashboard = () => {
             totalSales: totalSales
           }}
         />
+      )}
+
+      {/* Reminders Modal */}
+      {showRemindersModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-700">
+              <div className="flex items-center space-x-3">
+                <Bell size={24} className="text-rose-400" />
+                <h2 className="text-2xl font-bold text-white">
+                  {language === 'hindi' ? 'याददाश्त और सुझाव' : 'Reminders & Nudges'}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowRemindersModal(false)}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-gray-400" />
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <Reminders />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

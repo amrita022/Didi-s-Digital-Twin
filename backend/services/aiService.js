@@ -1,27 +1,17 @@
 const nlpProcessor = require('../utils/nlpProcessor');
 const dbService = require('./dbService');
-const whisperService = require('./whisperService');
 
 class AIService {
   constructor() {
     this.initialized = false;
-    this.whisperReady = false;
   }
 
   async initialize() {
     try {
-      console.log('🚀 Initializing REAL AI Services...');
-      
-      // Initialize Whisper service
-      this.whisperReady = await whisperService.initialize();
-      
-      if (this.whisperReady) {
-        console.log('✅ REAL Whisper AI Ready!');
-        this.initialized = true;
-      } else {
-        throw new Error('Whisper AI failed to load');
-      }
-      
+      console.log('🚀 Initializing AI Services...');
+      // Web Speech API is handled on the frontend, no backend initialization needed
+      this.initialized = true;
+      console.log('✅ AI Service Ready!');
     } catch (error) {
       console.error('❌ AI Service initialization failed:', error);
       throw error;
@@ -29,26 +19,10 @@ class AIService {
   }
 
   async processVoiceCommand(text, userId, audioData = null) {
-    console.log(`🤖 Processing with REAL AI...`);
+    console.log(`🤖 Processing voice command...`);
     
-    let finalText = text;
-    
-    // 🔥 USE REAL WHISPER AI FOR AUDIO TRANSCRIPTION
-    if (audioData && !text) {
-      console.log('🔊 Transcribing with REAL Whisper AI...');
-      try {
-        finalText = await this.transcribeAudio(audioData);
-        console.log(`✅ Whisper Transcription: "${finalText}"`);
-      } catch (error) {
-        console.error('❌ Whisper transcription failed:', error);
-        return {
-          success: false,
-          error: 'Voice transcription failed',
-          response_english: "Sorry, I couldn't understand the audio. Please try again.",
-          response_hindi: "माफ़ करें, मैं ऑडियो नहीं समझ पाई। कृपया फिर से कोशिश करें।"
-        };
-      }
-    }
+    // Web Speech API handles transcription on the frontend, so we only receive text
+    const finalText = text;
     
     if (!finalText || finalText.trim().length === 0) {
       return {
@@ -98,7 +72,6 @@ class AIService {
       category: analysis.category,
       text: finalText,
       processedWithAI: true,
-      whisperUsed: !!audioData,
       ...result
     };
   }
@@ -205,25 +178,10 @@ class AIService {
     };
   }
 
-  async transcribeAudio(audioData) {
-    if (!this.whisperReady) {
-      throw new Error('Whisper AI not available');
-    }
-    
-    console.log('🎵 Sending to REAL Whisper AI...');
-    const transcription = await whisperService.transcribe(audioData);
-    
-    if (!transcription || transcription.trim().length === 0) {
-      throw new Error('Whisper returned empty transcription');
-    }
-    
-    return transcription;
-  }
-
   async healthCheck() {
     return {
       status: this.initialized ? 'READY' : 'NOT_READY',
-      whisper: this.whisperReady,
+      speechRecognition: 'Web Speech API (Frontend)',
       modelsLoaded: this.initialized,
       timestamp: new Date().toISOString()
     };

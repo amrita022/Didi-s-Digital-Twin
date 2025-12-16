@@ -287,6 +287,141 @@ app.get('/api/analytics', async (req, res) => {
 });
 
 // ======================
+// REMINDERS & NUDGES
+// ======================
+const Reminder = require('./models/Reminder');
+const { generateNudges, saveNudgesAsReminders } = require('./utils/nudgeGenerator');
+
+// Get all active reminders for a user
+app.get('/api/reminders', async (req, res) => {
+  try {
+    const { userId, language } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+
+    // Generate and save new nudges
+    await saveNudgesAsReminders(userId, language || 'english');
+    
+    // Get all active, non-dismissed reminders
+    const reminders = await Reminder.find({ 
+      userId, 
+      isActive: true, 
+      isDismissed: false 
+    }).sort({ priority: -1, createdAt: -1 });
+    
+    res.json({
+      success: true,
+      reminders,
+      count: reminders.length
+    });
+  } catch (error) {
+    console.error('❌ Get reminders error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Create a reminder (when user clicks "yes" on a nudge)
+app.post('/api/reminders', async (req, res) => {
+  try {
+    const { userId, type, title, message, messageHindi, actionRequired, eventDate, metadata } = req.body;
+    
+    if (!userId || !title || !message) {
+      return res.status(400).json({ success: false, error: 'userId, title, and message are required' });
+    }
+
+    const reminder = await Reminder.create({
+      userId,
+      type: type || 'custom',
+      title,
+      message,
+      messageHindi,
+      actionRequired,
+      eventDate: eventDate ? new Date(eventDate) : undefined,
+      metadata,
+      isActive: true,
+      isDismissed: false
+    });
+    
+    res.json({
+      success: true,
+      reminder
+    });
+  } catch (error) {
+    console.error('❌ Create reminder error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Dismiss a reminder
+app.patch('/api/reminders/:id/dismiss', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { id } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+
+    const reminder = await Reminder.findOneAndUpdate(
+      { _id: id, userId },
+      { 
+        isDismissed: true, 
+        dismissedAt: new Date(),
+        isActive: false
+      },
+      { new: true }
+    );
+    
+    if (!reminder) {
+      return res.status(404).json({ success: false, error: 'Reminder not found' });
+    }
+    
+    res.json({
+      success: true,
+      reminder
+    });
+  } catch (error) {
+    console.error('❌ Dismiss reminder error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Mark reminder as completed
+app.patch('/api/reminders/:id/complete', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { id } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+
+    const reminder = await Reminder.findOneAndUpdate(
+      { _id: id, userId },
+      { 
+        completedAt: new Date(),
+        isActive: false
+      },
+      { new: true }
+    );
+    
+    if (!reminder) {
+      return res.status(404).json({ success: false, error: 'Reminder not found' });
+    }
+    
+    res.json({
+      success: true,
+      reminder
+    });
+  } catch (error) {
+    console.error('❌ Complete reminder error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ======================
 // PRICING RECOMMENDATIONS (XGBoost)
 // ======================
 const { generateXGBoostPricingRecommendations } = require('./services/xgboostPricingService');
