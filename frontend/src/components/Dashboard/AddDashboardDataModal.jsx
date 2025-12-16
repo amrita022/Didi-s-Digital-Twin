@@ -37,13 +37,13 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+      <div className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-gray-700">
         {/* Header - Sticky */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl flex-shrink-0">
+        <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white p-6 rounded-t-2xl flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Update Dashboard Data</h2>
-              <p className="text-blue-100 text-sm mt-1">Enter your business metrics below</p>
+              <p className="text-rose-100 text-sm mt-1">Enter your business metrics below</p>
             </div>
             <button
               onClick={onClose}
@@ -55,20 +55,20 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
         </div>
 
         {/* Form - Scrollable */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 bg-neutral-900">
           {/* Savings & Goals Section */}
-          <div className="bg-purple-50 rounded-xl p-5 border border-purple-200">
-            <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+          <div className="bg-neutral-800 rounded-xl p-5 border border-gray-700">
+            <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <Wallet className="h-5 w-5" />
               Savings & Goals
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Total Savings (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     ₹
                   </span>
                   <input
@@ -76,7 +76,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="totalSavings"
                     value={formData.totalSavings}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -84,11 +84,11 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Goal Target (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     ₹
                   </span>
                   <input
@@ -96,7 +96,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="goalTarget"
                     value={formData.goalTarget}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="25000"
                     min="0"
                   />
@@ -104,7 +104,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Goal Name
                 </label>
                 <input
@@ -112,7 +112,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                   name="goalName"
                   value={formData.goalName}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                   placeholder="e.g., Buy Sewing Machine"
                 />
               </div>
@@ -120,18 +120,18 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           </div>
 
           {/* Income Section */}
-          <div className="bg-green-50 rounded-xl p-5 border border-green-200">
-            <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center gap-2">
+          <div className="bg-neutral-800 rounded-xl p-5 border border-gray-700">
+            <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Income & Sales
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Today's Income (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     ₹
                   </span>
                   <input
@@ -139,7 +139,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="todayIncome"
                     value={formData.todayIncome}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border-2 border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -148,11 +148,11 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Total Monthly Sales (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     ₹
                   </span>
                   <input
@@ -160,7 +160,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="totalSales"
                     value={formData.totalSales}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border-2 border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -171,18 +171,18 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           </div>
 
           {/* Expenses & Profit Section */}
-          <div className="bg-blue-50 rounded-xl p-5 border border-blue-200">
-            <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
+          <div className="bg-neutral-800 rounded-xl p-5 border border-gray-700">
+            <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <TrendingDown className="h-5 w-5" />
               Expenses & Profit
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Monthly Expenses (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     ₹
                   </span>
                   <input
@@ -190,7 +190,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="monthlyExpenses"
                     value={formData.monthlyExpenses}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border-2 border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -199,11 +199,11 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
                   Monthly Profit (₹)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     ₹
                   </span>
                   <input
@@ -211,7 +211,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="monthlyProfit"
                     value={formData.monthlyProfit}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                   />
                 </div>
@@ -220,47 +220,47 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
             </div>
 
             {/* Auto-calculated profit notice */}
-            <div className="mt-4 p-3 bg-blue-100 rounded-lg border border-blue-300">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-rose-950/30 rounded-lg border border-rose-500/30">
+              <p className="text-sm text-rose-200">
                 <strong>Tip:</strong> Profit is usually calculated as Sales - Expenses. Make sure your numbers match!
               </p>
             </div>
           </div>
 
           {/* Summary Card */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200">
-            <h3 className="text-lg font-semibold text-indigo-900 mb-3">Quick Summary</h3>
+          <div className="bg-gradient-to-r from-neutral-800 to-neutral-900 rounded-xl p-5 border-2 border-gray-700">
+            <h3 className="text-lg font-semibold text-rose-300 mb-3">Quick Summary</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-              <div className="bg-white rounded-lg p-3 shadow-sm">
-                <p className="text-xs text-gray-600 mb-1">Savings</p>
-                <p className="text-lg font-bold text-purple-600">₹{(Number(formData.totalSavings) || 0).toLocaleString()}</p>
+              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+                <p className="text-xs text-gray-400 mb-1">Savings</p>
+                <p className="text-lg font-bold text-rose-400">₹{(Number(formData.totalSavings) || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 shadow-sm">
-                <p className="text-xs text-gray-600 mb-1">Goal</p>
-                <p className="text-lg font-bold text-orange-600">₹{(Number(formData.goalTarget) || 0).toLocaleString()}</p>
+              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+                <p className="text-xs text-gray-400 mb-1">Goal</p>
+                <p className="text-lg font-bold text-rose-400">₹{(Number(formData.goalTarget) || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 shadow-sm">
-                <p className="text-xs text-gray-600 mb-1">Sales</p>
-                <p className="text-lg font-bold text-green-600">₹{(Number(formData.totalSales) || 0).toLocaleString()}</p>
+              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+                <p className="text-xs text-gray-400 mb-1">Sales</p>
+                <p className="text-lg font-bold text-rose-400">₹{(Number(formData.totalSales) || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 shadow-sm">
-                <p className="text-xs text-gray-600 mb-1">Profit</p>
-                <p className="text-lg font-bold text-blue-600">₹{(Number(formData.monthlyProfit) || 0).toLocaleString()}</p>
+              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+                <p className="text-xs text-gray-400 mb-1">Profit</p>
+                <p className="text-lg font-bold text-rose-400">₹{(Number(formData.monthlyProfit) || 0).toLocaleString()}</p>
               </div>
             </div>
             
             {/* Progress Bar */}
             {Number(formData.goalTarget) > 0 && (
               <div className="mt-4">
-                <div className="flex justify-between text-sm text-gray-700 mb-2">
+                <div className="flex justify-between text-sm text-gray-300 mb-2">
                   <span>Goal Progress</span>
-                  <span className="font-semibold">
+                  <span className="font-semibold text-rose-300">
                     {Math.round(((Number(formData.totalSavings) || 0) / (Number(formData.goalTarget) || 1)) * 100)}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-gray-700 rounded-full h-3">
                   <div 
-                    className="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-rose-500 to-rose-600 h-3 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(100, ((Number(formData.totalSavings) || 0) / (Number(formData.goalTarget) || 1)) * 100)}%` }}
                   ></div>
                 </div>
@@ -269,17 +269,17 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 sticky bottom-0 bg-white pb-2">
+          <div className="flex gap-3 pt-4 sticky bottom-0 bg-neutral-900 pb-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              className="flex-1 px-6 py-3 border-2 border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
             >
               Save Dashboard Data
             </button>
