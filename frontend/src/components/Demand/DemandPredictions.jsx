@@ -5,7 +5,6 @@ import {
   TrendingDown, 
   AlertTriangle,
   Package,
-  RefreshCw,
   IndianRupee,
   Sparkles,
   Cloud,
@@ -142,13 +141,6 @@ const DemandPredictions = () => {
             <Calendar size={28} strokeWidth={1.75} className="text-rose-500/90 relative top-[1px]" />
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight text-white">Demand Predictions</h1>
           </div>
-          <button
-            onClick={fetchPredictions}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-300"
-            title="Refresh predictions"
-          >
-            <RefreshCw size={20} />
-          </button>
         </div>
       </div>
 

@@ -8,7 +8,6 @@ import {
   CheckCircle,
   ArrowUp,
   Loader,
-  RefreshCw,
   IndianRupee,
   Clock,
   Store,
@@ -212,13 +211,6 @@ const PricingAdvisor = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => fetchPricingRecommendations()}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 border border-gray-800 text-gray-200 hover:bg-neutral-700 hover:border-gray-700"
-          >
-            <RefreshCw className="h-4 w-4 text-rose-400" />
-            <span className="text-sm">{getTranslation('refresh', language) || 'Refresh'}</span>
-          </button>
         </div>
       </div>
       {/* AI Insight Banner */}
