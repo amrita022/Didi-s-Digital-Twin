@@ -299,7 +299,7 @@ app.get('/api/pricing-recommendations', async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId is required' });
     }
 
-    const userLanguage = language || 'hindi'; // Default to Hindi
+    const userLanguage = language || 'english'; // Default to English
     console.log(`💰 Generating pricing recommendations for: ${userId} (XGBoost: ${useXGBoost !== 'false'}, Language: ${userLanguage})`);
 
     // Use XGBoost by default, fallback to rule-based if specified

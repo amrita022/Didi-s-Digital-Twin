@@ -35,15 +35,15 @@ class ErrorBoundary extends React.Component {
         <div className="flex items-center justify-center min-h-screen">
           <div className="bg-neutral-900 border border-gray-800 rounded-xl p-6 max-w-md">
             <AlertCircle className="h-12 w-12 text-rose-500 mx-auto mb-4" />
-            <h3 className="text-center text-rose-400 font-bold mb-2">त्रुटि हुई</h3>
+            <h3 className="text-center text-rose-400 font-bold mb-2">Error</h3>
             <p className="text-center text-gray-300 text-sm">
-              {this.state.error?.message || 'कुछ गलत हो गया'}
+              {this.state.error?.message || 'An error occurred'}
             </p>
             <button
               onClick={() => window.location.reload()}
               className="mt-4 w-full bg-rose-600 text-white py-2 px-4 rounded-lg hover:bg-rose-700"
             >
-              पेज रीफ्रेश करें
+              Refresh Page
             </button>
           </div>
         </div>
@@ -62,7 +62,7 @@ const PricingAdvisor = () => {
     if (!user?.uid) {
       console.log('⏳ Waiting for user authentication...');
       setLoading(false);
-      setError('कृपया लॉगिन करें');
+      setError(language === 'english' ? 'Please login' : 'कृपया लॉगिन करें');
       return;
     }
     try {
@@ -83,11 +83,13 @@ const PricingAdvisor = () => {
         setPricingData(data);
         setError(null);
       } else {
-        setError(data.error || 'Failed to fetch recommendations');
+        setError(data.error || (language === 'english' ? 'Failed to fetch recommendations' : 'सिफारिशें प्राप्त नहीं कर सके'));
       }
     } catch (err) {
       console.error('❌ Error fetching pricing recommendations:', err);
-      setError('सर्वर से कनेक्ट नहीं हो पा रहा है। कृपया सुनिश्चित करें कि सर्वर चल रहा है।');
+      setError(language === 'english' 
+        ? 'Cannot connect to server. Please ensure server is running.'
+        : 'सर्वर से कनेक्ट नहीं हो पा रहा है। कृपया सुनिश्चित करें कि सर्वर चल रहा है।');
     } finally {
       setLoading(false);
     }
@@ -98,7 +100,7 @@ const PricingAdvisor = () => {
       fetchPricingRecommendations();
     } else if (user === null) {
       setLoading(false);
-      setError('कृपया लॉगिन करें');
+      setError(language === 'english' ? 'Please login' : 'कृपया लॉगिन करें');
     }
   }, [user, language]);
   // Safety: ensure products is always an array with proper validation
@@ -250,13 +252,15 @@ const PricingAdvisor = () => {
           {products.map((product, index) => {
             try {
               // Safely extract all values with defaults
-              const name = product?.name || product?.itemName || 'अज्ञात';
+              const rawName = product?.name || product?.itemName || 'Unknown';
+              // Translate product name if it's in Hindi
+              const name = getTranslation(rawName, language) || rawName;
               const currentPrice = Number(product?.currentPrice) || 0;
               const suggestedPrice = Number(product?.suggestedPrice) || 0;
               const totalSales = Number(product?.totalSales) || 0;
               const percentDiff = Number(product?.percentDifference) || 0;
               const potentialIncrease = Number(product?.potentialMonthlyIncrease) || 0;
-              const reason = product?.reason || 'कोई कारण नहीं';
+              const reason = product?.reason || getTranslation('noDataAvailable', language);
               const priority = product?.priority || 'low';
               return (
               <div key={index} className="bg-neutral-900 rounded-xl p-4 shadow-sm border border-gray-800 hover:border-gray-700 transition-colors h-full overflow-hidden">
@@ -419,15 +423,15 @@ const PricingAdvisor = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h3 className="text-center text-red-700 font-bold mb-2">रेंडर त्रुटि</h3>
+          <h3 className="text-center text-red-700 font-bold mb-2">Render Error</h3>
           <p className="text-center text-red-600 text-sm mb-4">
-            {renderError.message || 'कुछ गलत हो गया'}
+            {renderError.message || 'An error occurred'}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
           >
-            पेज रीफ्रेश करें
+            Refresh Page
           </button>
         </div>
       </div>

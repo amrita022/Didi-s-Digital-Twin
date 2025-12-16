@@ -6,7 +6,7 @@ const Transaction = require('../models/Transaction');
 /**
  * Generate pricing recommendations using XGBoost ML model
  */
-async function generateXGBoostPricingRecommendations(userId, language = 'hindi') {
+async function generateXGBoostPricingRecommendations(userId, language = 'english') {
   try {
     console.log('🤖 Generating XGBoost pricing recommendations for:', userId);
     

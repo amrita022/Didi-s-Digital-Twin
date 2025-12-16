@@ -258,16 +258,24 @@ class PricingAdvisor:
             # Determine priority and reason (conservative approach)
             if percent_diff > 20:
                 priority = 'high'
-                reason = f'कीमत {percent_diff:.0f}% बढ़ाएं (धीरे-धीरे)। यह आइटम अच्छा बिकता है।'
+                reason_en = f'Increase price by {percent_diff:.0f}% (gradually). This item sells well.'
+                reason_hi = f'कीमत {percent_diff:.0f}% बढ़ाएं (धीरे-धीरे)। यह आइटम अच्छा बिकता है।'
+                reason = reason_en if language == 'english' else reason_hi
             elif percent_diff > 10:
                 priority = 'medium'
-                reason = f'कीमत {percent_diff:.0f}% बढ़ाने की सिफारिश।'
+                reason_en = f'Recommended to increase price by {percent_diff:.0f}%.'
+                reason_hi = f'कीमत {percent_diff:.0f}% बढ़ाने की सिफारिश।'
+                reason = reason_en if language == 'english' else reason_hi
             elif percent_diff > 5:
                 priority = 'low'
-                reason = f'थोड़ी कीमत बढ़ाएं ({percent_diff:.0f}%)।'
+                reason_en = f'Increase price slightly by {percent_diff:.0f}%.'
+                reason_hi = f'थोड़ी कीमत बढ़ाएं ({percent_diff:.0f}%)।'
+                reason = reason_en if language == 'english' else reason_hi
             else:
                 priority = 'low'
-                reason = 'आपकी कीमत बाजार के अनुसार है।'
+                reason_en = 'Your price is aligned with the market.'
+                reason_hi = 'आपकी कीमत बाजार के अनुसार है।'
+                reason = reason_en if language == 'english' else reason_hi
             
             recommendations.append({
                 'name': item_name,

@@ -4,7 +4,7 @@ const Transaction = require('../models/Transaction');
 /**
  * Analyze historical sales data to generate pricing recommendations
  */
-async function generatePricingRecommendations(userId) {
+async function generatePricingRecommendations(userId, language = 'english') {
   try {
     // Get all income transactions (sales) for the user
     const salesTransactions = await Transaction.find({
@@ -20,7 +20,9 @@ async function generatePricingRecommendations(userId) {
           currentMargin: 0,
           suggestedMargin: 0,
           potentialIncrease: 0,
-          message: 'कोई बिक्री डेटा नहीं मिला'
+          message: language === 'english' 
+            ? 'No sales data found'
+            : 'कोई बिक्री डेटा नहीं मिला'
         }
       };
     }
@@ -29,10 +31,10 @@ async function generatePricingRecommendations(userId) {
     const productAnalysis = analyzeProductPricing(salesTransactions);
     
     // Generate recommendations for each product type
-    const recommendations = generateRecommendations(productAnalysis);
+    const recommendations = generateRecommendations(productAnalysis, language);
 
     // Calculate overall insights
-    const insights = calculateInsights(recommendations);
+    const insights = calculateInsights(recommendations, language);
 
     return {
       products: recommendations,
@@ -95,7 +97,7 @@ function analyzeProductPricing(transactions) {
 /**
  * Generate pricing recommendations based on analysis
  */
-function generateRecommendations(analysis) {
+function generateRecommendations(analysis, language = 'english') {
   const recommendations = [];
 
   // Market benchmarks for rural clothing business
@@ -121,19 +123,29 @@ function generateRecommendations(analysis) {
     let priority = 'medium';
 
     if (percentDiff > 20) {
-      reason = 'आप बाजार से 20% कम कीमत रख रहे हैं। कीमत बढ़ाएं।';
+      reason = language === 'english'
+        ? 'You are pricing 20% below market. Increase price.'
+        : 'आप बाजार से 20% कम कीमत रख रहे हैं। कीमत बढ़ाएं।';
       priority = 'high';
     } else if (percentDiff > 10) {
-      reason = 'बाजार औसत से कम है। थोड़ी कीमत बढ़ाने की सिफारिश।';
+      reason = language === 'english'
+        ? 'Below market average. Recommended to increase price slightly.'
+        : 'बाजार औसत से कम है। थोड़ी कीमत बढ़ाने की सिफारिश।';
       priority = 'medium';
     } else if (percentDiff > 0) {
-      reason = 'कीमत ठीक है, लेकिन थोड़ा सुधार हो सकता है।';
+      reason = language === 'english'
+        ? 'Price is good, but slight improvement possible.'
+        : 'कीमत ठीक है, लेकिन थोड़ा सुधार हो सकता है।';
       priority = 'low';
     } else if (percentDiff === 0) {
-      reason = 'आपकी कीमत बाजार के अनुसार सही है।';
+      reason = language === 'english'
+        ? 'Your price is aligned with market standard.'
+        : 'आपकी कीमत बाजार के अनुसार सही है।';
       priority = 'low';
     } else {
-      reason = 'आपकी कीमत बाजार से अधिक है। यह ठीक है यदि गुणवत्ता अच्छी है।';
+      reason = language === 'english'
+        ? 'Your price is above market. Fine if quality is good.'
+        : 'आपकी कीमत बाजार से अधिक है। यह ठीक है यदि गुणवत्ता अच्छी है।';
       priority = 'low';
     }
 
@@ -169,13 +181,13 @@ function generateRecommendations(analysis) {
 /**
  * Calculate overall business insights
  */
-function calculateInsights(recommendations) {
+function calculateInsights(recommendations, language = 'english') {
   if (!recommendations.length) {
     return {
       currentMargin: 0,
       suggestedMargin: 0,
       potentialIncrease: 0,
-      message: 'पर्याप्त डेटा नहीं है'
+      message: language === 'english' ? 'Not enough data' : 'पर्याप्त डेटा नहीं है'
     };
   }
 
@@ -199,12 +211,22 @@ function calculateInsights(recommendations) {
   );
 
   let message = '';
-  if (totalPotentialIncrease > 2000) {
-    message = `आप औसतन ${avgUnderpricing}% कम कीमत लगा रहे हैं। कीमतें समायोजित करने से आपका मासिक लाभ ₹${totalPotentialIncrease.toLocaleString('en-IN')} बढ़ सकता है!`;
-  } else if (totalPotentialIncrease > 0) {
-    message = `कीमतें समायोजित करने से आपका मासिक लाभ ₹${totalPotentialIncrease.toLocaleString('en-IN')} बढ़ सकता है।`;
+  if (language === 'english') {
+    if (totalPotentialIncrease > 2000) {
+      message = `You are underpricing by an average of ${avgUnderpricing}%. Adjusting prices could increase your monthly profit by ₹${totalPotentialIncrease.toLocaleString('en-IN')}!`;
+    } else if (totalPotentialIncrease > 0) {
+      message = `Adjusting prices could increase your monthly profit by ₹${totalPotentialIncrease.toLocaleString('en-IN')}.`;
+    } else {
+      message = 'Your prices are aligned with market standards. Maintain quality!';
+    }
   } else {
-    message = 'आपकी कीमतें बाजार के अनुसार अच्छी हैं। गुणवत्ता बनाए रखें!';
+    if (totalPotentialIncrease > 2000) {
+      message = `आप औसतन ${avgUnderpricing}% कम कीमत लगा रहे हैं। कीमतें समायोजित करने से आपका मासिक लाभ ₹${totalPotentialIncrease.toLocaleString('en-IN')} बढ़ सकता है!`;
+    } else if (totalPotentialIncrease > 0) {
+      message = `कीमतें समायोजित करने से आपका मासिक लाभ ₹${totalPotentialIncrease.toLocaleString('en-IN')} बढ़ सकता है।`;
+    } else {
+      message = 'आपकी कीमतें बाजार के अनुसार अच्छी हैं। गुणवत्ता बनाए रखें!';
+    }
   }
 
   return {

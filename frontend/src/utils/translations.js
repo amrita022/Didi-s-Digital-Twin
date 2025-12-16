@@ -81,6 +81,18 @@ export const translations = {
     tryAgain: 'Try Again',
     loadData: 'Load Data',
     
+    // Product Names (English)
+    साड़ी: 'Saree',
+    लहंगा: 'Lehenga',
+    कुर्ती: 'Kurti',
+    कुर्ता: 'Kurta',
+    दुपट्टा: 'Dupatta',
+    ब्लाउज: 'Blouse',
+    शर्ट: 'Shirt',
+    पैंट: 'Pants',
+    ड्रेस: 'Dress',
+    अन्य: 'Others',
+    
     // Demand Predictions
     seasonalCalendar: 'Seasonal Calendar',
     stockRecommendations: 'Stock Recommendations',
@@ -199,6 +211,18 @@ export const translations = {
     analyzingPricing: 'मूल्य निर्धारण विश्लेषण हो रहा है...',
     tryAgain: 'फिर से कोशिश करें',
     loadData: 'लोड करें',
+    
+    // Product Names (Hindi)
+    साड़ी: 'साड़ी',
+    लहंगा: 'लहंगा',
+    कुर्ती: 'कुर्ती',
+    कुर्ता: 'कुर्ता',
+    दुपट्टा: 'दुपट्टा',
+    ब्लाउज: 'ब्लाउज',
+    शर्ट: 'शर्ट',
+    पैंट: 'पैंट',
+    ड्रेस: 'ड्रेस',
+    अन्य: 'अन्य',
     
     // Demand Predictions
     seasonalCalendar: 'मौसमी कैलेंडर',
