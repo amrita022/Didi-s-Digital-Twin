@@ -7,8 +7,12 @@ import base64
 import logging
 import numpy as np
 import soundfile as sf
+import re
 from language_utils import get_language_prompt, clean_transcription, INDIAN_LANGUAGES
 from number_system import create_number_system
+from indicnlp.normalize.indic_normalize import IndicNormalizerFactory
+from indicnlp.tokenize import indic_tokenize
+from rapidfuzz import fuzz
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -21,16 +25,79 @@ CORS(app)
 model = None
 # Global number system
 number_system = None
+# Global normalizers for Hindi/Marathi
+hindi_normalizer = None
+marathi_normalizer = None
+
+# Business vocabulary for fuzzy matching corrections
+HINDI_VOCABULARY = {
+    'साड़ी', 'ड्रेस', 'शर्ट', 'पैंट', 'जूता', 'कमीज', 'स्कर्ट',
+    'बेचा', 'खरीदा', 'लिया', 'दिया', 'मिला',
+    'मसाला', 'चाय', 'कपड़ा', 'किताब', 'पेन',
+    'सौ', 'हज़ार', 'लाख', 'करोड़', 'दस',
+    'रुपये', 'रुपया', 'पैसा',
+}
+
+MARATHI_VOCABULARY = {
+    'साडी', 'ड्रेस', 'शर्ट', 'पँट', 'जूता',
+    'विकला', 'खरेदी', 'घेतली', 'दिली', 'मिळाले',
+    'मसाला', 'चहा', 'कापड', 'किताब', 'पेन',
+    'रुपये', 'पैसा', 'शे',
+}
+
+def fuzzy_correct_text(text, language='hi'):
+    """
+    Use fuzzy matching against valid vocabulary to correct mishearings
+    This is language-independent - works by matching against known good words
+    """
+    vocab = HINDI_VOCABULARY if language == 'hi' else MARATHI_VOCABULARY
+    
+    # Split into words, tokenize properly for Indic scripts
+    words = text.split()
+    corrected_words = []
+    
+    for word in words:
+        # Remove punctuation for matching but preserve it
+        clean_word = re.sub(r'[।,।\.।!।?।;।:।०-९]', '', word)
+        if not clean_word:
+            corrected_words.append(word)
+            continue
+        
+        # Try fuzzy matching against vocabulary
+        best_match = None
+        best_score = 0
+        
+        for valid_word in vocab:
+            # Use token_set_ratio for better matching with different word forms
+            score = fuzz.token_set_ratio(clean_word, valid_word)
+            if score > best_score:
+                best_score = score
+                best_match = valid_word
+        
+        # If fuzzy match is confident (>75%), use it
+        if best_score > 75 and best_match and best_match != clean_word:
+            logger.info(f"🔧 Fuzzy corrected: '{clean_word}' → '{best_match}' (confidence: {best_score}%)")
+            corrected_words.append(best_match)
+        else:
+            corrected_words.append(word)
+    
+    return ' '.join(corrected_words)
 
 def load_model():
     """Load the Whisper model from LOCAL files - 100% OFFLINE"""
-    global model, number_system
+    global model, number_system, hindi_normalizer, marathi_normalizer
     try:
         logger.info("🔄 Loading LOCAL Whisper model (100% OFFLINE)...")
         
         # Load number system
         number_system = create_number_system()
         logger.info("✅ Number system loaded for all Indian languages")
+        
+        # Initialize Indic normalizers
+        factory = IndicNormalizerFactory()
+        hindi_normalizer = factory.get_normalizer("hi")
+        marathi_normalizer = factory.get_normalizer("mr")
+        logger.info("✅ Indic NLP normalizers initialized")
         
         # Try these local model paths (in order of preference)
         model_paths = [
@@ -305,28 +372,57 @@ def transcribe_audio():
             # STEP 2: Re-transcribe with language-specific prompt for better accuracy
             logger.info(f"🔄 Step 2: RE-TRANSCRIBING with {detected_language.upper()} optimizations...")
             
-            # Get language-specific prompt
+            # Get language-specific prompt with shopping context
             language_prompt = get_language_prompt(detected_language)
             
-            # Enhanced transcription parameters for better accuracy
-            # Use temperature fallback for better results with noisy audio
+            # Add shopping/business context to help Whisper understand better
+            if detected_language == 'hi':
+                context_prompt = "मैंने हज़ार रुपये की ड्रेस खरीदी। पांच सौ का मसाला लिया। दो हज़ार की साड़ी बेची। तीन सौ का सामान। सात सौ रुपये। एक हज़ार का शर्ट। चार सौ रुपये।"
+            elif detected_language == 'mr':
+                context_prompt = "मी हजार रुपयांची ड्रेस घेतली. पाचशे रुपये मसाला. दोन हजार रुपयांची साडी विकली. तीनशे रुपयांचा सामान."
+            else:
+                context_prompt = language_prompt
+            
+            # Combine prompts for maximum context
+            full_prompt = f"{context_prompt} {language_prompt if language_prompt else ''}"
+            
+            # Enhanced transcription with optimized parameters
             result = model.transcribe(
                 audio_array,
                 language=detected_language,
                 task='transcribe', 
                 fp16=False,
-                beam_size=15,
-                best_of=10,
-                temperature=(0.0, 0.2, 0.4, 0.6, 0.8),  # Temperature fallback for poor audio
-                patience=2.0,
+                beam_size=5,  # Lower for speed, still accurate
+                best_of=5,    # Lower for speed
+                temperature=0.0,  # Deterministic for numbers
+                patience=1.0,
                 condition_on_previous_text=True,
                 compression_ratio_threshold=2.4,
                 logprob_threshold=-1.0,
                 no_speech_threshold=0.6,
-                initial_prompt=language_prompt if language_prompt else None
+                word_timestamps=False,
+                initial_prompt=full_prompt
             )
             
             transcription = result['text'].strip()
+            
+            # Apply Indic NLP normalization (handles variations automatically)
+            logger.info(f"📝 Original transcription: {transcription}")
+            if detected_language == 'hi' and hindi_normalizer:
+                transcription = hindi_normalizer.normalize(transcription)
+                logger.info(f"✨ After Hindi normalization: {transcription}")
+            elif detected_language == 'mr' and marathi_normalizer:
+                transcription = marathi_normalizer.normalize(transcription)
+                logger.info(f"✨ After Marathi normalization: {transcription}")
+            
+            # 🔧 SMART CORRECTIONS using Indic NLP + Fuzzy Matching
+            logger.info(f"🔧 Applying smart corrections using fuzzy vocabulary matching...")
+            corrected = fuzzy_correct_text(transcription, detected_language)
+            
+            if corrected != transcription:
+                logger.info(f"   Before: {transcription}")
+                logger.info(f"   After: {corrected}")
+                transcription = corrected
             
             # Log confidence if available
             if 'segments' in result:

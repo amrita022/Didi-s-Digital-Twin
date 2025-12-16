@@ -103,4 +103,18 @@ def clean_transcription(text, language, number_system):
     for wrong, correct in corrections.items():
         cleaned = cleaned.replace(wrong, correct)
     
+    # Phonetic similarity fixes for Hindi common mishearings
+    if language == 'hi':
+        import re
+        # Fix common Whisper mishearings with word boundaries
+        phonetic_fixes = [
+            (r'\bशोट\b', 'शर्ट'),      # shot → shirt
+            (r'\bसारी\b', 'साड़ी'),     # saari → saree (when standalone)
+            (r'\bशो\b', 'सौ'),         # sho → sau (hundred)
+            (r'\bसाथ\s+सौ\b', 'सात सौ'), # saath sau → 700
+            (r'\bसात\s+शो\b', 'सात सौ'), # saat sho → 700
+        ]
+        for pattern, replacement in phonetic_fixes:
+            cleaned = re.sub(pattern, replacement, cleaned)
+    
     return cleaned

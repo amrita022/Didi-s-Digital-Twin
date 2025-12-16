@@ -171,7 +171,26 @@ class NLPProcessor {
       }
     }
     
-    // PRIORITY 2: Handle word-based numbers with common garbled patterns
+    // PRIORITY 2: Standalone unit words (when no digit found)
+    // Handle "हजार का", "सौ का", etc. without preceding digits
+    const standaloneHundred = /(सौ|सो)\s*(का|की|के|रुप)/;
+    const standaloneThousand = /(हज़ार|हजार)\s*(का|की|के|रुप)/;
+    const standaloneLakh = /(लाख|लक्ष)\s*(का|की|के|रुप)/;
+    
+    if (standaloneThousand.test(t)) {
+      console.log(`✅ Standalone thousand detected: ₹1000`);
+      return 1000;
+    }
+    if (standaloneHundred.test(t)) {
+      console.log(`✅ Standalone hundred detected: ₹100`);
+      return 100;
+    }
+    if (standaloneLakh.test(t)) {
+      console.log(`✅ Standalone lakh detected: ₹100000`);
+      return 100000;
+    }
+    
+    // PRIORITY 3: Handle word-based numbers with common garbled patterns
     if (language === 'hi') {
       // Perfect matches
       if (t.includes('तीन सौ') || t.includes('तीनसौ')) return 300;
