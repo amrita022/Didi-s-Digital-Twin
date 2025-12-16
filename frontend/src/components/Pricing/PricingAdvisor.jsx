@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
+import { GlowingCard } from '../ui/glowing-card';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -271,7 +272,7 @@ const PricingAdvisor = () => {
                       <h3 className="font-bold text-xl text-gray-100">{name}</h3>
                       {getPriorityBadge(priority)}
                     </div>
-                    <div className="p-3 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+                    <GlowingCard className="p-3">
                       <div className="flex-1">
                         <p className="text-sm text-gray-200 font-medium mb-0.5">{reason}</p>
                         {potentialIncrease > 0 && (
@@ -283,13 +284,13 @@ const PricingAdvisor = () => {
                           </div>
                         )}
                       </div>
-                    </div>
+                    </GlowingCard>
                   </div>
                   <div className="flex flex-col gap-3 min-w-0">
-                    <div className="inline-flex w-full items-center justify-between gap-3 px-3 py-3 rounded-md bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 transition-all duration-300 overflow-hidden box-border">
+                    <GlowingCard className="inline-flex w-full items-center justify-between gap-3 px-3 py-3 rounded-md overflow-hidden box-border">
                       <span className="text-xs text-gray-400">{getTranslation('currentPrice', language)}</span>
                       <span className="text-sm font-semibold text-gray-100">₹{currentPrice.toLocaleString('en-IN')}</span>
-                    </div>
+                    </GlowingCard>
                     <div className="w-full p-3 rounded-md bg-rose-500/10 border border-rose-500/20 box-border">
                       <p className="text-xs text-gray-400 mb-1">{getTranslation('aiSuggestion', language)}</p>
                       <div className="flex items-center gap-2">
@@ -304,10 +305,10 @@ const PricingAdvisor = () => {
                       <p className="text-sm font-semibold text-rose-400">₹{potentialIncrease.toLocaleString('en-IN')}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{getTranslation('perMonth', language)}</p>
                     </div>
-                    <div className="inline-flex w-full items-center justify-between gap-3 px-3 py-3 rounded-md bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 transition-all duration-300 overflow-hidden box-border">
+                    <GlowingCard className="inline-flex w-full items-center justify-between gap-3 px-3 py-3 rounded-md overflow-hidden box-border">
                       <span className="text-xs text-gray-400">{getTranslation('sales', language)}</span>
                       <span className="text-sm font-semibold text-gray-100">{totalSales}</span>
-                    </div>
+                    </GlowingCard>
                   </div>
                 </div>
               </div>
@@ -327,7 +328,7 @@ const PricingAdvisor = () => {
       )}
       {/* Profit Calculator */}
       {insights && (
-        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-4 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+        <GlowingCard className="p-4 shadow-sm">
           <h3 className="font-bold text-lg text-gray-100 mb-3">
             {getTranslation('profitMarginAnalysis', language)}
           </h3>
@@ -351,15 +352,15 @@ const PricingAdvisor = () => {
               </p>
             </div>
           </div>
-        </div>
+        </GlowingCard>
       )}
       {/* Pricing Tips */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 text-gray-100 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6 text-gray-100">
         <h2 className="text-xl font-bold mb-4 text-rose-300">
           {getTranslation('pricingTips', language)}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          <GlowingCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <IndianRupee className="h-4 w-4 text-rose-400" />
               <h3 className="font-bold text-gray-100">{getTranslation('rawMaterialCost', language)}</h3>
@@ -367,8 +368,8 @@ const PricingAdvisor = () => {
             <p className="text-sm text-gray-400">
               {getTranslation('rawMaterialCostDesc', language)}
             </p>
-          </div>
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          </GlowingCard>
+          <GlowingCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 text-rose-400" />
               <h3 className="font-bold text-gray-100">{getTranslation('laborAndTime', language)}</h3>
@@ -376,8 +377,8 @@ const PricingAdvisor = () => {
             <p className="text-sm text-gray-400">
               {getTranslation('laborAndTimeDesc', language)}
             </p>
-          </div>
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          </GlowingCard>
+          <GlowingCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Store className="h-4 w-4 text-rose-400" />
               <h3 className="font-bold text-gray-100">{getTranslation('marketResearch', language)}</h3>
@@ -385,8 +386,8 @@ const PricingAdvisor = () => {
             <p className="text-sm text-gray-400">
               {getTranslation('marketResearchDesc', language)}
             </p>
-          </div>
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          </GlowingCard>
+          <GlowingCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-rose-400" />
               <h3 className="font-bold text-gray-100">{getTranslation('qualityValue', language)}</h3>
@@ -394,8 +395,8 @@ const PricingAdvisor = () => {
             <p className="text-sm text-gray-400">
               {getTranslation('qualityValueDesc', language)}
             </p>
-          </div>
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          </GlowingCard>
+          <GlowingCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <PartyPopper className="h-4 w-4 text-rose-400" />
               <h3 className="font-bold text-gray-100">{getTranslation('seasonalPricing', language)}</h3>
@@ -403,8 +404,8 @@ const PricingAdvisor = () => {
             <p className="text-sm text-gray-400">
               {getTranslation('seasonalPricingDesc', language)}
             </p>
-          </div>
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          </GlowingCard>
+          <GlowingCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <MessageSquare className="h-4 w-4 text-rose-400" />
               <h3 className="font-bold text-gray-100">{getTranslation('customerFeedback', language)}</h3>
@@ -412,9 +413,9 @@ const PricingAdvisor = () => {
             <p className="text-sm text-gray-400">
               {getTranslation('customerFeedbackDesc', language)}
             </p>
-          </div>
+          </GlowingCard>
         </div>
-      </div>
+      </GlowingCard>
     </div>
     );
   } catch (renderError) {

@@ -17,6 +17,7 @@ import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 import AddDashboardDataModal from './AddDashboardDataModal';
 import Reminders from '../Reminders/Reminders';
+import { GlowingCard } from '../ui/glowing-card';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
@@ -192,7 +193,7 @@ const Dashboard = () => {
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
 
   const StatCard = ({ title, value, icon, trend, trendValue }) => (
-    <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+    <GlowingCard className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="p-3 rounded-lg bg-rose-500/20">
           {React.createElement(icon, { size: 24, className: "text-rose-400" })}
@@ -208,7 +209,7 @@ const Dashboard = () => {
       </div>
       <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
       <p className="text-gray-400 text-sm">{title}</p>
-    </div>
+    </GlowingCard>
   );
 
   const TransactionItem = ({ transaction }) => {
@@ -227,7 +228,7 @@ const Dashboard = () => {
     const type = transaction.type || 'expense';
     
     return (
-      <div className="p-4 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 bg-gradient-to-br from-neutral-800 to-neutral-900">
+      <GlowingCard className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -268,7 +269,7 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
-      </div>
+      </GlowingCard>
     );
   };
 
@@ -341,7 +342,7 @@ const Dashboard = () => {
       </div>
 
       {/* Business Health Score */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 col-span-full">
+      <GlowingCard className="p-6 col-span-full">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -365,31 +366,31 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700">
+          <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)'}
             </p>
             <p className="text-2xl font-bold text-white">₹{allTimeSales.toLocaleString()}</p>
-          </div>
-          <div className="p-4 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700">
+            </GlowingCard>
+            <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-white">₹{allTimeExpenses.toLocaleString()}</p>
-          </div>
-          <div className="p-4 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700">
+              <p className="text-2xl font-bold text-white">₹{allTimeExpenses.toLocaleString()}</p>
+            </GlowingCard>
+            <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-white">₹{allTimeProfit.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-white">₹{allTimeProfit.toLocaleString()}</p>
+            </GlowingCard>
           </div>
-        </div>
-      </div>
+        </GlowingCard>
 
       {/* Two Column Layout for Recent Transactions and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Transactions */}
-        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+        <GlowingCard className="p-6">
           <div className="mb-4">
             <h3 className="text-lg font-bold text-white">
               {language === 'hindi' ? 'हाल के लेनदेन' : 'Recent Transactions'}
@@ -420,12 +421,12 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </div>
+        </GlowingCard>
 
         {/* AI Insights Panel */}
         <div className="space-y-4">
           {/* Achievement Card */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 transition-all duration-300 shadow-lg">
+          <GlowingCard className="p-6 shadow-lg">
             <h3 className="text-lg font-bold text-rose-300 mb-2">
               Achievement Unlocked!
             </h3>
@@ -435,18 +436,18 @@ const Dashboard = () => {
                 : `You've saved ₹${totalSavings.toLocaleString()} towards your goal!`
               }
             </p>
-            <div className="mt-4 p-3 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg border border-gray-700">
+            <GlowingCard className="p-3">
               <p className="text-sm text-rose-200">
                 {language === 'hindi' 
                   ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और!` 
                   : `Only ₹${(savingsGoal - totalSavings).toLocaleString()} more to reach your ${goalName} goal!`
                 }
               </p>
-            </div>
-          </div>
+            </GlowingCard>
+          </GlowingCard>
 
           {/* AI Recommendations */}
-          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+          <GlowingCard className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-rose-500/20 rounded-full flex items-center justify-center">
@@ -466,25 +467,25 @@ const Dashboard = () => {
             <div className="space-y-3">
               {dashboard?.aiInsights && dashboard.aiInsights.length > 0 ? (
                 dashboard.aiInsights.map((insight, index) => (
-                  <div 
+                  <GlowingCard 
                     key={`ai-insight-${index}`} 
-                    className={`p-4 rounded-lg border bg-gradient-to-br from-neutral-800 to-neutral-900 border-gray-700`}
+                    className="p-4"
                   >
                     <p className={`text-sm font-bold mb-1 text-rose-300`}>{insight.title}</p>
                     <p className="text-sm text-gray-300">{insight.message}</p>
-                  </div>
+                  </GlowingCard>
                 ))
               ) : (
                 <>
-                  <div className="p-3 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg border border-gray-700">
+                  <GlowingCard className="p-3">
                     <p className="text-sm font-medium text-gray-300">
                       {language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights'}
                     </p>
-                  </div>
+                  </GlowingCard>
                 </>
               )}
             </div>
-          </div>
+          </GlowingCard>
         </div>
       </div>
 

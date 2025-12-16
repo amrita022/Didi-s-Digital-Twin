@@ -11,6 +11,7 @@ import useStore from '../../store/useStore';
 import { useAuth } from '../../hooks/useAuth';
 import { getTranslation } from '../../utils/translations';
 import { processVoiceCommand as processVoiceAPI } from '../../utils/api';
+import { GlowingCard } from '../ui/glowing-card';
 
 // Language mapping for Web Speech API
 const LANGUAGE_MAP = {
@@ -359,7 +360,7 @@ const VoiceAssistant = () => {
   return (
     <div className="space-y-6">
       {/* Voice Interface */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-8 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 text-center">
+      <GlowingCard className="p-8 text-center">
         <div className="mb-6">
           {/* Language Selector */}
           <div className="mb-4 flex justify-center">
@@ -431,10 +432,10 @@ const VoiceAssistant = () => {
             </button>
           </div>
         </div>
-      </div>
+      </GlowingCard>
 
       {/* Quick Commands */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6">
         <h3 className="text-lg font-bold text-white mb-4">
           {getTranslation('quickCommands', language)}
         </h3>
@@ -449,10 +450,10 @@ const VoiceAssistant = () => {
             </button>
           ))}
         </div>
-      </div>
+      </GlowingCard>
 
       {/* Text Input */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6">
         <form onSubmit={handleTextSubmit} className="flex space-x-3">
           <input
             type="text"
@@ -468,10 +469,10 @@ const VoiceAssistant = () => {
             <Send size={20} />
           </button>
         </form>
-      </div>
+      </GlowingCard>
 
       {/* Chat Messages */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white flex items-center">
             <MessageCircle size={20} className="mr-2" />
@@ -509,7 +510,7 @@ const VoiceAssistant = () => {
           ))}
           <div ref={messagesEndRef} />
         </div>
-      </div>
+      </GlowingCard>
     </div>
   );
 };

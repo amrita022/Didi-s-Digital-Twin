@@ -1,8 +1,21 @@
 import React from 'react';
+import { GlowingEffect } from './glowing-effect';
+import { cn } from '../../utils/cn';
 
 export const Card = ({ children, className = '' }) => (
-  <div className={`relative bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 ${className}`}>
-    {children}
+  <div className={cn("relative bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl shadow-lg transition-all duration-300", className)}>
+    <GlowingEffect
+      spread={30}
+      blur={0}
+      proximity={50}
+      variant="default"
+      borderWidth={3}
+      inactiveZone={0.2}
+      disabled={false}
+    />
+    <div className="relative z-0">
+      {children}
+    </div>
   </div>
 );
 

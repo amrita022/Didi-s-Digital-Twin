@@ -12,7 +12,7 @@ const GlowingEffect = memo(({
   className,
   movementDuration = 2,
   borderWidth = 1,
-  disabled = false
+  disabled = true
 }) => {
   const containerRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
@@ -103,7 +103,7 @@ const GlowingEffect = memo(({
           "pointer-events-none absolute -inset-px hidden rounded-[inherit] border opacity-0 transition-opacity",
           glow && "opacity-100",
           variant === "white" && "border-white",
-          !disabled && "!block"
+          disabled && "!block"
         )} />
       <div
         ref={containerRef}
@@ -138,7 +138,7 @@ const GlowingEffect = memo(({
           }
         }
         className={cn(
-          "pointer-events-none absolute inset-0 rounded-[inherit] opacity-100 transition-opacity",
+          "pointer-events-none absolute inset-0 rounded-[inherit] opacity-100 transition-opacity z-0",
           glow && "opacity-100",
           blur > 0 && "blur-[var(--blur)] ",
           className,

@@ -13,6 +13,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import useStore from '../../store/useStore';
+import { GlowingCard } from '../ui/glowing-card';
 
 const WhyChooseUs = () => {
   const { language } = useStore();
@@ -148,16 +149,16 @@ const WhyChooseUs = () => {
       {/* Key Benefits */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {benefits.map((benefit, index) => (
-          <div
+          <GlowingCard
             key={index}
-            className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300"
+            className="p-6"
           >
             <div className="text-5xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent mb-3">
               {benefit.number}
             </div>
             <h3 className="text-xl font-bold text-white mb-2">{benefit.title}</h3>
             <p className="text-gray-400 text-sm">{benefit.description}</p>
-          </div>
+          </GlowingCard>
         ))}
       </div>
 
@@ -170,9 +171,9 @@ const WhyChooseUs = () => {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div
+              <GlowingCard
                 key={index}
-                className="bg-neutral-800 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/20 group"
+                className="p-6 hover:shadow-lg hover:shadow-rose-500/20 group"
               >
                 <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                   <Icon size={24} className="text-white" />
@@ -185,7 +186,7 @@ const WhyChooseUs = () => {
                   </span>
                   <ArrowRight size={16} className="text-gray-500 group-hover:text-rose-400 group-hover:translate-x-1 transition-all" />
                 </div>
-              </div>
+              </GlowingCard>
             );
           })}
         </div>
@@ -201,9 +202,9 @@ const WhyChooseUs = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <div
+            <GlowingCard
               key={index}
-              className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300"
+              className="p-6"
             >
               <div className="flex items-center space-x-2 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 flex items-center justify-center text-white font-bold">
@@ -222,7 +223,7 @@ const WhyChooseUs = () => {
                   {language === 'hindi' ? 'सुधार' : 'improvement'}
                 </span>
               </div>
-            </div>
+            </GlowingCard>
           ))}
         </div>
       </div>

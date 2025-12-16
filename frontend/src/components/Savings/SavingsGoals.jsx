@@ -22,6 +22,7 @@ import {
   incrementSavingsGoal,
   getDashboardData
 } from '../../utils/api';
+import { GlowingCard } from '../ui/glowing-card';
 
 const SavingsGoals = () => {
   const { businessData, language, updateBusinessData, userId } = useStore();
@@ -133,7 +134,7 @@ const SavingsGoals = () => {
     const isOverdue = daysRemaining === 0 && !isCompleted;
 
     return (
-      <div className={`bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300 ${
+      <GlowingCard className={`p-6 shadow-sm ${
         isCompleted ? 'ring-2 ring-rose-500' : ''
       }`}>
         <div className="flex items-start justify-between mb-4">
@@ -217,16 +218,16 @@ const SavingsGoals = () => {
             +₹500
           </button>
         </div>
-      </div>
+      </GlowingCard>
     );
   };
 
   const AchievementCard = ({ achievement }) => (
-    <div className={`bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-4 shadow-sm border ${
+    <GlowingCard className={`p-4 shadow-sm ${
       achievement.unlocked 
         ? 'border-rose-500/30 bg-rose-500/10' 
-        : 'border-gray-700 hover:border-rose-500/50'
-    } transition-all duration-300`}>
+        : ''
+    }`}>
       <div className="flex items-center space-x-3">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
           achievement.unlocked 
@@ -256,13 +257,13 @@ const SavingsGoals = () => {
           <Sparkles size={20} className="text-rose-400" />
         )}
       </div>
-    </div>
+    </GlowingCard>
   );
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-rose-400/20 rounded-full flex items-center justify-center">
             <PiggyBank size={32} className="text-rose-400" />
@@ -277,12 +278,12 @@ const SavingsGoals = () => {
                 : 'Save to achieve your dreams'
               }
             </p>
+            </div>
           </div>
-        </div>
-      </div>
+        </GlowingCard>
 
       {/* Total Savings Overview */}
-      <div className="bg-neutral-900 rounded-xl p-6 shadow-sm border border-gray-800">
+      <GlowingCard className="p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">
             {language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
@@ -300,7 +301,7 @@ const SavingsGoals = () => {
             style={{ width: `${Math.min((savings / 50000) * 100, 100)}%` }}
           ></div>
         </div>
-      </div>
+      </GlowingCard>
 
       {/* Goals Section */}
       <div className="flex items-center justify-between">
@@ -392,29 +393,33 @@ const SavingsGoals = () => {
             <div className="text-rose-300 text-sm">{error}</div>
           </div>
         ) : goals.length === 0 ? (
-          <div className="col-span-2 bg-neutral-900 border border-gray-800 rounded-xl p-6 text-center">
+          <GlowingCard className="col-span-2 p-6 text-center">
             <div className="text-gray-300 mb-2">No savings goals yet</div>
             <div className="text-gray-500 text-sm">Add your first goal to start tracking!</div>
-          </div>
+          </GlowingCard>
         ) : goals.map((goal) => (
           <GoalCard key={goal._id} goal={goal} />
         ))}
       </div>
 
       {/* Achievements */}
-      <div className="bg-neutral-900 rounded-xl p-6 shadow-sm border border-gray-800">
+      <GlowingCard className="p-6 shadow-sm">
         <h2 className="text-xl font-bold text-white mb-6">
           {getTranslation('achievement', language)}s
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {achievements.map((achievement) => (
-            <AchievementCard key={achievement.id} achievement={achievement} />
-          ))}
+          {achievements && achievements.length > 0 ? achievements.map((achievement) => (
+            <AchievementCard key={achievement.id || achievement._id || Math.random()} achievement={achievement} />
+          )) : (
+            <p className="text-gray-400 text-sm col-span-2 text-center py-4">
+              {language === 'hindi' ? 'अभी तक कोई उपलब्धि नहीं' : 'No achievements yet'}
+            </p>
+          )}
         </div>
-      </div>
+      </GlowingCard>
 
       {/* Motivational Message */}
-      <div className="bg-neutral-900 rounded-xl p-6 text-white text-center border border-gray-800">
+      <GlowingCard className="p-6 text-white text-center">
         <div className="flex items-center justify-center space-x-3 mb-4">
           <Gift size={24} className="text-rose-400" />
           <h2 className="text-xl font-bold text-rose-300">
@@ -427,7 +432,7 @@ const SavingsGoals = () => {
             : 'Saving ₹100 daily for 6 months will give you ₹18,000. That\'s enough for your new sewing machine!'
           }
         </p>
-      </div>
+      </GlowingCard>
     </div>
   );
 };

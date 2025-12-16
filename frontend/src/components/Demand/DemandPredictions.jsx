@@ -16,6 +16,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
+import { GlowingCard } from '../ui/glowing-card';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
@@ -163,7 +164,7 @@ const DemandPredictions = () => {
 
       {/* Alert Banner */}
       {predictions?.alert && (
-        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-rose-500/50">
+        <GlowingCard className="p-6">
           <div className="flex items-center space-x-3 mb-4">
             <AlertTriangle size={24} className="text-rose-400" />
             <h2 className="text-xl font-bold text-white">{getTranslation('thisMonthAlert', language)}</h2>
@@ -171,14 +172,14 @@ const DemandPredictions = () => {
           <div className="bg-gray-800/50 rounded-lg p-4">
             <p className="text-gray-300">{predictions.alert.message}</p>
           </div>
-        </div>
+        </GlowingCard>
       )}
       {/* Predictions Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {predictions?.predictions?.map((prediction, index) => {
           const WeatherIcon = getWeatherIcon(prediction.weather);
           return (
-            <div key={index} className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 relative">
+            <GlowingCard key={index} className="p-6 relative">
               {/* Prophet AI Badge on Card */}
               {/* Removed AI tag on month card */}
               
@@ -243,7 +244,7 @@ const DemandPredictions = () => {
                   // Translate product name if it's in Hindi
                   const productName = getTranslation(stock.item, language) || stock.item;
                   return (
-                  <div key={idx} className="bg-gradient-to-br from-neutral-800/50 to-neutral-900/50 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all">
+                  <GlowingCard key={idx} className="p-4 opacity-50">
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-bold text-lg text-white">{productName}</span>
                       <span className="px-2 py-1 bg-rose-500 text-white rounded-full text-xs font-bold">
@@ -285,16 +286,16 @@ const DemandPredictions = () => {
                     <div className="text-xs text-gray-500 mt-2 text-center">
                       {getTranslation('avgSellingPrice', language)}: ₹{stock.avgPrice.toLocaleString('en-IN')}/{getTranslation('perMonth', language)}
                     </div>
-                  </div>
+                  </GlowingCard>
                   );
                 })}
               </div>
-            </div>
+            </GlowingCard>
           );
         })}
       </div>
       {/* Seasonal Calendar - Reference Guide */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">{getTranslation('seasonalRefGuide', language)}</h2>
           <span className="text-xs text-gray-400 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700">{getTranslation('generalPatternsOnly', language)}</span>
@@ -329,9 +330,9 @@ const DemandPredictions = () => {
             );
           })}
         </div>
-      </div>
+      </GlowingCard>
       {/* Market Insights */}
-      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
+      <GlowingCard className="p-6">
         <h2 className="text-xl font-bold text-white mb-6">{getTranslation('marketInsights', language)}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
@@ -368,7 +369,7 @@ const DemandPredictions = () => {
             </p>
           </div>
         </div>
-      </div>
+      </GlowingCard>
     </div>
   );
 };
