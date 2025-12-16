@@ -133,7 +133,7 @@ const SavingsGoals = () => {
     const isOverdue = daysRemaining === 0 && !isCompleted;
 
     return (
-      <div className={`bg-neutral-900 rounded-xl p-6 shadow-sm border border-gray-800 ${
+      <div className={`bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300 ${
         isCompleted ? 'ring-2 ring-rose-500' : ''
       }`}>
         <div className="flex items-start justify-between mb-4">
@@ -172,7 +172,7 @@ const SavingsGoals = () => {
 
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="w-full bg-gray-800 rounded-full h-3">
+          <div className="w-full bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-full h-3 border border-gray-700">
             <div 
               className="h-3 rounded-full transition-all duration-500 bg-rose-500"
               style={{ width: `${progress}%` }}
@@ -200,19 +200,19 @@ const SavingsGoals = () => {
         <div className="flex space-x-2">
           <button
             onClick={() => updateGoalProgress(goal._id, 50)}
-            className="px-3 py-1 bg-neutral-800 border border-gray-800 text-gray-300 hover:bg-neutral-700 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 text-gray-300 hover:border-rose-500/50 rounded text-sm transition-all duration-300"
           >
             +₹50
           </button>
           <button
             onClick={() => updateGoalProgress(goal._id, 100)}
-            className="px-3 py-1 bg-neutral-800 border border-gray-800 text-gray-300 hover:bg-neutral-700 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 text-gray-300 hover:border-rose-500/50 rounded text-sm transition-all duration-300"
           >
             +₹100
           </button>
           <button
             onClick={() => updateGoalProgress(goal._id, 500)}
-            className="px-3 py-1 bg-neutral-800 border border-gray-800 text-gray-300 hover:bg-neutral-700 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 text-gray-300 hover:border-rose-500/50 rounded text-sm transition-all duration-300"
           >
             +₹500
           </button>
@@ -222,16 +222,16 @@ const SavingsGoals = () => {
   };
 
   const AchievementCard = ({ achievement }) => (
-    <div className={`bg-neutral-900 rounded-xl p-4 shadow-sm border ${
+    <div className={`bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-4 shadow-sm border ${
       achievement.unlocked 
         ? 'border-rose-500/30 bg-rose-500/10' 
-        : 'border-gray-800'
-    }`}>
+        : 'border-gray-700 hover:border-rose-500/50'
+    } transition-all duration-300`}>
       <div className="flex items-center space-x-3">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
           achievement.unlocked 
             ? 'bg-rose-500 text-white' 
-            : 'bg-gray-800 text-gray-500'
+            : 'bg-gradient-to-br from-neutral-800 to-neutral-900 text-gray-500 border border-gray-700'
         }`}>
           {achievement.unlocked ? <Trophy size={20} /> : <Clock size={20} />}
         </div>
@@ -262,7 +262,7 @@ const SavingsGoals = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-neutral-900 rounded-xl p-6 border border-gray-800">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-rose-400/20 rounded-full flex items-center justify-center">
             <PiggyBank size={32} className="text-rose-400" />
@@ -294,7 +294,7 @@ const SavingsGoals = () => {
             </div>
           </div>
         </div>
-        <div className="w-full bg-gray-800 rounded-full h-3">
+        <div className="w-full bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-full h-3 border border-gray-700">
           <div 
             className="bg-rose-500 h-3 rounded-full transition-all duration-500"
             style={{ width: `${Math.min((savings / 50000) * 100, 100)}%` }}
@@ -319,7 +319,7 @@ const SavingsGoals = () => {
       {/* Add Goal Modal */}
       {showAddGoal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-neutral-900 rounded-xl p-6 w-full max-w-md mx-4 border border-gray-800">
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 w-full max-w-md mx-4 border border-gray-700">
             <h3 className="text-lg font-bold text-white mb-4">
               {language === 'hindi' ? 'नया लक्ष्य जोड़ें' : 'Add New Goal'}
             </h3>
@@ -332,7 +332,7 @@ const SavingsGoals = () => {
                   type="text"
                   value={newGoal.name}
                   onChange={(e) => setNewGoal({ ...newGoal, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-700 bg-gradient-to-br from-neutral-800 to-neutral-900 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                   placeholder={language === 'hindi' ? 'उदाहरण: नई सिलाई मशीन' : 'Example: New Sewing Machine'}
                   required
                 />
@@ -345,7 +345,7 @@ const SavingsGoals = () => {
                   type="number"
                   value={newGoal.target}
                   onChange={(e) => setNewGoal({ ...newGoal, target: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-700 bg-gradient-to-br from-neutral-800 to-neutral-900 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                   placeholder="15000"
                 />
               </div>
@@ -357,7 +357,7 @@ const SavingsGoals = () => {
                   type="date"
                   value={newGoal.deadline}
                   onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-700 bg-gradient-to-br from-neutral-800 to-neutral-900 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -371,7 +371,7 @@ const SavingsGoals = () => {
               </button>
               <button
                 onClick={() => setShowAddGoal(false)}
-                className="flex-1 px-4 py-2 bg-neutral-800 border border-gray-700 text-gray-300 rounded-lg hover:bg-neutral-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 text-gray-300 rounded-lg hover:border-rose-500/50 transition-all duration-300"
               >
                 {getTranslation('cancel', language)}
               </button>

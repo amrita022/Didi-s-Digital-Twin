@@ -163,7 +163,7 @@ const DemandPredictions = () => {
 
       {/* Alert Banner */}
       {predictions?.alert && (
-        <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-rose-500/50">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-rose-500/50">
           <div className="flex items-center space-x-3 mb-4">
             <AlertTriangle size={24} className="text-rose-400" />
             <h2 className="text-xl font-bold text-white">{getTranslation('thisMonthAlert', language)}</h2>
@@ -178,7 +178,7 @@ const DemandPredictions = () => {
         {predictions?.predictions?.map((prediction, index) => {
           const WeatherIcon = getWeatherIcon(prediction.weather);
           return (
-            <div key={index} className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800 hover:border-rose-500/50 transition-all duration-300 relative">
+            <div key={index} className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 relative">
               {/* Prophet AI Badge on Card */}
               {/* Removed AI tag on month card */}
               
@@ -243,7 +243,7 @@ const DemandPredictions = () => {
                   // Translate product name if it's in Hindi
                   const productName = getTranslation(stock.item, language) || stock.item;
                   return (
-                  <div key={idx} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all">
+                  <div key={idx} className="bg-gradient-to-br from-neutral-800/50 to-neutral-900/50 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all">
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-bold text-lg text-white">{productName}</span>
                       <span className="px-2 py-1 bg-rose-500 text-white rounded-full text-xs font-bold">
@@ -294,7 +294,7 @@ const DemandPredictions = () => {
         })}
       </div>
       {/* Seasonal Calendar - Reference Guide */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">{getTranslation('seasonalRefGuide', language)}</h2>
           <span className="text-xs text-gray-400 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700">{getTranslation('generalPatternsOnly', language)}</span>
@@ -316,7 +316,7 @@ const DemandPredictions = () => {
           ].map((month, idx) => {
             const MonthIcon = month.icon;
             return (
-              <div key={idx} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all">
+              <div key={idx} className="bg-gradient-to-br from-neutral-800/50 to-neutral-900/50 rounded-lg p-4 border border-gray-700 hover:border-rose-500/50 transition-all">
                 <div className="flex items-center justify-between mb-2">
                   <MonthIcon size={20} className="text-white" />
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getDemandColor(month.demand)}`}>
@@ -331,7 +331,7 @@ const DemandPredictions = () => {
         </div>
       </div>
       {/* Market Insights */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
         <h2 className="text-xl font-bold text-white mb-6">{getTranslation('marketInsights', language)}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">

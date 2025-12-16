@@ -359,7 +359,7 @@ const VoiceAssistant = () => {
   return (
     <div className="space-y-6">
       {/* Voice Interface */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-8 shadow-lg border border-gray-800 text-center">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-8 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 text-center">
         <div className="mb-6">
           {/* Language Selector */}
           <div className="mb-4 flex justify-center">
@@ -434,7 +434,7 @@ const VoiceAssistant = () => {
       </div>
 
       {/* Quick Commands */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
         <h3 className="text-lg font-bold text-white mb-4">
           {getTranslation('quickCommands', language)}
         </h3>
@@ -443,7 +443,7 @@ const VoiceAssistant = () => {
             <button
               key={index}
               onClick={() => handleVoiceInput(cmd.command)}
-              className="p-3 text-left bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-3 text-left bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 rounded-lg transition-all duration-300"
             >
               <span className="text-white font-medium">{cmd.text}</span>
             </button>
@@ -452,7 +452,7 @@ const VoiceAssistant = () => {
       </div>
 
       {/* Text Input */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
         <form onSubmit={handleTextSubmit} className="flex space-x-3">
           <input
             type="text"
@@ -471,7 +471,7 @@ const VoiceAssistant = () => {
       </div>
 
       {/* Chat Messages */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white flex items-center">
             <MessageCircle size={20} className="mr-2" />

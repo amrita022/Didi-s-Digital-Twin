@@ -107,7 +107,7 @@ const BusinessAnalytics = () => {
   const ROSE_COLORS = ['#fb7185', '#f43f5e', '#e11d48', '#be123c', '#9f1239', '#881337'];
 
   const StatCard = ({ title, value, change, icon: Icon, color }) => (
-    <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+    <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg ${color}`}>
           <Icon size={24} className="text-white" />

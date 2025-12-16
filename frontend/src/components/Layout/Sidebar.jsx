@@ -53,7 +53,7 @@ const SidebarContent = () => {
     { id: 'pricing', path: '/pricing', icon: <IndianRupee size={20} className="text-white" />, label: getTranslation('pricingAdvisor', language) },
     { id: 'demand', path: '/demand', icon: <Calendar size={20} className="text-white" />, label: getTranslation('demandPredictions', language) },
     { id: 'savings', path: '/savings', icon: <PiggyBank size={20} className="text-white" />, label: getTranslation('savingsGoals', language) },
-    { id: 'demo', path: '/demo', icon: <Star size={20} className="text-white" />, label: language === 'hindi' ? 'रेखा की कहानी' : 'Rekha\'s Story' },
+    { id: 'demo', path: '/demo', icon: <Star size={20} className="text-white" />, label: language === 'hindi' ? 'हमें क्यों चुनें' : 'Why Choose Us' },
   ];
 
   const handleNavigation = (path) => {

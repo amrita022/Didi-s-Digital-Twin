@@ -191,11 +191,11 @@ const Dashboard = () => {
   const healthText = healthScore >= 80 ? "Excellent" : healthScore >= 60 ? "Good" : "Needs Attention";
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
 
-  const StatCard = ({ title, value, icon, trend, trendValue, color, bgColor }) => (
-    <div className={`bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800 hover:border-rose-500/50 transition-all duration-300`}>
+  const StatCard = ({ title, value, icon, trend, trendValue }) => (
+    <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-lg ${color}`}>
-          {React.createElement(icon, { size: 24, className: "text-white" })}
+        <div className="p-3 rounded-lg bg-rose-500/20">
+          {React.createElement(icon, { size: 24, className: "text-rose-400" })}
         </div>
         {trend && (
           <div className={`flex items-center space-x-1 ${
@@ -227,7 +227,7 @@ const Dashboard = () => {
     const type = transaction.type || 'expense';
     
     return (
-      <div className="p-4 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 bg-gray-800/50">
+      <div className="p-4 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 bg-gradient-to-br from-neutral-800 to-neutral-900">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -293,7 +293,7 @@ const Dashboard = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRemindersModal(true)}
-            className="relative flex items-center justify-center w-10 h-10 bg-neutral-700 hover:bg-neutral-600 text-white rounded-xl shadow transition-colors duration-200"
+            className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-neutral-800 to-neutral-900 hover:border-rose-500/50 border border-gray-700 text-white rounded-xl shadow transition-all duration-300"
             title={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
           >
             <Bell size={20} />
@@ -316,8 +316,6 @@ const Dashboard = () => {
           icon={IndianRupee}
           trend={todayIncome > 0 ? "up" : null}
           trendValue="12"
-          color="bg-rose-500"
-          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
         <StatCard
           title={language === 'hindi' ? 'मासिक लाभ' : 'Monthly Profit'}
@@ -325,8 +323,6 @@ const Dashboard = () => {
           icon={TrendingUp}
           trend={monthlyProfit > 0 ? "up" : monthlyProfit < 0 ? "down" : null}
           trendValue="25"
-          color="bg-rose-500"
-          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
         <StatCard
           title={language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
@@ -334,8 +330,6 @@ const Dashboard = () => {
           icon={Wallet}
           trend={totalSavings > 0 ? "up" : null}
           trendValue="8"
-          color="bg-rose-500"
-          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
         <StatCard
           title={language === 'hindi' ? 'लक्ष्य प्रगति' : 'Goal Progress'}
@@ -343,13 +337,11 @@ const Dashboard = () => {
           icon={Target}
           trend={savingsPercentage > 50 ? "up" : null}
           trendValue="15"
-          color="bg-rose-500"
-          bgColor="bg-gradient-to-br from-black to-gray-900"
         />
       </div>
 
       {/* Business Health Score */}
-      <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800 col-span-full">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 col-span-full">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -365,27 +357,27 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
+        <div className="w-full bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-full h-3 mb-6 border border-gray-700">
           <div 
-            className={`h-3 rounded-full transition-all duration-500 bg-white`}
+            className={`h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-rose-500 to-orange-500`}
             style={{ width: `${healthScore}%` }}
           ></div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-700">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)'}
             </p>
             <p className="text-2xl font-bold text-white">₹{allTimeSales.toLocaleString()}</p>
           </div>
-          <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-700">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)'}
             </p>
             <p className="text-2xl font-bold text-white">₹{allTimeExpenses.toLocaleString()}</p>
           </div>
-          <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-700">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)'}
             </p>
@@ -397,7 +389,7 @@ const Dashboard = () => {
       {/* Two Column Layout for Recent Transactions and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Transactions */}
-        <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
           <div className="mb-4">
             <h3 className="text-lg font-bold text-white">
               {language === 'hindi' ? 'हाल के लेनदेन' : 'Recent Transactions'}
@@ -433,7 +425,7 @@ const Dashboard = () => {
         {/* AI Insights Panel */}
         <div className="space-y-4">
           {/* Achievement Card */}
-          <div className="p-6 rounded-xl bg-neutral-700 dark:bg-neutral-800 border border-gray-800 shadow-lg">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 transition-all duration-300 shadow-lg">
             <h3 className="text-lg font-bold text-rose-300 mb-2">
               Achievement Unlocked!
             </h3>
@@ -443,7 +435,7 @@ const Dashboard = () => {
                 : `You've saved ₹${totalSavings.toLocaleString()} towards your goal!`
               }
             </p>
-            <div className="mt-4 p-3 bg-gray-900/60 rounded-lg border border-gray-700">
+            <div className="mt-4 p-3 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg border border-gray-700">
               <p className="text-sm text-rose-200">
                 {language === 'hindi' 
                   ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और!` 
@@ -454,7 +446,7 @@ const Dashboard = () => {
           </div>
 
           {/* AI Recommendations */}
-          <div className="bg-neutral-700 dark:bg-neutral-800 rounded-xl p-6 shadow-lg border border-gray-800">
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-rose-500/20 rounded-full flex items-center justify-center">
@@ -476,7 +468,7 @@ const Dashboard = () => {
                 dashboard.aiInsights.map((insight, index) => (
                   <div 
                     key={`ai-insight-${index}`} 
-                    className={`p-4 rounded-lg border bg-gray-900/50 border-gray-700`}
+                    className={`p-4 rounded-lg border bg-gradient-to-br from-neutral-800 to-neutral-900 border-gray-700`}
                   >
                     <p className={`text-sm font-bold mb-1 text-rose-300`}>{insight.title}</p>
                     <p className="text-sm text-gray-300">{insight.message}</p>
@@ -484,7 +476,7 @@ const Dashboard = () => {
                 ))
               ) : (
                 <>
-                  <div className="p-3 bg-gray-900/50 rounded-lg border border-gray-700">
+                  <div className="p-3 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg border border-gray-700">
                     <p className="text-sm font-medium text-gray-300">
                       {language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights'}
                     </p>
@@ -516,7 +508,7 @@ const Dashboard = () => {
       {/* Reminders Modal */}
       {showRemindersModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-neutral-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-700">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-700">
               <div className="flex items-center space-x-3">

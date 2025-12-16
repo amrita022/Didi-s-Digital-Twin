@@ -224,8 +224,8 @@ const Settings = () => {
         <div className="space-y-4">
           <SettingItem
             icon={User}
-            title={language === 'hindi' ? 'रेखा की कहानी' : 'Rekha\'s Story'}
-            description={language === 'hindi' ? 'रेखा की सफलता की कहानी देखें' : 'View Rekha\'s success story'}
+            title={language === 'hindi' ? 'हमें क्यों चुनें' : 'Why Choose Us'}
+            description={language === 'hindi' ? 'हमारी सुविधाएं और सफलता की कहानियां देखें' : 'View our features and success stories'}
           >
             <Toggle
               enabled={demoMode}
@@ -237,8 +237,8 @@ const Settings = () => {
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
               {language === 'hindi' 
-                ? 'डेमो मोड में आप रेखा की कहानी देख सकते हैं - एक आचार विक्रेता जिसने अपनी कमाई ₹2,500 से ₹8,000 प्रति माह तक बढ़ाई।' 
-                : 'In demo mode, you can see Rekha\'s story - a pickle seller who increased her earnings from ₹2,500 to ₹8,000 per month.'
+                ? 'हमारी सुविधाएं, लाभ और वास्तविक उपयोगकर्ताओं की सफलता की कहानियां देखें।' 
+                : 'View our features, benefits, and success stories from real users.'
               }
             </p>
           </div>

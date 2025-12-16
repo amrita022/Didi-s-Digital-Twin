@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const Card = ({ children, className = '' }) => (
-  <div className={`relative bg-gradient-to-l from-neutral-700/40 to-neutral-800 dark:from-neutral-800/40 dark:to-neutral-900 rounded-xl shadow-lg border border-gray-700/50 hover:border-rose-500/30 transition-all duration-300 backdrop-blur-sm ${className}`}>
+  <div className={`relative bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl shadow-lg border border-gray-700 hover:border-rose-500/50 transition-all duration-300 ${className}`}>
     {children}
   </div>
 );

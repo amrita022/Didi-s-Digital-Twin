@@ -8,7 +8,7 @@ import PricingAdvisor from './components/Pricing/PricingAdvisor';
 import DemandPredictions from './components/Demand/DemandPredictions';
 import SavingsGoals from './components/Savings/SavingsGoals';
 import Settings from './components/Settings/Settings';
-import RekhaStory from './components/Demo/RekhaStory';
+import WhyChooseUs from './components/WhyChooseUs/WhyChooseUs';
 import useStore from './store/useStore'; // Remove { } - default export
 import { useAuth } from './hooks/useAuth';
 import Login from './components/Auth/Login';
@@ -143,7 +143,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <RekhaStory />
+                <WhyChooseUs />
               </MainLayout>
             </ProtectedRoute>
           } 

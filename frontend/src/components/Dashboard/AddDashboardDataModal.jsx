@@ -37,7 +37,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-gray-700">
+      <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-gray-700">
         {/* Header - Sticky */}
         <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white p-6 rounded-t-2xl flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -57,7 +57,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
         {/* Form - Scrollable */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 bg-neutral-900">
           {/* Savings & Goals Section */}
-          <div className="bg-neutral-800 rounded-xl p-5 border border-gray-700">
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-5 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
             <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <Wallet className="h-5 w-5" />
               Savings & Goals
@@ -76,7 +76,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="totalSavings"
                     value={formData.totalSavings}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-br from-neutral-800 to-neutral-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -96,7 +96,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="goalTarget"
                     value={formData.goalTarget}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-br from-neutral-800 to-neutral-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="25000"
                     min="0"
                   />
@@ -120,7 +120,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           </div>
 
           {/* Income Section */}
-          <div className="bg-neutral-800 rounded-xl p-5 border border-gray-700">
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-5 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
             <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Income & Sales
@@ -139,7 +139,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="todayIncome"
                     value={formData.todayIncome}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-br from-neutral-800 to-neutral-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -160,7 +160,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="totalSales"
                     value={formData.totalSales}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-br from-neutral-800 to-neutral-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -171,7 +171,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           </div>
 
           {/* Expenses & Profit Section */}
-          <div className="bg-neutral-800 rounded-xl p-5 border border-gray-700">
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-5 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
             <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <TrendingDown className="h-5 w-5" />
               Expenses & Profit
@@ -190,7 +190,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="monthlyExpenses"
                     value={formData.monthlyExpenses}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-br from-neutral-800 to-neutral-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                     min="0"
                   />
@@ -211,7 +211,7 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     name="monthlyProfit"
                     value={formData.monthlyProfit}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-br from-neutral-800 to-neutral-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent text-white transition-all"
                     placeholder="0"
                   />
                 </div>
@@ -231,19 +231,19 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           <div className="bg-gradient-to-r from-neutral-800 to-neutral-900 rounded-xl p-5 border-2 border-gray-700">
             <h3 className="text-lg font-semibold text-rose-300 mb-3">Quick Summary</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+              <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-3 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
                 <p className="text-xs text-gray-400 mb-1">Savings</p>
                 <p className="text-lg font-bold text-rose-400">₹{(Number(formData.totalSavings) || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+              <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-3 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
                 <p className="text-xs text-gray-400 mb-1">Goal</p>
                 <p className="text-lg font-bold text-rose-400">₹{(Number(formData.goalTarget) || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+              <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-3 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
                 <p className="text-xs text-gray-400 mb-1">Sales</p>
                 <p className="text-lg font-bold text-rose-400">₹{(Number(formData.totalSales) || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-neutral-700 rounded-lg p-3 shadow-sm border border-gray-600">
+              <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-3 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
                 <p className="text-xs text-gray-400 mb-1">Profit</p>
                 <p className="text-lg font-bold text-rose-400">₹{(Number(formData.monthlyProfit) || 0).toLocaleString()}</p>
               </div>
