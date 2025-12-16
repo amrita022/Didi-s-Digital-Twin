@@ -361,20 +361,6 @@ const Dashboard = () => {
             <p className="text-2xl font-bold text-white">₹{allTimeProfit.toLocaleString()}</p>
           </div>
         </div>
-
-        {healthScore < 70 && (
-          <div className="mt-4 p-3 bg-rose-950/30 border border-rose-500/30 rounded-lg flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-gray-200">
-                {language === 'hindi' 
-                  ? 'एआई सिफारिश: लाभ मार्जिन में सुधार के लिए अपनी मूल्य निर्धारण रणनीति की समीक्षा करें।'
-                  : 'AI Recommendation: Review your pricing strategy to improve profit margins.'
-                }
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Two Column Layout for Recent Transactions and AI Insights */}
