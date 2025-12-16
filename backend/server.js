@@ -230,8 +230,7 @@ const { generateDemandPredictions } = require('./utils/demandPredictions');
 
 app.get('/api/demand-predictions', async (req, res) => {
     try {
-        const { userId } = req.query;
-        const { useProphet } = req.query; // Optional: ?useProphet=true to use Prophet
+        const { userId, useProphet, language } = req.query;
         
         if (!userId) {
             return res.status(400).json({ 
@@ -240,12 +239,13 @@ app.get('/api/demand-predictions', async (req, res) => {
             });
         }
 
-        console.log(`🎯 Generating demand predictions for: ${userId}`);
+        const userLanguage = language || 'english'; // Default to English
+        console.log(`🎯 Generating demand predictions for: ${userId} (Language: ${userLanguage})`);
         
         // Use Prophet if requested, otherwise use rule-based
         const predictions = useProphet === 'true' 
-            ? await prophetAIService.generateDemandPredictions(userId)
-            : await generateDemandPredictions(userId);
+            ? await prophetAIService.generateDemandPredictions(userId, userLanguage)
+            : await generateDemandPredictions(userId, userLanguage);
         
         res.json(predictions);
     } catch (error) {

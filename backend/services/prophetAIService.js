@@ -3,10 +3,10 @@ const path = require('path');
 const Transaction = require('../models/Transaction');
 
 class ProphetAIService {
-    async generateDemandPredictions(userId) {
+    async generateDemandPredictions(userId, language = 'english') {
         return new Promise(async (resolve, reject) => {
             try {
-                console.log(`🤖 Starting Prophet AI for user: ${userId}`);
+                console.log(`🤖 Starting Prophet AI for user: ${userId} (Language: ${language})`);
                 
                 // Get transactions from MongoDB
                 const transactions = await Transaction.find({ 
@@ -19,7 +19,7 @@ class ProphetAIService {
                 
                 if (transactions.length < 7) {
                     console.log('❌ Not enough transactions for Prophet (need at least 7)');
-                    return resolve(this.getRuleBasedFallback(userId));
+                    return resolve(this.getRuleBasedFallback(userId, language));
                 }
                 
                 // Run Python Prophet script from whisper_service directory
@@ -60,7 +60,7 @@ class ProphetAIService {
                                 console.log('✅ Prophet AI completed successfully');
                                 
                                 // Convert Prophet format to our UI format
-                                const formatted = await this.formatProphetOutput(predictions, userId);
+                                const formatted = await this.formatProphetOutput(predictions, userId, language);
                                 resolve(formatted);
                             } else {
                                 throw new Error('No valid JSON found in output');
@@ -68,12 +68,12 @@ class ProphetAIService {
                         } catch (e) {
                             console.log('❌ JSON parse error:', e.message);
                             console.log('Raw output:', result);
-                            resolve(await this.getRuleBasedFallback(userId));
+                            resolve(await this.getRuleBasedFallback(userId, language));
                         }
                     } else {
                         console.log(`❌ Python process failed with code ${code}`);
                         console.log('Error output:', error);
-                        resolve(await this.getRuleBasedFallback(userId));
+                        resolve(await this.getRuleBasedFallback(userId, language));
                     }
                 });
                 
@@ -93,12 +93,12 @@ class ProphetAIService {
         });
     }
     
-    async formatProphetOutput(prophetResult, userId) {
+    async formatProphetOutput(prophetResult, userId, language = 'english') {
         const { generateDemandPredictions } = require('../utils/demandPredictions');
         
         try {
             // Get rule-based predictions for structure and seasonal info
-            const ruleBasedResult = await generateDemandPredictions(userId);
+            const ruleBasedResult = await generateDemandPredictions(userId, language);
             
             if (!prophetResult.monthly_insights || prophetResult.monthly_insights.length === 0) {
                 return ruleBasedResult;
@@ -141,10 +141,10 @@ class ProphetAIService {
         }
     }
     
-    async getRuleBasedFallback(userId) {
+    async getRuleBasedFallback(userId, language = 'english') {
         console.log('🔄 Falling back to rule-based predictions');
         const { generateDemandPredictions } = require('../utils/demandPredictions');
-        return await generateDemandPredictions(userId);
+        return await generateDemandPredictions(userId, language);
     }
 }
 

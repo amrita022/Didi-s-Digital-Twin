@@ -30,14 +30,41 @@ function extractClothingItem(description) {
 }
 
 /**
+ * Translate clothing item name to English
+ */
+function translateItemToEnglish(hindiItem) {
+  const translations = {
+    'साड़ी': 'Saree',
+    'लहंगा': 'Lehenga',
+    'ब्लाउज': 'Blouse',
+    'कुर्ती': 'Kurti',
+    'कुर्ता': 'Kurta',
+    'शर्ट': 'Shirt',
+    'पैंट': 'Pant',
+    'ड्रेस': 'Dress',
+    'दुपट्टा': 'Dupatta',
+    'सलवार': 'Salwar',
+    'अन्य': 'Other'
+  };
+  return translations[hindiItem] || hindiItem;
+}
+
+/**
  * Get month name in English
  */
-function getMonthName(monthIndex) {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  return months[monthIndex];
+function getMonthName(monthIndex, language = 'english') {
+  const months = {
+    english: [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ],
+    hindi: [
+      'जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून',
+      'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'
+    ]
+  };
+  const monthArray = months[language] || months.english;
+  return monthArray[monthIndex];
 }
 
 /**
@@ -117,7 +144,7 @@ async function analyzeMonthData(userId, year, month) {
 /**
  * Generate demand predictions for next 1-2 months
  */
-async function generateDemandPredictions(userId) {
+async function generateDemandPredictions(userId, language = 'english') {
   try {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -130,7 +157,7 @@ async function generateDemandPredictions(userId) {
     for (let i = 1; i <= 2; i++) {
       const targetMonth = (currentMonth + i) % 12;
       const targetYear = currentMonth + i >= 12 ? currentYear + 1 : currentYear;
-      const monthName = getMonthName(targetMonth);
+      const monthName = getMonthName(targetMonth, language);
       const seasonalInfo = getSeasonalInfo(targetMonth);
       
       // Analyze same month last year
@@ -200,7 +227,9 @@ async function generateDemandPredictions(userId) {
         confidence,
         stockRecommendations,
         lastYearRevenue: lastYearData.totalRevenue,
-        reasoning: `Based on ${monthName} ${lastYear} sales: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' approaching!' : ''}`
+        reasoning: language === 'hindi'
+          ? `${monthName} ${lastYear} की बिक्री के आधार पर: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' आ रहा है!' : ''}`
+          : `Based on ${monthName} ${lastYear} sales: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' approaching!' : ''}`
       });
     }
     
@@ -209,22 +238,42 @@ async function generateDemandPredictions(userId) {
     if (predictions.length > 0) {
       const nextMonth = predictions[0];
       if (nextMonth.demand === 'very-high') {
-        const topItem = nextMonth.stockRecommendations[0]?.item || 'तैयार माल';
-        alert = {
-          type: 'high',
-          message: `${nextMonth.festival || nextMonth.season} demand will be very high in ${nextMonth.month}. Stock up on ${topItem} now!`
-        };
+        let topItem = nextMonth.stockRecommendations[0]?.item || (language === 'hindi' ? 'तैयार माल' : 'stock items');
+        if (language === 'english') {
+          topItem = translateItemToEnglish(topItem);
+        }
+        if (language === 'hindi') {
+          alert = {
+            type: 'high',
+            message: `${nextMonth.festival || nextMonth.season} की मांग ${nextMonth.month} में बहुत अधिक रहेगी। अभी ${topItem} का स्टॉक बढ़ाएँ!`
+          };
+        } else {
+          alert = {
+            type: 'high',
+            message: `${nextMonth.festival || nextMonth.season} demand will be very high in ${nextMonth.month}. Stock up on ${topItem} now!`
+          };
+        }
       } else if (nextMonth.demand === 'high') {
-        const topItem = nextMonth.stockRecommendations[0]?.item || 'top sellers';
-        alert = {
-          type: 'medium',
-          message: `${nextMonth.month} shows good demand potential. Prepare stock of ${topItem}.`
-        };
+        let topItem = nextMonth.stockRecommendations[0]?.item || (language === 'hindi' ? 'सामान' : 'stock items');
+        if (language === 'english') {
+          topItem = translateItemToEnglish(topItem);
+        }
+        if (language === 'hindi') {
+          alert = {
+            type: 'medium',
+            message: `${nextMonth.month} में अच्छी मांग की संभावना है। ${topItem} का स्टॉक तैयार करें।`
+          };
+        } else {
+          alert = {
+            type: 'medium',
+            message: `${nextMonth.month} shows good demand potential. Prepare stock of ${topItem}.`
+          };
+        }
       }
     }
     
     // Generate dynamic market insights
-    const marketInsights = await generateMarketInsights(userId);
+    const marketInsights = await generateMarketInsights(userId, language);
     
     return {
       success: true,
@@ -247,7 +296,7 @@ async function generateDemandPredictions(userId) {
 /**
  * Generate dynamic market insights from historical data
  */
-async function generateMarketInsights(userId) {
+async function generateMarketInsights(userId, language = 'english') {
   try {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -260,7 +309,7 @@ async function generateMarketInsights(userId) {
     });
     
     if (allTransactions.length < 30) {
-      return getDefaultInsights();
+      return getDefaultInsights(language);
     }
     
     // Insight 1: Best selling items in peak season
@@ -325,11 +374,39 @@ async function generateMarketInsights(userId) {
       }))
       .sort((a, b) => b.avgPrice - a.avgPrice)[0];
     
+    // Generate bilingual content based on language
+    if (language === 'hindi') {
+      return {
+        weddingSeason: {
+          title: 'शादी का मौसम',
+          description: topPeakItems.length > 0
+            ? `दिसंबर और अप्रैल-मई में ${topPeakItems.join(' और ')} की सबसे अधिक मांग है`
+            : 'शादी का मौसम अप्रैल-मई और दिसंबर में सबसे अधिक बिक्री चलाता है'
+        },
+        festive: {
+          title: 'त्योहार की अवधि',
+          description: festiveBoost > 0
+            ? `दिवाली (नवंबर-दिसंबर) बिक्री को नियमित महीनों की तुलना में ${festiveBoost}% बढ़ाता है`
+            : 'त्योहार के मौसम में ग्राहकों की मांग में वृद्धि दिखाई देती है'
+        },
+        stockPlanning: {
+          title: 'स्टॉक योजना',
+          description: highValueItem
+            ? `बेहतर लाभ मार्जिन के लिए ${highValueItem.item} (औसत ₹${highValueItem.avgPrice}) पर ध्यान दें`
+            : 'पीक सीजन से 1 महीने पहले सर्वोत्तम कीमत के लिए इन्वेंटरी ऑर्डर करें'
+        }
+      };
+    }
+    
+    // Translate items to English for English mode
+    const englishTopItems = topPeakItems.map(item => translateItemToEnglish(item));
+    const englishHighValueItem = highValueItem ? { ...highValueItem, item: translateItemToEnglish(highValueItem.item) } : null;
+    
     return {
       weddingSeason: {
         title: 'Wedding Season',
-        description: topPeakItems.length > 0
-          ? `Dec & Apr-May see highest demand for ${topPeakItems.join(' and ')}`
+        description: englishTopItems.length > 0
+          ? `Dec & Apr-May see highest demand for ${englishTopItems.join(' and ')}`
           : 'Peak wedding season drives highest sales in Apr-May & Dec'
       },
       festive: {
@@ -340,19 +417,36 @@ async function generateMarketInsights(userId) {
       },
       stockPlanning: {
         title: 'Stock Planning',
-        description: highValueItem
-          ? `Focus on ${highValueItem.item} (avg ₹${highValueItem.avgPrice}) for better profit margins`
+        description: englishHighValueItem
+          ? `Focus on ${englishHighValueItem.item} (avg ₹${englishHighValueItem.avgPrice}) for better profit margins`
           : 'Order inventory 1 month before peak seasons for best pricing'
       }
     };
     
   } catch (error) {
     console.error('Error generating market insights:', error);
-    return getDefaultInsights();
+    return getDefaultInsights(language);
   }
 }
 
-function getDefaultInsights() {
+function getDefaultInsights(language = 'english') {
+  if (language === 'hindi') {
+    return {
+      weddingSeason: {
+        title: 'शादी का मौसम',
+        description: 'दिसंबर और अप्रैल-मई आमतौर पर सबसे अधिक मांग देखते हैं'
+      },
+      festive: {
+        title: 'त्योहार की अवधि',
+        description: 'त्योहार के मौसम में बिक्री में महत्वपूर्ण वृद्धि होती है'
+      },
+      stockPlanning: {
+        title: 'स्टॉक योजना',
+        description: 'पीक सीजन से 1 महीने पहले सर्वोत्तम कीमत के लिए इन्वेंटरी ऑर्डर करें'
+      }
+    };
+  }
+  
   return {
     weddingSeason: {
       title: 'Wedding Season',
