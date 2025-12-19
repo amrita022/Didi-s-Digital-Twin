@@ -4,6 +4,7 @@ const Reminder = require('../models/Reminder');
 
 // Seasonal events with dates (using approximate dates, adjust as needed)
 const SEASONAL_EVENTS = {
+  'New Year': { month: 0, day: 1, name: 'New Year', nameHindi: 'नया साल' },
   'Ganeshotsav': { month: 8, day: 17, name: 'Ganeshotsav', nameHindi: 'गणेशोत्सव' },
   'Diwali': { month: 10, day: 12, name: 'Diwali', nameHindi: 'दिवाली' },
   'Holi': { month: 2, day: 25, name: 'Holi', nameHindi: 'होली' },
@@ -156,6 +157,65 @@ async function getSeasonalSalesData(userId, eventName) {
 }
 
 /**
+ * Analyze product-specific seasonal patterns
+ * Find which products sell more during specific festivals
+ */
+async function analyzeProductSeasonalPatterns(userId) {
+  const transactions = await Transaction.find({ userId, type: 'income' }).sort({ date: 1 });
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  // Product categories and their peak festival months
+  const productPatterns = {
+    'Saree': { peakMonths: [0, 9, 10, 6], festivals: ['New Year', 'Diwali', 'Navratri', 'Raksha Bandhan'] },
+    'Dress': { peakMonths: [0, 1, 11], festivals: ["Valentine's Day", 'New Year', 'Christmas'] },
+    'Shirt': { peakMonths: [1, 2, 11], festivals: ["Valentine's Day", 'Holi', 'Christmas'] },
+    'Blouse': { peakMonths: [7, 8], festivals: ['Ganeshotsav', 'Navratri'] }
+  };
+  
+  const patterns = [];
+  
+  // Analyze sales for each product category
+  for (const [product, productInfo] of Object.entries(productPatterns)) {
+    const productSales = transactions.filter(txn => 
+      txn.description?.toLowerCase().includes(product.toLowerCase())
+    );
+    
+    if (productSales.length === 0) continue;
+    
+    // Get sales during peak months (last year)
+    let peakMonthSales = 0;
+    let normalMonthSales = 0;
+    
+    for (const sale of productSales) {
+      const saleMonth = new Date(sale.date).getMonth();
+      if (productInfo.peakMonths.includes(saleMonth)) {
+        peakMonthSales += sale.amount;
+      } else {
+        normalMonthSales += sale.amount;
+      }
+    }
+    
+    // Calculate multiplier
+    const multiplier = normalMonthSales > 0 ? peakMonthSales / normalMonthSales : 1;
+    
+    if (multiplier > 2) {  // Product sells 2x more during peak
+      patterns.push({
+        product,
+        peakMonths: productInfo.peakMonths,
+        festivals: productInfo.festivals,
+        multiplier: parseFloat(multiplier.toFixed(1)),
+        peakSales: peakMonthSales,
+        normalSales: normalMonthSales,
+        avgPeakPrice: (peakMonthSales / productSales.length).toFixed(0)
+      });
+    }
+  }
+  
+  return patterns;
+}
+
+/**
  * Generate gentle nudges based on historical patterns and upcoming events
  */
 async function generateNudges(userId, language = 'english') {
@@ -198,8 +258,8 @@ async function generateNudges(userId, language = 'english') {
     for (const [eventKey, event] of Object.entries(SEASONAL_EVENTS)) {
       const daysUntil = getDaysUntilEvent(event.month, event.day, now);
       
-      // Show reminder 15-30 days before event
-      if (daysUntil >= 15 && daysUntil <= 30) {
+      // Show reminder 10-35 days before event (adjusted for better testing)
+      if (daysUntil >= 10 && daysUntil <= 35) {
         const seasonalData = await getSeasonalSalesData(userId, eventKey);
         
         if (seasonalData && seasonalData.itemCount > 0) {
@@ -238,6 +298,47 @@ async function generateNudges(userId, language = 'english') {
             }
           });
         }
+      }
+    }
+    
+    // 3. Product-specific seasonal recommendations
+    const productPatterns = await analyzeProductSeasonalPatterns(userId);
+    
+    for (const pattern of productPatterns) {
+      // Check if any upcoming festival is in the peak months
+      const upcomingFestival = pattern.festivals.find(festival => {
+        const festivalEvent = Object.values(SEASONAL_EVENTS).find(e => 
+          e.name === festival || e.nameHindi === festival
+        );
+        if (!festivalEvent) return false;
+        
+        const daysUntil = getDaysUntilEvent(festivalEvent.month, festivalEvent.day, now);
+        return daysUntil >= 5 && daysUntil <= 40;
+      });
+      
+      if (upcomingFestival) {
+        const title = language === 'hindi'
+          ? `📊 ${pattern.product} बिक्री बढ़ेगी`
+          : `📊 ${pattern.product} sales will spike`;
+        
+        const message = language === 'hindi'
+          ? `पिछले साल ${upcomingFestival} के दौरान ${pattern.product} की बिक्री ${pattern.multiplier}x बढ़ गई थी। स्टॉक तैयार करने का समय है!`
+          : `Last year during ${upcomingFestival}, ${pattern.product} sales increased by ${pattern.multiplier}x. Time to prepare your stock!`;
+        
+        nudges.push({
+          type: 'product_seasonal',
+          title,
+          message,
+          messageHindi: message,
+          actionRequired: 'prepare_stock',
+          priority: 'high',
+          metadata: {
+            product: pattern.product,
+            festival: upcomingFestival,
+            multiplier: pattern.multiplier,
+            historicalSales: pattern.peakSales
+          }
+        });
       }
     }
     
@@ -307,6 +408,7 @@ module.exports = {
   generateNudges,
   saveNudgesAsReminders,
   analyzeStockPatterns,
-  getSeasonalSalesData
+  getSeasonalSalesData,
+  analyzeProductSeasonalPatterns
 };
 
