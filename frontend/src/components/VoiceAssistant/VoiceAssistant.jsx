@@ -12,6 +12,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getTranslation } from '../../utils/translations';
 import { processVoiceCommand as processVoiceAPI } from '../../utils/api';
 import { GlowingCard } from '../ui/glowing-card';
+import * as inventoryApi from '../../utils/inventoryApi';
 
 // Language mapping for Web Speech API
 const LANGUAGE_MAP = {
@@ -228,10 +229,62 @@ const VoiceAssistant = () => {
     
     console.log('🔍 FULL API RESPONSE:', JSON.stringify(result, null, 2));
     
+    // Extract quantity and item name from transcript for inventory tracking
+    const quantity = inventoryApi.extractQuantityFromDescription(transcript);
+    const itemName = inventoryApi.extractItemNameFromDescription(transcript);
+    
+    console.log(`📊 Extracted from "${transcript}": quantity=${quantity}, itemName=${itemName}`);
+    
+    let inventoryMessage = '';
+    
+    // Handle inventory deduction for income/sales
+    if ((result.intent === 'income' || transcript.toLowerCase().includes('sold'))) {
+      if (quantity > 0 && itemName) {
+        try {
+          const deductResult = await inventoryApi.deductInventory(uid, itemName, quantity);
+          if (deductResult.success) {
+            const remaining = deductResult.remaining;
+            inventoryMessage = language === 'hindi' 
+              ? `\n📦 ${quantity} ${itemName} की बिक्री दर्ज की गई। शेष: ${remaining}`
+              : `\n📦 Recorded sale of ${quantity} ${itemName}. Remaining: ${remaining}`;
+            console.log('✅ Inventory deducted:', deductResult);
+          }
+        } catch (invError) {
+          console.warn('⚠️ Inventory deduction skipped:', invError.message);
+        }
+      } else if (quantity > 1 && !itemName) {
+        // Quantity found but item not recognized - warn user
+        inventoryMessage = language === 'hindi' 
+          ? '\n⚠️ कृपया बताएं कि कौन सी चीज़ बेची - साड़ी, ब्लाउज, शर्ट, ड्रेस या पैंट?'
+          : '\n⚠️ Please specify which item was sold - saree, blouse, shirt, dress, or pant?';
+        console.warn(`⚠️ Quantity ${quantity} extracted but no item name found`);
+      }
+    }
+    
+    // Handle inventory addition for stock purchases
+    if ((result.intent === 'expense' || transcript.toLowerCase().includes('bought')) && 
+        quantity > 0 && itemName && 
+        !transcript.toLowerCase().includes('food') && 
+        !transcript.toLowerCase().includes('dinner') &&
+        !transcript.toLowerCase().includes('groceries')) {
+      try {
+        const price = result.amount ? Math.round(result.amount / quantity) : 0;
+        const addResult = await inventoryApi.addOrUpdateInventory(uid, itemName, quantity, price, 10);
+        if (addResult.success) {
+          inventoryMessage = language === 'hindi' 
+            ? `\n📦 ${quantity} ${itemName} जोड़े गए। कुल: ${addResult.totalQuantity}`
+            : `\n📦 Added ${quantity} ${itemName}. Total: ${addResult.totalQuantity}`;
+          console.log('✅ Inventory updated:', addResult);
+        }
+      } catch (invError) {
+        console.warn('⚠️ Inventory addition skipped:', invError.message);
+      }
+    }
+    
     const aiMessage = {
       id: Date.now() + 1,
       type: 'ai',
-      text: result.response_english || result.response_hindi || result.response || 'I processed your request.',
+      text: (result.response_english || result.response_hindi || result.response || 'I processed your request.') + inventoryMessage,
       timestamp: new Date(),
       offline: result.offline || false
     };

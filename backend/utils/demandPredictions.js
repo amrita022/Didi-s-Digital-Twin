@@ -465,5 +465,6 @@ function getDefaultInsights(language = 'english') {
 
 module.exports = {
   generateDemandPredictions,
-  getSeasonalInfo
+  getSeasonalInfo,
+  translateItemToEnglish
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, Clock, AlertCircle, Sparkles } from 'lucide-react';
+import { Bell, X, Check, Clock, AlertCircle, Sparkles, Package, Calendar, AlertTriangle } from 'lucide-react';
 import { getReminders, createReminder, dismissReminder, completeReminder } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
@@ -12,9 +12,28 @@ const Reminders = () => {
 
   useEffect(() => {
     if (uid) {
+      // Create inventory alerts first
+      createInventoryAlerts();
+      // Then load reminders
       loadReminders();
     }
   }, [uid, language]);
+
+  const createInventoryAlerts = async () => {
+    try {
+      const response = await fetch('http://localhost:5002/api/reminders/create-from-inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid, language })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Inventory alerts created:', data);
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not create inventory alerts:', error.message);
+    }
+  };
 
   const loadReminders = async () => {
     try {
@@ -91,6 +110,14 @@ const Reminders = () => {
         return <Sparkles size={20} className="text-yellow-400" />;
       case 'stock_analysis':
         return <AlertCircle size={20} className="text-blue-400" />;
+      case 'low_stock':
+        return <AlertTriangle size={20} className="text-orange-400" />;
+      case 'festival_demand':
+        return <Calendar size={20} className="text-purple-400" />;
+      case 'overstock':
+        return <Package size={20} className="text-red-400" />;
+      case 'inventory_alert':
+        return <Package size={20} className="text-cyan-400" />;
       default:
         return <Bell size={20} className="text-gray-400" />;
     }

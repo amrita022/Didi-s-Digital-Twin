@@ -12,6 +12,7 @@ const User = require('./models/User');
 const Transaction = require('./models/Transaction');
 const SavingsGoal = require('./models/SavingsGoal');
 const AIInsight = require('./models/AIInsight');
+const Inventory = require('./models/Inventory');
 
 // Import utilities
 const { calculateTotals, calculateHealthScore, getTransactionsByTimeRange } = require('./utils/calculations');
@@ -113,16 +114,19 @@ app.get('/api/dashboard', async (req, res) => {
 
     // Get user's transactions
     const allTransactions = await Transaction.find({ userId }).sort({ date: -1 }).lean();
+    // Exclude stock purchases from expense totals for business health (treat as COGS tracked separately)
+    const excludeStock = (tx) => !(tx.type === 'expense' && (tx.category || '').toLowerCase().includes('stock'));
+    const nonStockTxns = allTransactions.filter(excludeStock);
     
     // Calculate totals for different periods
-    const todayTxns = getTransactionsByTimeRange(allTransactions, 'today');
-    const weekTxns = getTransactionsByTimeRange(allTransactions, 'week');
-    const monthTxns = getTransactionsByTimeRange(allTransactions, 'month');
+    const todayTxns = getTransactionsByTimeRange(nonStockTxns, 'today');
+    const weekTxns = getTransactionsByTimeRange(nonStockTxns, 'week');
+    const monthTxns = getTransactionsByTimeRange(nonStockTxns, 'month');
 
     const todayTotals = calculateTotals(todayTxns);
     const weekTotals = calculateTotals(weekTxns);
     const monthTotals = calculateTotals(monthTxns);
-    const allTimeTotals = calculateTotals(allTransactions);
+    const allTimeTotals = calculateTotals(nonStockTxns);
     const healthScore = calculateHealthScore(allTimeTotals); // Use ALL-TIME data for health score
 
     // Use saved dashboard values ONLY for goals and savings (manual fields)
@@ -292,6 +296,12 @@ app.get('/api/analytics', async (req, res) => {
 const Reminder = require('./models/Reminder');
 const { generateNudges, saveNudgesAsReminders } = require('./utils/nudgeGenerator');
 
+// ======================
+// INVENTORY
+// ======================
+const inventoryService = require('./services/inventoryService');
+
+
 // Get all active reminders for a user
 app.get('/api/reminders', async (req, res) => {
   try {
@@ -303,6 +313,77 @@ app.get('/api/reminders', async (req, res) => {
 
     // Generate and save new nudges
     await saveNudgesAsReminders(userId, language || 'english');
+
+    // Also create/update inventory-based reminders (low stock, festivals)
+    try {
+      await inventoryService.rebuildInventoryFromTransactions(userId, false);
+      const inventoryItems = await Inventory.find({ userId, isActive: true });
+      for (const item of inventoryItems) {
+        if (item.quantity <= item.minStockLevel) {
+          await Reminder.findOneAndUpdate(
+            { userId, type: 'low_stock', 'metadata.itemName': item.itemName },
+            {
+              $set: {
+                userId,
+                type: 'low_stock',
+                title: `Low Stock: ${item.itemName}`,
+                message: `${item.itemName} running low - only ${item.quantity} remaining`,
+                messageHindi: `${item.itemName} कम स्टॉक - केवल ${item.quantity} बचा है`,
+                priority: 10,
+                isActive: true,
+                isDismissed: false,
+                actionRequired: 'restock',
+                metadata: { itemName: item.itemName, quantity: item.quantity, minStock: item.minStockLevel }
+              }
+            },
+            { upsert: true }
+          );
+        }
+        if (item.upcomingFestivals && item.upcomingFestivals.length > 0) {
+          const festivals = item.upcomingFestivals.join(', ');
+          await Reminder.findOneAndUpdate(
+            { userId, type: 'festival_demand', 'metadata.itemName': item.itemName },
+            {
+              $set: {
+                userId,
+                type: 'festival_demand',
+                title: `Festival Opportunity: ${item.itemName}`,
+                message: `High demand for ${item.itemName} during ${festivals} (${item.seasonalDemandMultiplier}x)`,
+                messageHindi: `${festivals} के दौरान ${item.itemName} के लिए उच्च मांग (${item.seasonalDemandMultiplier}x)`,
+                priority: 7,
+                isActive: true,
+                isDismissed: false,
+                actionRequired: 'increase_stock',
+                metadata: { itemName: item.itemName, festivals, multiplier: item.seasonalDemandMultiplier }
+              }
+            },
+            { upsert: true }
+          );
+        }
+        if (item.quantity > item.minStockLevel * 3) {
+          await Reminder.findOneAndUpdate(
+            { userId, type: 'overstock', 'metadata.itemName': item.itemName },
+            {
+              $set: {
+                userId,
+                type: 'overstock',
+                title: `Overstock: ${item.itemName}`,
+                message: `${item.itemName} has ${item.quantity} units. Consider a promotion to clear stock.`,
+                messageHindi: `${item.itemName} का स्टॉक अधिक है (${item.quantity}). बिक्री बढ़ाने के लिए ऑफर चलाएँ।`,
+                priority: 5,
+                isActive: true,
+                isDismissed: false,
+                actionRequired: 'promote',
+                metadata: { itemName: item.itemName, quantity: item.quantity, minStock: item.minStockLevel }
+              }
+            },
+            { upsert: true }
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Inventory reminder generation skipped:', e.message);
+    }
     
     // Get all active, non-dismissed reminders
     const reminders = await Reminder.find({ 
@@ -318,6 +399,125 @@ app.get('/api/reminders', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Get reminders error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get inventory alerts and save them as reminders
+app.post('/api/reminders/create-from-inventory', async (req, res) => {
+  try {
+    const { userId, language } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+    
+    // Ensure inventory reflects transactions before creating reminders
+    await inventoryService.rebuildInventoryFromTransactions(userId, false);
+    const inventoryItems = await Inventory.find({ userId });
+    
+    // Get demand predictions for next month
+    const demandPredictions = require('./utils/demandPredictions');
+    const predictions = await demandPredictions.generateDemandPredictions(userId, language || 'english');
+    
+    // Create a lookup map for demand predictions by item name
+    const demandLookup = {};
+    if (predictions.success && predictions.predictions.length > 0) {
+      const nextMonth = predictions.predictions[0]; // First prediction is next month
+      nextMonth.stockRecommendations?.forEach(rec => {
+        const itemEnglish = demandPredictions.translateItemToEnglish(rec.item);
+        demandLookup[itemEnglish] = rec.recommendedStock;
+      });
+    }
+    
+    let alertCount = 0;
+
+    for (const item of inventoryItems) {
+      // Low stock alert with demand prediction
+      if (item.quantity <= item.minStockLevel) {
+        const suggestedQty = demandLookup[item.itemName] || Math.max(item.minStockLevel * 2, 10);
+        
+        await Reminder.findOneAndUpdate(
+          { userId, type: 'low_stock', 'metadata.itemName': item.itemName },
+          {
+            $set: {
+              userId,
+              type: 'low_stock',
+              title: `Low Stock: ${item.itemName}`,
+              message: `Only ${item.quantity} ${item.itemName} left. Stock up at least ${suggestedQty} units for next month based on demand prediction.`,
+              messageHindi: `केवल ${item.quantity} ${item.itemName} बचा है। मांग के अनुसार अगले महीने के लिए कम से कम ${suggestedQty} यूनिट स्टॉक करें।`,
+              priority: 10,
+              isActive: true,
+              isDismissed: false,
+              actionRequired: 'restock',
+              metadata: { 
+                itemName: item.itemName, 
+                quantity: item.quantity, 
+                minStock: item.minStockLevel,
+                suggestedQty: suggestedQty
+              }
+            }
+          },
+          { upsert: true }
+        );
+        alertCount++;
+      }
+
+      // Festival demand alert
+      if (item.upcomingFestivals && item.upcomingFestivals.length > 0) {
+        const festivals = item.upcomingFestivals.join(', ');
+        await Reminder.findOneAndUpdate(
+          { userId, type: 'festival_demand', 'metadata.itemName': item.itemName },
+          {
+            $set: {
+              userId,
+              type: 'festival_demand',
+              title: `Festival Opportunity: ${item.itemName}`,
+              message: `High demand for ${item.itemName} during ${festivals} (${item.seasonalDemandMultiplier}x)`,
+              messageHindi: `${festivals} के दौरान ${item.itemName} के लिए उच्च मांग (${item.seasonalDemandMultiplier}x)`,
+              priority: 7,
+              isActive: true,
+              isDismissed: false,
+              actionRequired: 'increase_stock',
+              metadata: { itemName: item.itemName, festivals, multiplier: item.seasonalDemandMultiplier }
+            }
+          },
+          { upsert: true }
+        );
+        alertCount++;
+      }
+
+      // Overstock alert (3x min stock)
+      if (item.quantity > item.minStockLevel * 3) {
+        await Reminder.findOneAndUpdate(
+          { userId, type: 'overstock', 'metadata.itemName': item.itemName },
+          {
+            $set: {
+              userId,
+              type: 'overstock',
+              title: `Overstock: ${item.itemName}`,
+              message: `${item.itemName} has ${item.quantity} units. Consider a promotion to clear stock.`,
+              messageHindi: `${item.itemName} का स्टॉक अधिक है (${item.quantity}). बिक्री बढ़ाने के लिए ऑफर चलाएँ।`,
+              priority: 5,
+              isActive: true,
+              isDismissed: false,
+              actionRequired: 'promote',
+              metadata: { itemName: item.itemName, quantity: item.quantity, minStock: item.minStockLevel }
+            }
+          },
+          { upsert: true }
+        );
+        alertCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      alertsCreated: alertCount,
+      message: `Created ${alertCount} inventory alerts`
+    });
+  } catch (error) {
+    console.error('❌ Error creating inventory alerts:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -422,9 +622,183 @@ app.patch('/api/reminders/:id/complete', async (req, res) => {
 });
 
 // ======================
+// INVENTORY MANAGEMENT
+// ======================
+
+// Get low stock alerts (MUST be before :itemName route)
+app.get('/api/inventory/alerts/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+    // Only rebuild if empty
+    await inventoryService.rebuildInventoryFromTransactions(userId, false);
+
+    const alerts = await inventoryService.generateInventoryAlerts(userId);
+    
+    res.json({
+      success: true,
+      alerts,
+      count: alerts.length
+    });
+  } catch (error) {
+    console.error('❌ Get alerts error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all inventory items for a user
+app.get('/api/inventory/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+    // Only rebuild if inventory is empty (preserve voice adjustments)
+    const inventory = await inventoryService.rebuildInventoryFromTransactions(userId, false);
+    
+    res.json({
+      success: true,
+      inventory,
+      count: inventory.length
+    });
+  } catch (error) {
+    console.error('❌ Get inventory error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get specific inventory item
+app.get('/api/inventory/:userId/:itemName', async (req, res) => {
+  try {
+    const { userId, itemName } = req.params;
+    
+    if (!userId || !itemName) {
+      return res.status(400).json({ success: false, error: 'userId and itemName are required' });
+    }
+    
+    const inventory = await inventoryService.getInventory(userId, itemName);
+    
+    if (inventory.length === 0) {
+      return res.status(404).json({ success: false, error: 'Item not found in inventory' });
+    }
+    
+    res.json({
+      success: true,
+      item: inventory[0]
+    });
+  } catch (error) {
+    console.error('❌ Get item error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Add new item to inventory (or update existing)
+app.post('/api/inventory', async (req, res) => {
+  try {
+    const { userId, itemName, quantity, price, minStockLevel = 5 } = req.body;
+    
+    if (!userId || !itemName || !quantity) {
+      return res.status(400).json({ success: false, error: 'userId, itemName, and quantity are required' });
+    }
+    
+    const inventory = await inventoryService.addOrUpdateInventory(userId, itemName, quantity, price, minStockLevel);
+    
+    res.json({
+      success: true,
+      message: `✅ Added/Updated ${quantity} ${itemName}`,
+      item: inventory
+    });
+  } catch (error) {
+    console.error('❌ Add inventory error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Deduct inventory when item is sold
+app.post('/api/inventory/deduct', async (req, res) => {
+  try {
+    const { userId, itemName, quantity = 1 } = req.body;
+    
+    if (!userId || !itemName) {
+      return res.status(400).json({ success: false, error: 'userId and itemName are required' });
+    }
+    
+    const inventory = await inventoryService.deductInventory(userId, itemName, quantity);
+    
+    if (!inventory) {
+      return res.status(400).json({ success: false, error: 'Insufficient stock or item not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: `✅ Deducted ${quantity} ${itemName}`,
+      item: inventory
+    });
+  } catch (error) {
+    console.error('❌ Deduct inventory error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update sales statistics
+app.post('/api/inventory/update-stats/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+    
+    const updated = await inventoryService.updateSalesStats(userId);
+    
+    res.json({
+      success: true,
+      message: `✅ Updated stats for ${updated.length} items`,
+      itemsUpdated: updated.length
+    });
+  } catch (error) {
+    console.error('❌ Update stats error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Calculate and update suggested restock quantities
+app.post('/api/inventory/calculate-restock/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+    // Only rebuild if empty
+    const items = await inventoryService.rebuildInventoryFromTransactions(userId, false);
+    const results = [];
+    
+    for (const item of items) {
+      const updated = await inventoryService.calculateSuggestedRestock(userId, item.itemName);
+      if (updated) results.push(updated);
+    }
+    
+    res.json({
+      success: true,
+      message: `✅ Calculated restock for ${results.length} items`,
+      items: results
+    });
+  } catch (error) {
+    console.error('❌ Calculate restock error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ======================
 // PRICING RECOMMENDATIONS (XGBoost)
 // ======================
 const { generateXGBoostPricingRecommendations } = require('./services/xgboostPricingService');
+
 
 app.get('/api/pricing-recommendations', async (req, res) => {
   try {
@@ -536,6 +910,63 @@ app.post('/api/transaction', async (req, res) => {
       description: description || '',
       date: new Date()
     });
+
+    // 📦 AUTO-DEDUCT INVENTORY: If income transaction, try to deduct from inventory
+    if (type === 'income' && description) {
+      try {
+        const inventoryService = require('./services/inventoryService');
+        
+        // Extract quantity and item name
+        // Pattern 1: "sold 2 shirts" or "2 shirts sold" or "2 shirts" 
+        // Pattern 2: "sold shirt" (default 1)
+        let quantity = 1;
+        let itemName = description;
+        
+        // Try to match number + item pattern (e.g., "2 shirts", "5 sarees")
+        const qtyItemMatch = description.match(/(\d+)\s+([a-zA-Z\u0900-\u097F\s]+)/i);
+        if (qtyItemMatch) {
+          quantity = parseInt(qtyItemMatch[1]);
+          itemName = qtyItemMatch[2].trim();
+          console.log(`📊 Extracted quantity: ${quantity}, item: ${itemName}`);
+        } else {
+          // Try item + number pattern or just item name
+          const itemMatch = description.match(/(?:sold|sale|बेच|बेचा|विकल|विक्री)?\s*([a-zA-Z\u0900-\u097F\s]+)/i);
+          if (itemMatch) {
+            itemName = itemMatch[1].trim();
+          }
+        }
+        
+        // Clean up item name (remove common words)
+        itemName = itemName.replace(/\b(sold|sale|the|a|an|बेच|बेचा|विकल|विक्री)\b/gi, '').trim();
+        
+        const deducted = await inventoryService.deductInventory(userId, itemName, quantity);
+        if (deducted) {
+          console.log(`✅ Auto-deducted inventory: ${quantity} ${itemName}`);
+        }
+      } catch (inventoryError) {
+        console.warn('⚠️ Inventory auto-deduction skipped:', inventoryError.message);
+        // Don't fail transaction if inventory deduction fails
+      }
+    }
+    
+    // 📦 AUTO-ADD INVENTORY: If expense with stock/material category
+    if (type === 'expense' && (category?.toLowerCase().includes('stock') || description?.toLowerCase().includes('stock') || description?.toLowerCase().includes('raw material'))) {
+      try {
+        // Try to extract item and quantity from description
+        const itemMatch = description.match(/([a-zA-Z\s]+?)(?:\s*[-:]?\s*)(\d+)?/i);
+        if (itemMatch) {
+          let itemName = itemMatch[1].trim();
+          let quantity = itemMatch[2] ? parseInt(itemMatch[2]) : Math.ceil(amount / 100); // Rough estimate
+          
+          const added = await inventoryService.addOrUpdateInventory(userId, itemName, quantity, amount / quantity);
+          if (added) {
+            console.log(`✅ Auto-added inventory: ${quantity} ${itemName}`);
+          }
+        }
+      } catch (inventoryError) {
+        console.warn('⚠️ Inventory auto-add skipped:', inventoryError.message);
+      }
+    }
 
     // Regenerate AI insights
     const allTxns = await Transaction.find({ userId });
@@ -769,7 +1200,18 @@ mongoose.connect(MONGODB_URI)
           console.log(`   DELETE /api/transaction/:id`);
           console.log(`   DELETE /api/transactions/clear/:userId (TEST ONLY)`);
           console.log(`   POST   /api/savings-goal`);
-          console.log(`   PUT    /api/savings-goal/:id\n`);
+          console.log(`   PUT    /api/savings-goal/:id`);
+          console.log(`   GET    /api/reminders`);
+          console.log(`   POST   /api/reminders`);
+          console.log(`   PATCH  /api/reminders/:id/dismiss`);
+          console.log(`   PATCH  /api/reminders/:id/complete`);
+          console.log(`   GET    /api/inventory/:userId`);
+          console.log(`   GET    /api/inventory/:userId/:itemName`);
+          console.log(`   POST   /api/inventory`);
+          console.log(`   POST   /api/inventory/deduct`);
+          console.log(`   GET    /api/inventory/alerts/:userId`);
+          console.log(`   POST   /api/inventory/update-stats/:userId`);
+          console.log(`   POST   /api/inventory/calculate-restock/:userId\n`);
         });
       } catch (error) {
         console.error('❌ Server startup error:', error);

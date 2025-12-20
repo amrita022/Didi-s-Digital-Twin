@@ -4,13 +4,14 @@ const reminderSchema = new mongoose.Schema({
   userId: { type: String, required: true, index: true },
   type: { 
     type: String, 
-    enum: ['stock_analysis', 'seasonal_event', 'purchase_reminder', 'custom'],
+    enum: ['stock_analysis', 'seasonal_event', 'purchase_reminder', 'custom', 'low_stock', 'festival_demand', 'overstock', 'inventory_alert'],
     required: true 
   },
   title: { type: String, required: true },
   message: { type: String, required: true },
   messageHindi: String,
-  actionRequired: { type: String }, // e.g., "buy_materials", "check_stock"
+  priority: { type: Number, default: 5 }, // 1-10, higher is more urgent
+  actionRequired: { type: String }, // e.g., "buy_materials", "check_stock", "restock", "promote"
   eventDate: Date, // For seasonal reminders
   isActive: { type: Boolean, default: true },
   isDismissed: { type: Boolean, default: false },
@@ -20,7 +21,13 @@ const reminderSchema = new mongoose.Schema({
     category: String,
     amount: Number,
     historicalData: mongoose.Schema.Types.Mixed,
-    daysUntilEvent: Number
+    daysUntilEvent: Number,
+    itemName: String,
+    quantity: Number,
+    minStock: Number,
+    suggestedQty: Number,
+    festivals: String,
+    multiplier: Number
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

@@ -32,10 +32,13 @@ import useStore from '../../store/useStore';
 import { getTranslation } from '../../utils/translations';
 import { fetchAnalytics } from '../../utils/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card';
+import * as inventoryApi from '../../utils/inventoryApi';
 
 const BusinessAnalytics = () => {
   const { businessData, language, userId } = useStore();
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [inventoryData, setInventoryData] = useState([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Fetch analytics data on component mount
@@ -86,6 +89,44 @@ const BusinessAnalytics = () => {
     };
 
     loadAnalytics();
+  }, [userId]);
+
+  // Fetch inventory data
+  useEffect(() => {
+    const loadInventory = async () => {
+      if (!userId) {
+        console.log('⏳ Waiting for userId to fetch inventory...');
+        return;
+      }
+
+      try {
+        setLoadingInventory(true);
+        console.log('📦 Fetching inventory data for user:', userId);
+        const items = await inventoryApi.getInventory(userId);
+        
+        if (items && items.length > 0) {
+          // Transform inventory data for chart display
+          const chartData = items.map(item => ({
+            name: item.itemName,
+            quantity: item.quantity,
+            minStock: item.minStockLevel,
+            status: item.status
+          }));
+          setInventoryData(chartData);
+          console.log('✅ Inventory data loaded:', chartData);
+        } else {
+          setInventoryData([]);
+          console.log('ℹ️ No inventory items found');
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to load inventory:', error.message);
+        setInventoryData([]);
+      } finally {
+        setLoadingInventory(false);
+      }
+    };
+
+    loadInventory();
   }, [userId]);
 
   const incomeExpenseData = analyticsData?.last6MonthsData || [];
@@ -283,61 +324,61 @@ const BusinessAnalytics = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category-wise Spending */}
-        {categorySpendingData.length > 0 && (
-          <Card className="flex flex-col">
-            <CardHeader className="items-center pb-0">
-              <CardTitle>{getTranslation('categorySpending', language)}</CardTitle>
-              <CardDescription>
-                {language === 'hindi' ? 'जनवरी - जून 2024' : 'January - June 2024'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 pb-0">
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Tooltip
-                    cursor={false}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
-                            <p className="font-medium">{payload[0].payload.name}</p>
-                            <p>₹{payload[0].value.toLocaleString()}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Pie
-                    data={categorySpendingData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {categorySpendingData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={ROSE_COLORS[index % ROSE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-            <CardFooter className="flex-col gap-2 text-sm">
-              <div className="flex items-center gap-2 leading-none font-medium text-white">
-                {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-emerald-400" />
-              </div>
-              <div className="text-gray-400 leading-none">
-                {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल खर्च दिखा रहा है' : 'Showing total spending for the last 6 months'}
-              </div>
-            </CardFooter>
-          </Card>
-        )}
+      {/* Category-wise Spending */}
+      {categorySpendingData.length > 0 && (
+        <Card className="flex flex-col">
+          <CardHeader className="items-center pb-0">
+            <CardTitle>{getTranslation('categorySpending', language)}</CardTitle>
+            <CardDescription>
+              {language === 'hindi' ? 'जनवरी - जून 2024' : 'January - June 2024'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 pb-0">
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Tooltip
+                  cursor={false}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
+                          <p className="font-medium">{payload[0].payload.name}</p>
+                          <p>₹{payload[0].value.toLocaleString()}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Pie
+                  data={categorySpendingData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {categorySpendingData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={ROSE_COLORS[index % ROSE_COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+          <CardFooter className="flex-col gap-2 text-sm">
+            <div className="flex items-center gap-2 leading-none font-medium text-white">
+              {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-emerald-400" />
+            </div>
+            <div className="text-gray-400 leading-none">
+              {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल खर्च दिखा रहा है' : 'Showing total spending for the last 6 months'}
+            </div>
+          </CardFooter>
+        </Card>
+      )}
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Profit Trend */}
         {profitTrendData.length > 0 && (
           <Card>
@@ -395,6 +436,77 @@ const BusinessAnalytics = () => {
               </div>
               <div className="text-gray-400 leading-none">
                 {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल लाभ दिखा रहा है' : 'Showing total profit for the last 6 months'}
+              </div>
+            </CardFooter>
+          </Card>
+        )}
+
+        {/* Inventory Stock Levels */}
+        {inventoryData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{language === 'hindi' ? 'स्टॉक स्तर' : 'Stock Levels'}</CardTitle>
+              <CardDescription>
+                {language === 'hindi' ? 'मौजूदा इन्वेंटरी' : 'Current inventory levels'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={inventoryData}
+                  margin={{ top: 20, left: 12, right: 12, bottom: 12 }}
+                >
+                  <CartesianGrid vertical={false} stroke="#404040" />
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tick={{ fill: '#d1d5db', fontSize: 12 }}
+                    tickFormatter={(value) => value.length > 10 ? value.slice(0, 10) + '...' : value}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: '#d1d5db', fontSize: 12 }}
+                  />
+                  <Tooltip
+                    cursor={false}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
+                            <p className="font-medium">{data.name}</p>
+                            <p className="text-[#fb7185]">
+                              {language === 'hindi' ? 'मौजूदा: ' : 'Current: '}{data.quantity} {language === 'hindi' ? 'इकाई' : 'units'}
+                            </p>
+                            <p className="text-gray-400">
+                              {language === 'hindi' ? 'न्यूनतम: ' : 'Min: '}{data.minStock}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="quantity" fill="#fb7185" radius={8}>
+                    <LabelList
+                      position="top"
+                      offset={12}
+                      className="fill-white"
+                      fontSize={12}
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+            <CardFooter className="flex-col gap-2 text-sm">
+              <div className="flex items-center gap-2 leading-none font-medium text-white">
+                {language === 'hindi' ? `${inventoryData.length} वस्तुएं ट्रैक की जा रही हैं` : `Tracking ${inventoryData.length} items`}
+              </div>
+              <div className="text-gray-400 leading-none">
+                {language === 'hindi' ? 'वॉइस कमांड से वर्तमान स्टॉक स्तर अपडेट होता है' : 'Stock levels update via voice commands'}
               </div>
             </CardFooter>
           </Card>
