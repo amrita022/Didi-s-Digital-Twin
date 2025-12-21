@@ -194,14 +194,38 @@ const VoiceAssistant = () => {
   };
 
   const speak = (text) => {
-    if (synthRef.current) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = LANGUAGE_MAP[voiceLanguage] || 'en-US';
-      utterance.rate = 0.8;
-      utterance.pitch = 1;
-      
-      synthRef.current.speak(utterance);
+    if (!synthRef.current) {
+      console.warn('⚠️ Speech synthesis not available');
+      return;
     }
+    
+    // Cancel any ongoing speech
+    if (synthRef.current.speaking) {
+      synthRef.current.cancel();
+    }
+    
+    // Clean up text for better speech (remove emojis and special chars that might cause issues)
+    const cleanText = text.replace(/[✅❌📦⚠️]/g, '').trim();
+    
+    if (!cleanText) {
+      console.warn('⚠️ No text to speak');
+      return;
+    }
+    
+    console.log('🔊 Speaking:', cleanText);
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = LANGUAGE_MAP[voiceLanguage] || 'en-US';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Add event listeners for debugging
+    utterance.onstart = () => console.log('🔊 Speech started');
+    utterance.onend = () => console.log('🔊 Speech ended');
+    utterance.onerror = (e) => console.error('🔊 Speech error:', e);
+    
+    synthRef.current.speak(utterance);
   };
 
 
@@ -281,16 +305,23 @@ const VoiceAssistant = () => {
       }
     }
     
+    const responseText = (result.response_english || result.response_hindi || result.response || 'I processed your request.') + inventoryMessage;
+    
     const aiMessage = {
       id: Date.now() + 1,
       type: 'ai',
-      text: (result.response_english || result.response_hindi || result.response || 'I processed your request.') + inventoryMessage,
+      text: responseText,
       timestamp: new Date(),
       offline: result.offline || false
     };
     
     setMessages(prev => [...prev, aiMessage]);
-    // speak(aiMessage.text); // Disabled automatic speech
+    
+    // Speak the AI response aloud for illiterate users
+    // Use setTimeout to ensure speech synthesis is ready
+    setTimeout(() => {
+      speak(responseText);
+    }, 100);
     
     // Refresh dashboard if transaction was saved
     if (result.saved || (result.intent === 'expense' || result.intent === 'income') && result.amount) {
