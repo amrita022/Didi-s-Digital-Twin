@@ -9,6 +9,7 @@ import DemandPredictions from './components/Demand/DemandPredictions';
 import SavingsGoals from './components/Savings/SavingsGoals';
 import Settings from './components/Settings/Settings';
 import WhyChooseUs from './components/WhyChooseUs/WhyChooseUs';
+import LandingPage from './components/LandingPage/LandingPage';
 import useStore from './store/useStore'; // Remove { } - default export
 import { useAuth } from './hooks/useAuth';
 import Login from './components/Auth/Login';
@@ -57,6 +58,12 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Landing Page - Home */}
+        <Route 
+          path="/" 
+          element={!isLoggedIn ? <LandingPage onGetStarted={() => window.location.href = '/login'} /> : <Navigate to="/dashboard" replace />} 
+        />
+        
         {/* Auth Routes */}
         <Route 
           path="/login" 
@@ -149,11 +156,8 @@ function App() {
           } 
         />
         
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* Default redirect - already logged in users go to dashboard */}
+        <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/"} replace />} />
       </Routes>
     </Router>
   );
