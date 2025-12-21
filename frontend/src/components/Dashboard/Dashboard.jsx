@@ -18,6 +18,7 @@ import useStore from '../../store/useStore';
 import AddDashboardDataModal from './AddDashboardDataModal';
 import Reminders from '../Reminders/Reminders';
 import { GlowingCard } from '../ui/glowing-card';
+import { getReminders } from '../../utils/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showRemindersModal, setShowRemindersModal] = useState(false);
+  const [reminderCount, setReminderCount] = useState(0);
 
   // Listen for custom 'refreshDashboard' events from voice assistant
   useEffect(() => {
@@ -103,9 +105,22 @@ const Dashboard = () => {
     }
   };
 
+  // Fetch reminders count
+  const fetchRemindersCount = async (userId) => {
+    try {
+      const response = await getReminders(userId);
+      if (response.success) {
+        setReminderCount(response.reminders?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching reminders count:', error);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && uid) {
       fetchDashboardData(uid);
+      fetchRemindersCount(uid);
     }
   }, [authLoading, uid]);
 
@@ -195,19 +210,29 @@ const Dashboard = () => {
   const StatCard = ({ title, value, icon, trend, trendValue }) => (
     <GlowingCard className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="p-3 rounded-lg bg-rose-500/20">
-          {React.createElement(icon, { size: 24, className: "text-rose-400" })}
+        <div className="p-3 rounded-lg bg-gradient-to-br from-white/20 to-gray-300/20">
+          {React.createElement(icon, { size: 24, className: "text-pink-300" })}
         </div>
         {trend && (
           <div className={`flex items-center space-x-1 ${
-            trend === 'up' ? 'text-rose-400' : 'text-gray-400'
+            trend === 'up' ? 'text-white' : 'text-gray-400'
           }`}>
             {trend === 'up' ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
             <span className="text-sm font-medium">{trendValue}%</span>
           </div>
         )}
       </div>
-      <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
+      <h3 
+        className="text-3xl font-bold mb-1"
+        style={{
+          background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}
+      >
+        {value}
+      </h3>
       <p className="text-gray-400 text-sm">{title}</p>
     </GlowingCard>
   );
@@ -234,7 +259,7 @@ const Dashboard = () => {
             <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
               type === "income" 
                 ? "bg-emerald-500/20 text-emerald-400" 
-                : "bg-rose-500/20 text-rose-400"
+                : "bg-gradient-to-br from-white/20 to-gray-300/20 text-white"
             }`}>
               {type === "income" ? (
                 <ArrowUpRight className="h-5 w-5" />
@@ -262,11 +287,23 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex-shrink-0">
-            <p className={`text-lg font-bold whitespace-nowrap ${
-              type === "income" ? "text-emerald-400" : "text-rose-400"
-            }`}>
-              {type === "income" ? "+" : "-"}₹{amount.toLocaleString('en-IN')}
-            </p>
+            {type === "income" ? (
+              <p className="text-lg font-bold whitespace-nowrap text-emerald-400">
+                +₹{amount.toLocaleString('en-IN')}
+              </p>
+            ) : (
+              <p 
+                className="text-lg font-bold whitespace-nowrap"
+                style={{
+                  background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+              >
+                -₹{amount.toLocaleString('en-IN')}
+              </p>
+            )}
           </div>
         </div>
       </GlowingCard>
@@ -278,7 +315,15 @@ const Dashboard = () => {
       {/* Welcome Section */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 
+            className="text-3xl font-bold mb-2"
+            style={{
+              background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
             {language === 'hindi' 
               ? `नमस्ते, ${userName}!` 
               : `Namaste, ${userName}!`
@@ -294,14 +339,19 @@ const Dashboard = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRemindersModal(true)}
-            className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-neutral-800 to-neutral-900 hover:border-rose-500/50 border border-gray-700 text-white rounded-xl shadow transition-all duration-300"
+            className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-neutral-800 to-neutral-900 hover:border-white/50 border border-gray-700 text-white rounded-xl shadow transition-all duration-300"
             title={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
           >
             <Bell size={20} />
+            {reminderCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-br from-pink-300 to-pink-400 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                {reminderCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl shadow transition-colors duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 hover:from-gray-100 hover:via-gray-300 hover:to-gray-500 text-black rounded-xl shadow transition-all duration-200 font-medium"
           >
             <Edit3 size={18} /> 
             {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
@@ -346,12 +396,22 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-rose-400" />
+              <TrendingUp className="h-5 w-5 text-white" />
               {language === 'hindi' ? 'व्यापार स्वास्थ्य स्कोर' : 'Business Health Score'}
             </h2>
           </div>
           <div className="text-right">
-            <p className={`text-3xl font-bold ${healthScore >= 80 ? 'text-rose-400' : healthScore >= 60 ? 'text-rose-400' : 'text-rose-400'}`}>{healthScore}/100</p>
+            <p 
+              className="text-3xl font-bold"
+              style={{
+                background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
+              {healthScore}/100
+            </p>
             <p className="text-sm text-gray-400">
               {language === 'hindi' ? healthTextHindi : healthText}
             </p>
@@ -360,7 +420,7 @@ const Dashboard = () => {
 
         <div className="w-full bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-full h-3 mb-6 border border-gray-700">
           <div 
-            className={`h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-rose-500 to-orange-500`}
+            className="h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-white via-gray-200 to-gray-400 shadow-[0_0_12px_rgba(255,255,255,0.35)]"
             style={{ width: `${healthScore}%` }}
           ></div>
         </div>
@@ -370,19 +430,49 @@ const Dashboard = () => {
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)'}
             </p>
-            <p className="text-2xl font-bold text-white">₹{allTimeSales.toLocaleString()}</p>
+            <p 
+              className="text-2xl font-bold"
+              style={{
+                background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
+              ₹{allTimeSales.toLocaleString()}
+            </p>
             </GlowingCard>
             <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)'}
             </p>
-              <p className="text-2xl font-bold text-white">₹{allTimeExpenses.toLocaleString()}</p>
+              <p 
+                className="text-2xl font-bold"
+                style={{
+                  background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+              >
+                ₹{allTimeExpenses.toLocaleString()}
+              </p>
             </GlowingCard>
             <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
               {language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)'}
             </p>
-              <p className="text-2xl font-bold text-white">₹{allTimeProfit.toLocaleString()}</p>
+              <p 
+                className="text-2xl font-bold"
+                style={{
+                  background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+              >
+                ₹{allTimeProfit.toLocaleString()}
+              </p>
             </GlowingCard>
           </div>
         </GlowingCard>
@@ -392,7 +482,15 @@ const Dashboard = () => {
         {/* Recent Transactions */}
         <GlowingCard className="p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-white">
+            <h3 
+              className="text-lg font-bold"
+              style={{
+                background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
               {language === 'hindi' ? 'हाल के लेनदेन' : 'Recent Transactions'}
             </h3>
           </div>
@@ -427,17 +525,25 @@ const Dashboard = () => {
         <div className="space-y-4">
           {/* Achievement Card */}
           <GlowingCard className="p-6 shadow-lg">
-            <h3 className="text-lg font-bold text-rose-300 mb-2">
+            <h3 
+              className="text-lg font-bold mb-2"
+              style={{
+                background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
               Achievement Unlocked!
             </h3>
-            <p className="text-sm text-rose-200 mb-1">
+            <p className="text-sm text-gray-200 mb-1">
               {language === 'hindi' 
                 ? `आपने अपने लक्ष्य के लिए ₹${totalSavings.toLocaleString()} बचाए हैं!` 
                 : `You've saved ₹${totalSavings.toLocaleString()} towards your goal!`
               }
             </p>
             <GlowingCard className="p-3">
-              <p className="text-sm text-rose-200">
+              <p className="text-sm text-gray-200">
                 {language === 'hindi' 
                   ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और!` 
                   : `Only ₹${(savingsGoal - totalSavings).toLocaleString()} more to reach your ${goalName} goal!`
@@ -450,15 +556,23 @@ const Dashboard = () => {
           <GlowingCard className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-rose-500/20 rounded-full flex items-center justify-center">
-                  <Sparkles size={20} className="text-rose-400" />
+                <div className="w-10 h-10 bg-gradient-to-br from-white/20 to-gray-300/20 rounded-full flex items-center justify-center">
+                  <Sparkles size={20} className="text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-white">
+                <h2 
+                  className="text-xl font-bold"
+                  style={{
+                    background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}
+                >
                   {language === 'hindi' ? 'एआई सिफारिशें' : 'AI Recommendations'}
                 </h2>
               </div>
               {dashboard?.aiInsights && dashboard.aiInsights.some(i => i.model === 'prophet_ai') && (
-                <span className="flex items-center gap-1 px-3 py-1 bg-rose-500/20 rounded-full text-xs font-medium text-rose-300 border border-rose-500/50">
+                <span className="flex items-center gap-1 px-3 py-1 bg-gradient-to-br from-white/20 to-gray-300/20 rounded-full text-xs font-medium text-white border border-white/50">
                   <Sparkles size={12} />
                   Prophet AI
                 </span>
@@ -471,7 +585,17 @@ const Dashboard = () => {
                     key={`ai-insight-${index}`} 
                     className="p-4"
                   >
-                    <p className={`text-sm font-bold mb-1 text-rose-300`}>{insight.title}</p>
+                    <p 
+                      className="text-sm font-bold mb-1"
+                      style={{
+                        background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}
+                    >
+                      {insight.title}
+                    </p>
                     <p className="text-sm text-gray-300">{insight.message}</p>
                   </GlowingCard>
                 ))
@@ -513,9 +637,16 @@ const Dashboard = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-700">
               <div className="flex items-center space-x-3">
-                <Bell size={24} className="text-rose-400" />
-                <h2 className="text-2xl font-bold text-white">
-                  {language === 'hindi' ? 'याददाश्त और सुझाव' : 'Reminders & Nudges'}
+                <Bell size={24} className="text-white" />
+                <h2 
+                  className="text-2xl font-bold"
+                  style={{
+                    background: 'linear-gradient(to right, #ffffff, #e5e7eb, #9ca3af)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  {language === 'hindi' ? 'याददाश्त' : 'Reminders'}
                 </h2>
               </div>
               <button

@@ -9,7 +9,7 @@ export const Card = ({ children, className = '' }) => (
       blur={0}
       proximity={50}
       variant="default"
-      borderWidth={3}
+      borderWidth={1.5}
       inactiveZone={0.2}
       disabled={false}
     />
