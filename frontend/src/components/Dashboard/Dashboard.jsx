@@ -557,7 +557,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-white/20 to-gray-300/20 rounded-full flex items-center justify-center">
-                  <Sparkles size={20} className="text-white" />
+                  <Sparkles size={20} className="text-pink-300" />
                 </div>
                 <h2 
                   className="text-xl font-bold"
