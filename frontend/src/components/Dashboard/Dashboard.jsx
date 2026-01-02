@@ -339,13 +339,13 @@ const Dashboard = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRemindersModal(true)}
-            data-tts-ignore="true"
             className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-neutral-800 to-neutral-900 hover:border-white/50 border border-gray-700 text-white rounded-xl shadow transition-all duration-300"
             title={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
+            aria-label={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
           >
             <Bell size={20} />
             {reminderCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-br from-pink-300 to-pink-400 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+              <span data-tts-ignore="true" className="absolute -top-0.5 -right-0.5 bg-gradient-to-br from-pink-300 to-pink-400 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
                 {reminderCount}
               </span>
             )}

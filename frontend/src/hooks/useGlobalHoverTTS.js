@@ -83,7 +83,12 @@ export default function useGlobalHoverTTS() {
       
       if (!block) return;
 
-      const rawText = (block.innerText || block.textContent || '').trim();
+      // Check for aria-label first (highest priority for accessible labels)
+      let rawText = block.getAttribute('aria-label');
+      if (!rawText) {
+        rawText = (block.innerText || block.textContent || '').trim();
+      }
+      
       const cleanedText = cleanText(rawText);
       if (!cleanedText) return;
 
