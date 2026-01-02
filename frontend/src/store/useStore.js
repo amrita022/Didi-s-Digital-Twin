@@ -12,6 +12,10 @@ const useStore = create((set, get) => ({
   language: 'english',
   setLanguage: (lang) => set({ language: lang }),
 
+  // Global text-to-speech on hover
+  ttsEnabled: false,
+  setTtsEnabled: (enabled) => set({ ttsEnabled: enabled }),
+
   // User data
   userName: 'Rekha',
   setUserName: (name) => set({ userName: name }),

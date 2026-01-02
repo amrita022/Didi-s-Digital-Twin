@@ -62,7 +62,7 @@ const SidebarContent = () => {
   };
 
   return (
-    <SidebarBody className="justify-between gap-10">
+    <SidebarBody className="justify-between gap-10" data-tts-ignore="true">
       <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
         {/* Logo - Only show when sidebar is open */}
         {open && (

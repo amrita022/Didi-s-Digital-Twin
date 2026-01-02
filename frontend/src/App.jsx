@@ -14,6 +14,8 @@ import useStore from './store/useStore'; // Remove { } - default export
 import { useAuth } from './hooks/useAuth';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
+import useGlobalHoverTTS from './hooks/useGlobalHoverTTS';
+import TtsToggle from './components/ui/TtsToggle';
 
 // Main Layout Component for authenticated routes
 const MainLayout = ({ children }) => {
@@ -43,6 +45,9 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const { isLoggedIn, authView, loading } = useAuth();
 
+  // Enable global hover-to-speak behavior when the user turns it on
+  useGlobalHoverTTS();
+
   // Show loading while checking auth state
   if (loading) {
     return (
@@ -57,6 +62,7 @@ function App() {
 
   return (
     <Router>
+      <TtsToggle />
       <Routes>
         {/* Landing Page - Home */}
         <Route 

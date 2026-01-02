@@ -208,7 +208,7 @@ const Dashboard = () => {
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
 
   const StatCard = ({ title, value, icon, trend, trendValue }) => (
-    <GlowingCard className="p-6">
+    <GlowingCard className="p-6" data-tts-block="true">
       <div className="flex items-center justify-between mb-4">
         <div className="p-3 rounded-lg bg-gradient-to-br from-white/20 to-gray-300/20">
           {React.createElement(icon, { size: 24, className: "text-pink-300" })}
@@ -339,6 +339,7 @@ const Dashboard = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRemindersModal(true)}
+            data-tts-ignore="true"
             className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-neutral-800 to-neutral-900 hover:border-white/50 border border-gray-700 text-white rounded-xl shadow transition-all duration-300"
             title={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
           >
@@ -351,6 +352,7 @@ const Dashboard = () => {
           </button>
           <button
             onClick={() => setShowModal(true)}
+            data-tts-ignore="true"
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 hover:from-gray-100 hover:via-gray-300 hover:to-gray-500 text-black rounded-xl shadow transition-all duration-200 font-medium"
           >
             <Edit3 size={18} /> 
@@ -372,22 +374,19 @@ const Dashboard = () => {
           title={language === 'hindi' ? 'मासिक लाभ' : 'Monthly Profit'}
           value={`₹${monthlyProfit.toLocaleString()}`}
           icon={TrendingUp}
-          trend={monthlyProfit > 0 ? "up" : monthlyProfit < 0 ? "down" : null}
-          trendValue="25"
+          trend={null}
         />
         <StatCard
           title={language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
           value={`₹${totalSavings.toLocaleString()}`}
           icon={Wallet}
-          trend={totalSavings > 0 ? "up" : null}
-          trendValue="8"
+          trend={null}
         />
         <StatCard
           title={language === 'hindi' ? 'लक्ष्य प्रगति' : 'Goal Progress'}
-          value={`${savingsPercentage}%`}
+          value={`${totalSavings.toLocaleString()}`}
           icon={Target}
-          trend={savingsPercentage > 50 ? "up" : null}
-          trendValue="15"
+          trend={null}
         />
       </div>
 
