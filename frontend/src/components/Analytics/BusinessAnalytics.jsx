@@ -41,6 +41,61 @@ const BusinessAnalytics = () => {
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Fallback localization for backend-provided plain strings
+  const localizeText = (text, lang) => {
+    if (typeof text !== 'string') return text;
+    if (lang === 'marathi') {
+      // Titles
+      if (text === 'Income Declined') return 'उत्पन्न कमी';
+      if (text === 'Expense Management') return 'खर्च व्यवस्थापन';
+      if (text === 'Rising Expenses') return 'वाढते खर्च';
+      if (text === 'Excellent Margin') return 'उत्कृष्ट मार्जिन';
+      if (text === 'Keep Tracking') return 'ट्रॅकिंग सुरू ठेवा';
+      if (text === 'Start Tracking') return 'ट्रॅकिंग सुरू करा';
+      if (text === 'Positive Trend') return 'सकारात्मक प्रवृत्ती';
+
+      // Messages with percentages
+      const incomeDown = text.match(/^Your income decreased by (\d+)%\. Consider new strategies\.$/);
+      if (incomeDown) return `तुमची उत्पन्न ${incomeDown[1]}% ने कमी झाली आहे. नवीन धोरणांचा विचार करा.`;
+
+      const expensesDown = text.match(/^Your expenses have decreased by (\d+)%\. Great job!$/);
+      if (expensesDown) return `तुमचे खर्च ${expensesDown[1]}% ने कमी झाले आहेत. छान काम!`;
+
+      const expensesUp = text.match(/^Your expenses increased by (\d+)%\. Review your spending\.$/);
+      if (expensesUp) return `तुमचे खर्च ${expensesUp[1]}% ने वाढले आहेत. तुमचा खर्च तपासा.`;
+
+      const marginMsg = text.match(/^Your profit margin is (\d+)%\. You're doing great!$/);
+      if (marginMsg) return `तुमचा नफा मार्जिन ${marginMsg[1]}% आहे. तुम्ही छान करत आहात!`;
+
+      if (text === 'Continue tracking your transactions for better insights.')
+        return 'चांगल्या अंतर्दृष्टीसाठी तुमचे व्यवहार ट्रॅक करत राहा.';
+      if (text === 'Add transactions to see your business analytics.')
+        return 'तुमचे व्यापार विश्लेषण पाहण्यासाठी व्यवहार जोडा.';
+    } else if (lang === 'hindi') {
+      if (text === 'Income Declined') return 'आय में कमी';
+      if (text === 'Expense Management') return 'खर्च प्रबंधन';
+      if (text === 'Rising Expenses') return 'बढ़ते खर्च';
+      if (text === 'Excellent Margin') return 'उत्कृष्ट मार्जिन';
+      if (text === 'Keep Tracking') return 'ट्रैकिंग जारी रखें';
+      if (text === 'Start Tracking') return 'ट्रैकिंग शुरू करें';
+      if (text === 'Positive Trend') return 'सकारात्मक प्रवृत्ति';
+
+      const incomeDown = text.match(/^Your income decreased by (\d+)%\. Consider new strategies\.$/);
+      if (incomeDown) return `आपकी आय में ${incomeDown[1]}% की कमी आई है। नई रणनीतियाँ पर विचार करें।`;
+      const expensesDown = text.match(/^Your expenses have decreased by (\d+)%\. Great job!$/);
+      if (expensesDown) return `आपके खर्चों में ${expensesDown[1]}% की कमी आई है। बहुत अच्छा!`;
+      const expensesUp = text.match(/^Your expenses increased by (\d+)%\. Review your spending\.$/);
+      if (expensesUp) return `आपके खर्चों में ${expensesUp[1]}% की वृद्धि हुई है। अपने खर्चों की समीक्षा करें।`;
+      const marginMsg = text.match(/^Your profit margin is (\d+)%\. You're doing great!$/);
+      if (marginMsg) return `आपका लाभ मार्जिन ${marginMsg[1]}% है। आप बहुत अच्छा कर रहे हैं!`;
+      if (text === 'Continue tracking your transactions for better insights.')
+        return 'बेहतर जानकारी के लिए अपने लेनदेन को ट्रैक करना जारी रखें।';
+      if (text === 'Add transactions to see your business analytics.')
+        return 'अपने व्यापार विश्लेषण देखने के लिए लेनदेन जोड़ें।';
+    }
+    return text;
+  };
+
   // Fetch analytics data on component mount
   useEffect(() => {
     const loadAnalytics = async () => {
@@ -52,8 +107,8 @@ const BusinessAnalytics = () => {
 
       try {
         setLoading(true);
-        console.log('📊 Fetching analytics for user:', userId);
-        const data = await fetchAnalytics(userId);
+        console.log('📊 Fetching analytics for user:', userId, 'language:', language);
+        const data = await fetchAnalytics(userId, language);
         
         console.log('📊 Analytics response:', data);
         
@@ -89,7 +144,7 @@ const BusinessAnalytics = () => {
     };
 
     loadAnalytics();
-  }, [userId]);
+  }, [userId, language]);
 
   // Fetch inventory data
   useEffect(() => {
@@ -166,7 +221,7 @@ const BusinessAnalytics = () => {
   );
 
   const handleExport = () => {
-    alert(language === 'hindi' ? 'रिपोर्ट डाउनलोड हो रही है...' : 'Downloading report...');
+    alert(language === 'marathi' ? 'रिपोर्ट डाउनलोड होत आहे...' : (language === 'hindi' ? 'रिपोर्ट डाउनलोड हो रही है...' : 'Downloading report...'));
   };
 
   const handlePrint = () => {
@@ -179,7 +234,7 @@ const BusinessAnalytics = () => {
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto"></div>
           <p className="mt-4 text-gray-400">
-            {language === 'hindi' ? 'विश्लेषण लोड हो रहा है...' : 'Loading analytics...'}
+            {language === 'marathi' ? 'विश्लेषण लोड होत आहे...' : (language === 'hindi' ? 'विश्लेषण लोड हो रहा है...' : 'Loading analytics...')}
           </p>
         </div>
       </div>
@@ -195,9 +250,11 @@ const BusinessAnalytics = () => {
             {getTranslation('businessAnalytics', language)}
           </h1>
           <p className="text-gray-400 text-sm">
-            {language === 'hindi' 
-              ? 'आपके व्यापार का विस्तृत विश्लेषण' 
-              : 'Detailed analysis of your business'
+            {language === 'marathi'
+              ? 'तुमच्या व्यवसायाचे सविस्तर विश्लेषण'
+              : (language === 'hindi' 
+                ? 'आपके व्यापार का विस्तृत विश्लेषण' 
+                : 'Detailed analysis of your business')
             }
           </p>
         </div>
@@ -222,28 +279,28 @@ const BusinessAnalytics = () => {
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title={language === 'hindi' ? 'कुल आय' : 'Total Income'}
+          title={language === 'marathi' ? 'एकूण उत्पन्न' : (language === 'hindi' ? 'कुल आय' : 'Total Income')}
           value={`₹${keyMetrics.totalIncome.toLocaleString()}`}
           change={keyMetrics.incomeChange}
           icon={DollarSign}
           color="bg-rose-500"
         />
         <StatCard
-          title={language === 'hindi' ? 'कुल खर्च' : 'Total Expenses'}
+          title={language === 'marathi' ? 'एकूण खर्च' : (language === 'hindi' ? 'कुल खर्च' : 'Total Expenses')}
           value={`₹${keyMetrics.totalExpenses.toLocaleString()}`}
           change={keyMetrics.expensesChange}
           icon={TrendingDown}
           color="bg-rose-500"
         />
         <StatCard
-          title={language === 'hindi' ? 'शुद्ध लाभ' : 'Net Profit'}
+          title={language === 'marathi' ? 'निव्वळ नफा' : (language === 'hindi' ? 'शुद्ध लाभ' : 'Net Profit')}
           value={`₹${keyMetrics.netProfit.toLocaleString()}`}
           change={keyMetrics.profitChange}
           icon={TrendingUp}
           color="bg-rose-500"
         />
         <StatCard
-          title={language === 'hindi' ? 'लाभ मार्जिन' : 'Profit Margin'}
+          title={language === 'marathi' ? 'नफा मार्जिन' : (language === 'hindi' ? 'लाभ मार्जिन' : 'Profit Margin')}
           value={`${keyMetrics.profitMargin}%`}
           change={keyMetrics.marginChange}
           icon={Calendar}
@@ -257,7 +314,7 @@ const BusinessAnalytics = () => {
           <CardHeader>
             <CardTitle>{getTranslation('incomeVsExpenses', language)}</CardTitle>
             <CardDescription>
-              {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल आय और खर्च' : 'Showing total income and expenses for the last 6 months'}
+              {language === 'marathi' ? 'गत ६ महिन्यांसाठी एकूण उत्पन्न आणि खर्च' : (language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल आय और खर्च' : 'Showing total income and expenses for the last 6 months')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -315,10 +372,10 @@ const BusinessAnalytics = () => {
           </CardContent>
           <CardFooter className="flex-col gap-2 text-sm">
             <div className="flex items-center gap-2 leading-none font-medium text-white">
-              {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-emerald-400" />
+              {language === 'marathi' ? 'या महिन्यात 5.2% वरचे ट्रेंडिंग' : (language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month')} <TrendingUp className="h-4 w-4 text-emerald-400" />
             </div>
             <div className="text-gray-400 leading-none">
-              {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल आय और खर्च दिखा रहा है' : 'Showing total income and expenses for the last 6 months'}
+              {language === 'marathi' ? 'गत 6 महिन्यांसाठी एकूण उत्पन्न आणि खर्च दाखवत आहे' : (language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल आय और खर्च दिखा रहा है' : 'Showing total income and expenses for the last 6 months')}
             </div>
           </CardFooter>
         </Card>
@@ -330,7 +387,7 @@ const BusinessAnalytics = () => {
           <CardHeader className="items-center pb-0">
             <CardTitle>{getTranslation('categorySpending', language)}</CardTitle>
             <CardDescription>
-              {language === 'hindi' ? 'जनवरी - जून 2024' : 'January - June 2024'}
+              {language === 'marathi' ? 'जानेवारी - जून २०२४' : (language === 'hindi' ? 'जनवरी - जून 2024' : 'January - June 2024')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 pb-0">
@@ -369,10 +426,10 @@ const BusinessAnalytics = () => {
           </CardContent>
           <CardFooter className="flex-col gap-2 text-sm">
             <div className="flex items-center gap-2 leading-none font-medium text-white">
-              {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-emerald-400" />
+              {language === 'marathi' ? 'या महिन्यात 5.2% वरचे ट्रेंडिंग' : (language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month')} <TrendingUp className="h-4 w-4 text-emerald-400" />
             </div>
             <div className="text-gray-400 leading-none">
-              {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल खर्च दिखा रहा है' : 'Showing total spending for the last 6 months'}
+              {language === 'marathi' ? 'गत 6 महिन्यांसाठी एकूण खर्च दाखवत आहे' : (language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल खर्च दिखा रहा है' : 'Showing total spending for the last 6 months')}
             </div>
           </CardFooter>
         </Card>
@@ -385,7 +442,7 @@ const BusinessAnalytics = () => {
             <CardHeader>
               <CardTitle>{getTranslation('monthlyTrend', language)}</CardTitle>
               <CardDescription>
-                {language === 'hindi' ? 'जनवरी - जून 2024' : 'January - June 2024'}
+                {language === 'marathi' ? 'जानेवारी - जून २०२४' : (language === 'hindi' ? 'जनवरी - जून 2024' : 'January - June 2024')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -411,7 +468,7 @@ const BusinessAnalytics = () => {
                           <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
                             <p className="font-medium">{payload[0].payload.month}</p>
                             <p className="text-[#fb7185]">
-                              Profit: ₹{payload[0].value.toLocaleString()}
+                              {language === 'marathi' ? 'नफा: ' : (language === 'hindi' ? 'लाभ: ' : 'Profit: ')}₹{payload[0].value.toLocaleString()}
                             </p>
                           </div>
                         );
@@ -432,10 +489,10 @@ const BusinessAnalytics = () => {
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
               <div className="flex items-center gap-2 leading-none font-medium text-white">
-                {language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month'} <TrendingUp className="h-4 w-4 text-[#fb7185]" />
+                {language === 'marathi' ? 'या महिन्यात 5.2% वरचे ट्रेंडिंग' : (language === 'hindi' ? 'इस महीने 5.2% ऊपर ट्रेंडिंग' : 'Trending up by 5.2% this month')} <TrendingUp className="h-4 w-4 text-[#fb7185]" />
               </div>
               <div className="text-gray-400 leading-none">
-                {language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल लाभ दिखा रहा है' : 'Showing total profit for the last 6 months'}
+                {language === 'marathi' ? 'गत 6 महिन्यांसाठी एकूण नफा दाखवत आहे' : (language === 'hindi' ? 'पिछले 6 महीनों के लिए कुल लाभ दिखा रहा है' : 'Showing total profit for the last 6 months')}
               </div>
             </CardFooter>
           </Card>
@@ -445,9 +502,9 @@ const BusinessAnalytics = () => {
         {inventoryData.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>{language === 'hindi' ? 'स्टॉक स्तर' : 'Stock Levels'}</CardTitle>
+              <CardTitle>{language === 'marathi' ? 'स्टॉक पातळी' : (language === 'hindi' ? 'स्टॉक स्तर' : 'Stock Levels')}</CardTitle>
               <CardDescription>
-                {language === 'hindi' ? 'मौजूदा इन्वेंटरी' : 'Current inventory levels'}
+                {language === 'marathi' ? 'सध्याची इन्व्हेंटरी पातळी' : (language === 'hindi' ? 'मौजूदा इन्वेंटरी' : 'Current inventory levels')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -479,10 +536,10 @@ const BusinessAnalytics = () => {
                           <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white shadow-lg text-sm">
                             <p className="font-medium">{data.name}</p>
                             <p className="text-[#fb7185]">
-                              {language === 'hindi' ? 'मौजूदा: ' : 'Current: '}{data.quantity} {language === 'hindi' ? 'इकाई' : 'units'}
+                              {language === 'marathi' ? 'सध्याचे: ' : (language === 'hindi' ? 'मौजूदा: ' : 'Current: ')}{data.quantity} {language === 'marathi' ? 'युनिट्स' : (language === 'hindi' ? 'इकाई' : 'units')}
                             </p>
                             <p className="text-gray-400">
-                              {language === 'hindi' ? 'न्यूनतम: ' : 'Min: '}{data.minStock}
+                              {language === 'marathi' ? 'किमान: ' : (language === 'hindi' ? 'न्यूनतम: ' : 'Min: ')}{data.minStock}
                             </p>
                           </div>
                         );
@@ -503,10 +560,10 @@ const BusinessAnalytics = () => {
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
               <div className="flex items-center gap-2 leading-none font-medium text-white">
-                {language === 'hindi' ? `${inventoryData.length} वस्तुएं ट्रैक की जा रही हैं` : `Tracking ${inventoryData.length} items`}
+                {language === 'marathi' ? `${inventoryData.length} वस्तू ट्रॅक केल्या जात आहेत` : (language === 'hindi' ? `${inventoryData.length} वस्तुएं ट्रैक की जा रही हैं` : `Tracking ${inventoryData.length} items`)}
               </div>
               <div className="text-gray-400 leading-none">
-                {language === 'hindi' ? 'वॉइस कमांड से वर्तमान स्टॉक स्तर अपडेट होता है' : 'Stock levels update via voice commands'}
+                {language === 'marathi' ? 'स्टॉक पातळी व्हॉइस कमांडद्वारे अपडेट होतात' : (language === 'hindi' ? 'वॉइस कमांड से वर्तमान स्टॉक स्तर अपडेट होता है' : 'Stock levels update via voice commands')}
               </div>
             </CardFooter>
           </Card>
@@ -519,12 +576,14 @@ const BusinessAnalytics = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-rose-500" />
-              {language === 'hindi' ? 'मुख्य अंतर्दृष्टि' : 'Key Insights'}
+              {language === 'marathi' ? 'मुख्य अंतर्दृष्टी' : (language === 'hindi' ? 'मुख्य अंतर्दृष्टि' : 'Key Insights')}
             </CardTitle>
             <CardDescription>
-              {language === 'hindi' 
-                ? 'आपके व्यापार के लिए AI-संचालित सिफारिशें' 
-                : 'AI-powered recommendations for your business'
+              {language === 'marathi'
+                ? 'तुमच्या व्यवसायासाठी एआय-आधारित शिफारसी'
+                : (language === 'hindi' 
+                  ? 'आपके व्यापार के लिए AI-संचालित सिफारिशें' 
+                  : 'AI-powered recommendations for your business')
               }
             </CardDescription>
           </CardHeader>
@@ -553,10 +612,22 @@ const BusinessAnalytics = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-white text-sm mb-1">
-                        {language === 'hindi' ? insight.title.hi : insight.title.en}
+                        {(() => {
+                          const t = insight.title;
+                          if (typeof t === 'string') return localizeText(t, language);
+                          if (language === 'marathi') return t?.mr ?? t?.hi ?? t?.en ?? '';
+                          if (language === 'hindi') return t?.hi ?? t?.en ?? '';
+                          return t?.en ?? t?.hi ?? t?.mr ?? '';
+                        })()}
                       </h3>
                       <p className="text-gray-400 text-sm leading-relaxed">
-                        {language === 'hindi' ? insight.message.hi : insight.message.en}
+                        {(() => {
+                          const m = insight.message;
+                          if (typeof m === 'string') return localizeText(m, language);
+                          if (language === 'marathi') return m?.mr ?? m?.hi ?? m?.en ?? '';
+                          if (language === 'hindi') return m?.hi ?? m?.en ?? '';
+                          return m?.en ?? m?.hi ?? m?.mr ?? '';
+                        })()}
                       </p>
                     </div>
                   </div>

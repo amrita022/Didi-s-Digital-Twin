@@ -45,8 +45,8 @@ export default function useGlobalHoverTTS() {
       const explicit = target.closest('[data-tts-block="true"]');
       if (explicit) return explicit;
 
-      // For English & Hindi UI, default to the specific element you hover
-      if (lang === 'english' || lang === 'hindi') {
+      // For English, Hindi & Marathi UI, default to the specific element you hover
+      if (lang === 'english' || lang === 'hindi' || lang === 'marathi') {
         return target;
       }
 

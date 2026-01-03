@@ -127,7 +127,9 @@ const Reminders = () => {
     return (
       <div className="text-center py-8">
         <p className="text-gray-300">
-          {language === 'hindi' ? 'लोड हो रहा है...' : 'Loading...'}
+          {language === 'marathi' 
+            ? 'लोड होत आहे...'
+            : (language === 'hindi' ? 'लोड हो रहा है...' : 'Loading...')}
         </p>
       </div>
     );
@@ -138,9 +140,11 @@ const Reminders = () => {
       <div className="text-center py-8">
         <Bell size={48} className="text-gray-400 mx-auto mb-4" />
         <p className="text-gray-400">
-          {language === 'hindi' 
-            ? 'कोई याददाश्त नहीं है' 
-            : 'No reminders yet'}
+          {language === 'marathi' 
+            ? 'आत्तापर्यंत कोणतीही स्मरणपत्रे नाहीत'
+            : (language === 'hindi' 
+              ? 'कोई याददाश्त नहीं है' 
+              : 'No reminders yet')}
         </p>
       </div>
     );
@@ -150,7 +154,7 @@ const Reminders = () => {
     <div>
       <div className="flex items-center justify-between mb-4">
         <span className="px-3 py-1 bg-rose-500/20 rounded-full text-sm font-medium text-rose-300">
-          {reminders.length} {language === 'hindi' ? 'याददाश्त' : 'reminders'}
+          {reminders.length} {language === 'marathi' ? 'स्मरणपत्रे' : (language === 'hindi' ? 'याददाश्त' : 'reminders')}
         </span>
       </div>
 
@@ -180,13 +184,15 @@ const Reminders = () => {
                         onClick={() => handleYes(reminder)}
                         className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-sm font-medium transition-colors"
                       >
-                        {language === 'hindi' ? 'हाँ, याद दिलाएं' : 'Yes, remind me'}
+                        {language === 'marathi' 
+                          ? 'हो, मला आठवण करून द्या'
+                          : (language === 'hindi' ? 'हाँ, याद दिलाएं' : 'Yes, remind me')}
                       </button>
                       <button
                         onClick={() => handleDismiss(reminder._id)}
                         className="px-4 py-2 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 text-white rounded-lg text-sm font-medium transition-all duration-300"
                       >
-                        {language === 'hindi' ? 'नहीं' : 'No'}
+                        {language === 'marathi' ? 'नको' : (language === 'hindi' ? 'नहीं' : 'No')}
                       </button>
                     </div>
                   )}
@@ -199,14 +205,14 @@ const Reminders = () => {
                         className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
                       >
                         <Check size={16} />
-                        <span>{language === 'hindi' ? 'पूर्ण' : 'Done'}</span>
+                        <span>{language === 'marathi' ? 'पूर्ण' : (language === 'hindi' ? 'पूर्ण' : 'Done')}</span>
                       </button>
                       <button
                         onClick={() => handleDismiss(reminder._id)}
                         className="px-4 py-2 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 text-white rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-1"
                       >
                         <X size={16} />
-                        <span>{language === 'hindi' ? 'खारिज' : 'Dismiss'}</span>
+                        <span>{language === 'marathi' ? 'काढून टाका' : (language === 'hindi' ? 'खारिज' : 'Dismiss')}</span>
                       </button>
                     </div>
                   )}
@@ -217,7 +223,7 @@ const Reminders = () => {
                       onClick={() => handleDismiss(reminder._id)}
                       className="mt-2 px-3 py-1 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-gray-700 hover:border-rose-500/50 text-white rounded text-sm transition-all duration-300"
                     >
-                      {language === 'hindi' ? 'ठीक है' : 'Got it'}
+                      {language === 'marathi' ? 'ठीक आहे' : (language === 'hindi' ? 'ठीक है' : 'Got it')}
                     </button>
                   )}
                 </div>
@@ -228,9 +234,11 @@ const Reminders = () => {
               <div className="flex items-center space-x-1 text-xs text-gray-400 mt-2">
                 <Clock size={12} />
                 <span>
-                  {language === 'hindi' 
-                    ? `${reminder.metadata.daysUntilEvent} दिन बचे` 
-                    : `${reminder.metadata.daysUntilEvent} days left`}
+                  {language === 'marathi' 
+                    ? `${reminder.metadata.daysUntilEvent} दिवस बाकी`
+                    : (language === 'hindi' 
+                      ? `${reminder.metadata.daysUntilEvent} दिन बचे` 
+                      : `${reminder.metadata.daysUntilEvent} days left`)}
                 </span>
               </div>
             )}

@@ -53,15 +53,19 @@ const VoiceAssistant = () => {
     //businessData 
   } = useStore();
   
-  const [voiceLanguage, setVoiceLanguage] = useState(language === 'hindi' ? 'hindi' : 'english');
+  const [voiceLanguage, setVoiceLanguage] = useState(
+    language === 'marathi' ? 'marathi' : (language === 'hindi' ? 'hindi' : 'english')
+  );
   
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'ai',
-      text: language === 'hindi' 
+      text: language === 'marathi'
+        ? 'नमस्कार! मी तुमची व्यवसाय सहाय्यक आहे. आज मी तुम्हाला कशी मदत करू शकते?'
+        : (language === 'hindi' 
         ? 'नमस्ते! मैं आपकी व्यापार सहायक हूं। आप कैसे मदद कर सकती हूं?' 
-        : 'Hello! I\'m your business assistant. How can I help you today?',
+        : 'Hello! I\'m your business assistant. How can I help you today?'),
       timestamp: new Date()
     }
   ]);
@@ -113,9 +117,11 @@ const VoiceAssistant = () => {
             const errorMessage = {
               id: Date.now(),
               type: 'ai',
-              text: language === 'hindi' 
+              text: language === 'marathi'
+                ? '❌ नेटवर्क त्रुटी. व्हॉइस रिकग्निशनसाठी इंटरनेट कनेक्शन आवश्यक आहे.'
+                : (language === 'hindi' 
                 ? '❌ नेटवर्क त्रुटि। वॉइस रिकॉग्निशन के लिए इंटरनेट कनेक्शन आवश्यक है।' 
-                : '❌ Network error. Internet connection required for voice recognition.',
+                : '❌ Network error. Internet connection required for voice recognition.'),
               timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMessage]);
@@ -128,19 +134,25 @@ const VoiceAssistant = () => {
         
         switch (event.error) {
           case 'not-allowed':
-            errorText = language === 'hindi' 
+            errorText = language === 'marathi'
+              ? '❌ मायक्रोफोन परवानगी मिळाली नाही. कृपया ब्राउझर सेटिंग्समध्ये परवानगी द्या.'
+              : (language === 'hindi' 
               ? '❌ माइक्रोफ़ोन अनुमति नहीं मिली। कृपया ब्राउज़र सेटिंग्स में अनुमति दें।' 
-              : '❌ Microphone permission denied. Please allow microphone access in browser settings.';
+              : '❌ Microphone permission denied. Please allow microphone access in browser settings.');
             break;
           case 'no-speech':
-            errorText = language === 'hindi' 
+            errorText = language === 'marathi'
+              ? '❌ काही आवाज ऐकू आला नाही. कृपया पुन्हा बोला.'
+              : (language === 'hindi' 
               ? '❌ कोई आवाज़ नहीं सुनी गई। कृपया फिर से बोलें।' 
-              : '❌ No speech detected. Please speak again.';
+              : '❌ No speech detected. Please speak again.');
             break;
           default:
-            errorText = language === 'hindi' 
+            errorText = language === 'marathi'
+              ? '❌ मायक्रोफोन त्रुटी. कृपया पुन्हा प्रयत्न करा.'
+              : (language === 'hindi' 
               ? '❌ माइक्रोफ़ोन त्रुटि। कृपया फिर से प्रयास करें।' 
-              : '❌ Microphone error. Please try again.';
+              : '❌ Microphone error. Please try again.');
         }
         
         const errorMessage = {
@@ -278,9 +290,11 @@ const VoiceAssistant = () => {
         }
       } else if (quantity > 1 && !itemName) {
         // Quantity found but item not recognized - warn user
-        inventoryMessage = language === 'hindi' 
+        inventoryMessage = language === 'marathi'
+          ? '\n⚠️ कृपया कोणती वस्तू विकली ते सांगा - साडी, ब्लाउज, शर्ट, ड्रेस किंवा पँट?'
+          : (language === 'hindi' 
           ? '\n⚠️ कृपया बताएं कि कौन सी चीज़ बेची - साड़ी, ब्लाउज, शर्ट, ड्रेस या पैंट?'
-          : '\n⚠️ Please specify which item was sold - saree, blouse, shirt, dress, or pant?';
+          : '\n⚠️ Please specify which item was sold - saree, blouse, shirt, dress, or pant?');
         console.warn(`⚠️ Quantity ${quantity} extracted but no item name found`);
       }
     }
@@ -295,9 +309,11 @@ const VoiceAssistant = () => {
         const price = result.amount ? Math.round(result.amount / quantity) : 0;
         const addResult = await inventoryApi.addOrUpdateInventory(uid, itemName, quantity, price, 10);
         if (addResult.success) {
-          inventoryMessage = language === 'hindi' 
+          inventoryMessage = language === 'marathi'
+            ? `\n📦 ${quantity} ${itemName} वाढवले. एकूण: ${addResult.totalQuantity}`
+            : (language === 'hindi' 
             ? `\n📦 ${quantity} ${itemName} जोड़े गए। कुल: ${addResult.totalQuantity}`
-            : `\n📦 Added ${quantity} ${itemName}. Total: ${addResult.totalQuantity}`;
+            : `\n📦 Added ${quantity} ${itemName}. Total: ${addResult.totalQuantity}`);
           console.log('✅ Inventory updated:', addResult);
         }
       } catch (invError) {
@@ -336,9 +352,11 @@ const VoiceAssistant = () => {
     const errorMessage = {
       id: Date.now() + 1,
       type: 'ai',
-      text: language === 'hindi' 
+      text: language === 'marathi'
+        ? '❌ काहीतरी चुकीचे झाले. कृपया पुन्हा प्रयत्न करा.'
+        : (language === 'hindi' 
         ? '❌ कुछ गलत हो गया। कृपया फिर से प्रयास करें।' 
-        : '❌ Something went wrong. Please try again.',
+        : '❌ Something went wrong. Please try again.'),
       timestamp: new Date()
     };
     
@@ -424,19 +442,19 @@ const VoiceAssistant = () => {
 
   const quickCommands = [
     { 
-      text: language === 'hindi' ? 'खर्च दर्ज करें ₹100' : 'Log expense ₹100',
+      text: language === 'marathi' ? getTranslation('logExpenseEx', 'marathi') : (language === 'hindi' ? getTranslation('logExpenseEx', 'hindi') : getTranslation('logExpenseEx', 'english')),
       command: 'expense 100'
     },
     { 
-      text: language === 'hindi' ? 'बिक्री दर्ज करें ₹200' : 'Record sale ₹200',
+      text: language === 'marathi' ? getTranslation('recordSaleEx', 'marathi') : (language === 'hindi' ? getTranslation('recordSaleEx', 'hindi') : getTranslation('recordSaleEx', 'english')),
       command: 'sale 200'
     },
     { 
-      text: language === 'hindi' ? 'कीमत सुझाव' : 'Pricing help',
+      text: language === 'marathi' ? getTranslation('pricingHelpEx', 'marathi') : (language === 'hindi' ? getTranslation('pricingHelpEx', 'hindi') : getTranslation('pricingHelpEx', 'english')),
       command: 'pricing'
     },
     { 
-      text: language === 'hindi' ? 'बचत दिखाएं' : 'Show savings',
+      text: language === 'marathi' ? getTranslation('showSavingsEx', 'marathi') : (language === 'hindi' ? getTranslation('showSavingsEx', 'hindi') : getTranslation('showSavingsEx', 'english')),
       command: 'savings'
     },
   ];
@@ -451,7 +469,7 @@ const VoiceAssistant = () => {
             <div className="relative">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 <Globe size={16} className="inline mr-2" />
-                {language === 'hindi' ? 'भाषा चुनें' : 'Select Language'}
+                {language === 'marathi' ? getTranslation('selectLanguageVoice', 'marathi') : (language === 'hindi' ? getTranslation('selectLanguageVoice', 'hindi') : getTranslation('selectLanguageVoice', 'english'))}
               </label>
               <select
                 value={voiceLanguage}
@@ -487,10 +505,11 @@ const VoiceAssistant = () => {
           </h2>
           
           <p className="text-gray-300 mb-6">
-            {language === 'hindi' 
+            {language === 'marathi'
+              ? 'माइकवर टॅप करा आणि बोलायला सुरुवात करा'
+              : (language === 'hindi' 
               ? 'माइक पर टैप करें और बोलें' 
-              : 'Tap the mic and start speaking'
-            }
+              : 'Tap the mic and start speaking')}
           </p>
           
           <div className="flex justify-center">
@@ -505,12 +524,12 @@ const VoiceAssistant = () => {
               {voiceState.isListening ? (
                 <>
                   <MicOff size={20} className="inline mr-2" />
-                  {language === 'hindi' ? 'रोकें' : 'Stop'}
+                  {language === 'marathi' ? getTranslation('stop', 'marathi') : (language === 'hindi' ? getTranslation('stop', 'hindi') : getTranslation('stop', 'english'))}
                 </>
               ) : (
                 <>
                   <Mic size={20} className="inline mr-2" />
-                  {language === 'hindi' ? 'बोलें' : 'Speak'}
+                  {language === 'marathi' ? getTranslation('speak', 'marathi') : (language === 'hindi' ? getTranslation('speak', 'hindi') : getTranslation('speak', 'english'))}
                 </>
               )}
             </button>
@@ -543,7 +562,7 @@ const VoiceAssistant = () => {
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder={language === 'hindi' ? 'यहाँ टाइप करें...' : 'Type here...'}
+            placeholder={language === 'marathi' ? getTranslation('typeHere', 'marathi') : (language === 'hindi' ? getTranslation('typeHere', 'hindi') : getTranslation('typeHere', 'english'))}
             className="flex-1 px-4 py-3 bg-gray-600 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
           />
           <button
@@ -560,7 +579,7 @@ const VoiceAssistant = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white flex items-center">
             <MessageCircle size={20} className="mr-2" />
-            {language === 'hindi' ? 'बातचीत' : 'Conversation'}
+            {language === 'marathi' ? getTranslation('conversation', 'marathi') : (language === 'hindi' ? getTranslation('conversation', 'hindi') : getTranslation('conversation', 'english'))}
           </h3>
           <button
             onClick={() => setMessages([messages[0]])}

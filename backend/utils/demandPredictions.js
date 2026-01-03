@@ -61,6 +61,10 @@ function getMonthName(monthIndex, language = 'english') {
     hindi: [
       'जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून',
       'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'
+    ],
+    marathi: [
+      'जानेवारी', 'फेब्रुवारी', 'मार्च', 'एप्रिल', 'मे', 'जून',
+      'जुलै', 'ऑगस्ट', 'सप्टेंबर', 'ऑक्टोबर', 'नोव्हेंबर', 'डिसेंबर'
     ]
   };
   const monthArray = months[language] || months.english;
@@ -227,9 +231,11 @@ async function generateDemandPredictions(userId, language = 'english') {
         confidence,
         stockRecommendations,
         lastYearRevenue: lastYearData.totalRevenue,
-        reasoning: language === 'hindi'
-          ? `${monthName} ${lastYear} की बिक्री के आधार पर: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' आ रहा है!' : ''}`
-          : `Based on ${monthName} ${lastYear} sales: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' approaching!' : ''}`
+        reasoning: language === 'marathi'
+          ? `${monthName} ${lastYear} च्या विक्रीच्या आधारे: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' आसन्न!' : ''}`
+          : language === 'hindi'
+            ? `${monthName} ${lastYear} की बिक्री के आधार पर: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' आ रहा है!' : ''}`
+            : `Based on ${monthName} ${lastYear} sales: ₹${lastYearData.totalRevenue.toLocaleString('en-IN')}.${seasonalInfo.festival ? ' ' + seasonalInfo.festival + ' approaching!' : ''}`
       });
     }
     
@@ -238,11 +244,16 @@ async function generateDemandPredictions(userId, language = 'english') {
     if (predictions.length > 0) {
       const nextMonth = predictions[0];
       if (nextMonth.demand === 'very-high') {
-        let topItem = nextMonth.stockRecommendations[0]?.item || (language === 'hindi' ? 'तैयार माल' : 'stock items');
+        let topItem = nextMonth.stockRecommendations[0]?.item || (language === 'marathi' ? 'स्टॉक वस्तू' : (language === 'hindi' ? 'तैयार माल' : 'stock items'));
         if (language === 'english') {
           topItem = translateItemToEnglish(topItem);
         }
-        if (language === 'hindi') {
+        if (language === 'marathi') {
+          alert = {
+            type: 'high',
+            message: `${nextMonth.festival || nextMonth.season} ची मागणी ${nextMonth.month} मध्ये खूप उच्च असेल. आत्ताच ${topItem} चा साठा वाढवा!`
+          };
+        } else if (language === 'hindi') {
           alert = {
             type: 'high',
             message: `${nextMonth.festival || nextMonth.season} की मांग ${nextMonth.month} में बहुत अधिक रहेगी। अभी ${topItem} का स्टॉक बढ़ाएँ!`
@@ -254,11 +265,16 @@ async function generateDemandPredictions(userId, language = 'english') {
           };
         }
       } else if (nextMonth.demand === 'high') {
-        let topItem = nextMonth.stockRecommendations[0]?.item || (language === 'hindi' ? 'सामान' : 'stock items');
+        let topItem = nextMonth.stockRecommendations[0]?.item || (language === 'marathi' ? 'सामान' : (language === 'hindi' ? 'सामान' : 'stock items'));
         if (language === 'english') {
           topItem = translateItemToEnglish(topItem);
         }
-        if (language === 'hindi') {
+        if (language === 'marathi') {
+          alert = {
+            type: 'medium',
+            message: `${nextMonth.month} मध्ये चांगली मागणीची शक्यता आहे. ${topItem} चा साठा तयार ठेवा.`
+          };
+        } else if (language === 'hindi') {
           alert = {
             type: 'medium',
             message: `${nextMonth.month} में अच्छी मांग की संभावना है। ${topItem} का स्टॉक तैयार करें।`
@@ -375,6 +391,28 @@ async function generateMarketInsights(userId, language = 'english') {
       .sort((a, b) => b.avgPrice - a.avgPrice)[0];
     
     // Generate bilingual content based on language
+    if (language === 'marathi') {
+      return {
+        weddingSeason: {
+          title: 'लग्नाचा हंगाम',
+          description: topPeakItems.length > 0
+            ? `डिसेंबर आणि एप्रिल-मे मध्ये ${topPeakItems.join(' आणि ')} यांची सर्वाधिक मागणी असते`
+            : 'पीक लग्न हंगाम एप्रिल-मे आणि डिसेंबरमध्ये सर्वाधिक विक्री चालवतो'
+        },
+        festive: {
+          title: 'सणांचा कालावधी',
+          description: festiveBoost > 0
+            ? `दिवाळी (नोव्हेंबर-डिसेंबर) नियमित महिन्यांच्या तुलनेत विक्रीमध्ये ${festiveBoost}% वाढ करते`
+            : 'सणांच्या काळात ग्राहकांच्या मागणीत वाढ दिसते'
+        },
+        stockPlanning: {
+          title: 'स्टॉक नियोजन',
+          description: highValueItem
+            ? `जास्त नफा मार्जिनसाठी ${highValueItem.item} (सरासरी ₹${highValueItem.avgPrice}) वर लक्ष केंद्रित करा`
+            : 'पीक सिझनच्या 1 महिना आधी सर्वोत्तम किंमतीसाठी इन्व्हेंटरी ऑर्डर करा'
+        }
+      };
+    }
     if (language === 'hindi') {
       return {
         weddingSeason: {
@@ -443,6 +481,22 @@ function getDefaultInsights(language = 'english') {
       stockPlanning: {
         title: 'स्टॉक योजना',
         description: 'पीक सीजन से 1 महीने पहले सर्वोत्तम कीमत के लिए इन्वेंटरी ऑर्डर करें'
+      }
+    };
+  }
+  if (language === 'marathi') {
+    return {
+      weddingSeason: {
+        title: 'लग्नाचा हंगाम',
+        description: 'डिसेंबर आणि एप्रिल-मे सामान्यतः सर्वाधिक मागणी पाहतात'
+      },
+      festive: {
+        title: 'सणांचा कालावधी',
+        description: 'सणांच्या काळात विक्रीत लक्षणीय वाढ होते'
+      },
+      stockPlanning: {
+        title: 'स्टॉक नियोजन',
+        description: 'पीक सिझनच्या 1 महिना आधी इन्व्हेंटरी ऑर्डर करा'
       }
     };
   }

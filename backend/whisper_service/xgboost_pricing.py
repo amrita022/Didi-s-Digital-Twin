@@ -260,22 +260,26 @@ class PricingAdvisor:
                 priority = 'high'
                 reason_en = f'Increase price by {percent_diff:.0f}% (gradually). This item sells well.'
                 reason_hi = f'कीमत {percent_diff:.0f}% बढ़ाएं (धीरे-धीरे)। यह आइटम अच्छा बिकता है।'
-                reason = reason_en if language == 'english' else reason_hi
+                reason_mr = f'किंमत {percent_diff:.0f}% ने वाढवा (हळूहळू). हा आयटम चांगला विकतो.'
+                reason = reason_en if language == 'english' else (reason_mr if language == 'marathi' else reason_hi)
             elif percent_diff > 10:
                 priority = 'medium'
                 reason_en = f'Recommended to increase price by {percent_diff:.0f}%.'
                 reason_hi = f'कीमत {percent_diff:.0f}% बढ़ाने की सिफारिश।'
-                reason = reason_en if language == 'english' else reason_hi
+                reason_mr = f'किंमत {percent_diff:.0f}% ने वाढवण्याची शिफारस.'
+                reason = reason_en if language == 'english' else (reason_mr if language == 'marathi' else reason_hi)
             elif percent_diff > 5:
                 priority = 'low'
                 reason_en = f'Increase price slightly by {percent_diff:.0f}%.'
                 reason_hi = f'थोड़ी कीमत बढ़ाएं ({percent_diff:.0f}%)।'
-                reason = reason_en if language == 'english' else reason_hi
+                reason_mr = f'किंमतीत थोडी वाढ ({percent_diff:.0f}%).'
+                reason = reason_en if language == 'english' else (reason_mr if language == 'marathi' else reason_hi)
             else:
                 priority = 'low'
                 reason_en = 'Your price is aligned with the market.'
                 reason_hi = 'आपकी कीमत बाजार के अनुसार है।'
-                reason = reason_en if language == 'english' else reason_hi
+                reason_mr = 'तुमची किंमत बाजारानुसार आहे.'
+                reason = reason_en if language == 'english' else (reason_mr if language == 'marathi' else reason_hi)
             
             recommendations.append({
                 'name': item_name,
@@ -302,6 +306,8 @@ class PricingAdvisor:
         # Generate message in appropriate language
         if language == 'english':
             message = f"According to XGBoost model ({training_result['test_r2']:.2%} accuracy), adjusting prices could yield ₹{total_potential:.0f}/month additional profit."
+        elif language == 'marathi':
+            message = f"XGBoost मॉडेल ({training_result['test_r2']:.2%} अचूकता) नुसार किंमती समायोजित केल्यास दर महिन्याला ₹{total_potential:.0f} अतिरिक्त नफा मिळू शकतो."
         else:
             message = f"XGBoost मॉडल ({training_result['test_r2']:.2%} सटीकता) के अनुसार कीमतें समायोजित करने से ₹{total_potential:.0f}/माह अतिरिक्त लाभ हो सकता है।"
         

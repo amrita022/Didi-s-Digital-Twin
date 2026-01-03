@@ -98,13 +98,13 @@ app.post('/api/user/sync', async (req, res) => {
 // ======================
 app.get('/api/dashboard', async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, language } = req.query;
     
     if (!userId) {
       return res.status(400).json({ success: false, error: 'User ID required' });
     }
 
-    console.log('📊 Fetching dashboard for user:', userId);
+    console.log('📊 Fetching dashboard for user:', userId, 'Language:', language);
 
     // Get user from MongoDB
     const user = await User.findOne({ userId });
@@ -153,7 +153,7 @@ app.get('/api/dashboard', async (req, res) => {
     
     // Get SMART AI insights (seasonal patterns, top sellers, etc.)
     console.log('🤖 Generating smart AI insights...');
-    const smartInsights = await generateAIInsights(userId, allTransactions);
+    const smartInsights = await generateAIInsights(userId, allTransactions, language || 'english');
     
     // Clear old insights and save new ones
     if (smartInsights && smartInsights.length > 0) {
@@ -267,7 +267,7 @@ const { generateBusinessAnalytics } = require('./utils/analyticsCalculations');
 
 app.get('/api/analytics', async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, language } = req.query;
     
     if (!userId) {
       return res.status(400).json({ 
@@ -276,9 +276,9 @@ app.get('/api/analytics', async (req, res) => {
       });
     }
 
-    console.log(`📊 Generating business analytics for: ${userId}`);
+    console.log(`📊 Generating business analytics for: ${userId} (Language: ${language || 'english'})`);
     
-    const analytics = await generateBusinessAnalytics(userId);
+    const analytics = await generateBusinessAnalytics(userId, language || 'english');
     
     res.json(analytics);
   } catch (error) {
@@ -320,14 +320,20 @@ app.get('/api/reminders', async (req, res) => {
       const inventoryItems = await Inventory.find({ userId, isActive: true });
       for (const item of inventoryItems) {
         if (item.quantity <= item.minStockLevel) {
+          const titleLow = language === 'marathi' ? `कमी साठा: ${item.itemName}` : (language === 'hindi' ? `कम स्टॉक: ${item.itemName}` : `Low Stock: ${item.itemName}`);
+          const msgLow = language === 'marathi'
+            ? `${item.itemName} कमी होत आहे - फक्त ${item.quantity} शिल्लक`
+            : (language === 'hindi'
+              ? `${item.itemName} कम स्टॉक - केवल ${item.quantity} बचा है`
+              : `${item.itemName} running low - only ${item.quantity} remaining`);
           await Reminder.findOneAndUpdate(
             { userId, type: 'low_stock', 'metadata.itemName': item.itemName },
             {
               $set: {
                 userId,
                 type: 'low_stock',
-                title: `Low Stock: ${item.itemName}`,
-                message: `${item.itemName} running low - only ${item.quantity} remaining`,
+                title: titleLow,
+                message: msgLow,
                 messageHindi: `${item.itemName} कम स्टॉक - केवल ${item.quantity} बचा है`,
                 priority: 10,
                 isActive: true,
@@ -341,14 +347,20 @@ app.get('/api/reminders', async (req, res) => {
         }
         if (item.upcomingFestivals && item.upcomingFestivals.length > 0) {
           const festivals = item.upcomingFestivals.join(', ');
+          const titleFest = language === 'marathi' ? `सणाची संधी: ${item.itemName}` : (language === 'hindi' ? `त्योहार अवसर: ${item.itemName}` : `Festival Opportunity: ${item.itemName}`);
+          const msgFest = language === 'marathi'
+            ? `${festivals} दरम्यान ${item.itemName} साठी उच्च मागणी (${item.seasonalDemandMultiplier}x)`
+            : (language === 'hindi'
+              ? `${festivals} के दौरान ${item.itemName} के लिए उच्च मांग (${item.seasonalDemandMultiplier}x)`
+              : `High demand for ${item.itemName} during ${festivals} (${item.seasonalDemandMultiplier}x)`);
           await Reminder.findOneAndUpdate(
             { userId, type: 'festival_demand', 'metadata.itemName': item.itemName },
             {
               $set: {
                 userId,
                 type: 'festival_demand',
-                title: `Festival Opportunity: ${item.itemName}`,
-                message: `High demand for ${item.itemName} during ${festivals} (${item.seasonalDemandMultiplier}x)`,
+                title: titleFest,
+                message: msgFest,
                 messageHindi: `${festivals} के दौरान ${item.itemName} के लिए उच्च मांग (${item.seasonalDemandMultiplier}x)`,
                 priority: 7,
                 isActive: true,
@@ -361,14 +373,20 @@ app.get('/api/reminders', async (req, res) => {
           );
         }
         if (item.quantity > item.minStockLevel * 3) {
+          const titleOver = language === 'marathi' ? `जादा साठा: ${item.itemName}` : (language === 'hindi' ? `अधिक स्टॉक: ${item.itemName}` : `Overstock: ${item.itemName}`);
+          const msgOver = language === 'marathi'
+            ? `${item.itemName} चा साठा ${item.quantity} युनिट आहे. साठा कमी करण्यासाठी प्रमोशनचा विचार करा.`
+            : (language === 'hindi'
+              ? `${item.itemName} का स्टॉक अधिक है (${item.quantity}). बिक्री बढ़ाने के लिए ऑफर चलाएँ।`
+              : `${item.itemName} has ${item.quantity} units. Consider a promotion to clear stock.`);
           await Reminder.findOneAndUpdate(
             { userId, type: 'overstock', 'metadata.itemName': item.itemName },
             {
               $set: {
                 userId,
                 type: 'overstock',
-                title: `Overstock: ${item.itemName}`,
-                message: `${item.itemName} has ${item.quantity} units. Consider a promotion to clear stock.`,
+                title: titleOver,
+                message: msgOver,
                 messageHindi: `${item.itemName} का स्टॉक अधिक है (${item.quantity}). बिक्री बढ़ाने के लिए ऑफर चलाएँ।`,
                 priority: 5,
                 isActive: true,
@@ -436,6 +454,12 @@ app.post('/api/reminders/create-from-inventory', async (req, res) => {
       // Low stock alert with demand prediction
       if (item.quantity <= item.minStockLevel) {
         const suggestedQty = demandLookup[item.itemName] || Math.max(item.minStockLevel * 2, 10);
+        const titleLow = language === 'marathi' ? `कमी साठा: ${item.itemName}` : (language === 'hindi' ? `कम स्टॉक: ${item.itemName}` : `Low Stock: ${item.itemName}`);
+        const msgLow = language === 'marathi'
+          ? `फक्त ${item.quantity} ${item.itemName} उरले आहेत. मागणीच्या आधारे पुढील महिन्यासाठी किमान ${suggestedQty} युनिट साठा ठेवा.`
+          : (language === 'hindi'
+            ? `केवल ${item.quantity} ${item.itemName} बचा है। मांग के अनुसार अगले महीने के लिए कम से कम ${suggestedQty} यूनिट स्टॉक करें।`
+            : `Only ${item.quantity} ${item.itemName} left. Stock up at least ${suggestedQty} units for next month based on demand prediction.`);
         
         await Reminder.findOneAndUpdate(
           { userId, type: 'low_stock', 'metadata.itemName': item.itemName },
@@ -443,8 +467,8 @@ app.post('/api/reminders/create-from-inventory', async (req, res) => {
             $set: {
               userId,
               type: 'low_stock',
-              title: `Low Stock: ${item.itemName}`,
-              message: `Only ${item.quantity} ${item.itemName} left. Stock up at least ${suggestedQty} units for next month based on demand prediction.`,
+              title: titleLow,
+              message: msgLow,
               messageHindi: `केवल ${item.quantity} ${item.itemName} बचा है। मांग के अनुसार अगले महीने के लिए कम से कम ${suggestedQty} यूनिट स्टॉक करें।`,
               priority: 10,
               isActive: true,
@@ -466,14 +490,20 @@ app.post('/api/reminders/create-from-inventory', async (req, res) => {
       // Festival demand alert
       if (item.upcomingFestivals && item.upcomingFestivals.length > 0) {
         const festivals = item.upcomingFestivals.join(', ');
+        const titleFest = language === 'marathi' ? `सणाची संधी: ${item.itemName}` : (language === 'hindi' ? `त्योहार अवसर: ${item.itemName}` : `Festival Opportunity: ${item.itemName}`);
+        const msgFest = language === 'marathi'
+          ? `${festivals} दरम्यान ${item.itemName} साठी उच्च मागणी (${item.seasonalDemandMultiplier}x)`
+          : (language === 'hindi'
+            ? `${festivals} के दौरान ${item.itemName} के लिए उच्च मांग (${item.seasonalDemandMultiplier}x)`
+            : `High demand for ${item.itemName} during ${festivals} (${item.seasonalDemandMultiplier}x)`);
         await Reminder.findOneAndUpdate(
           { userId, type: 'festival_demand', 'metadata.itemName': item.itemName },
           {
             $set: {
               userId,
               type: 'festival_demand',
-              title: `Festival Opportunity: ${item.itemName}`,
-              message: `High demand for ${item.itemName} during ${festivals} (${item.seasonalDemandMultiplier}x)`,
+              title: titleFest,
+              message: msgFest,
               messageHindi: `${festivals} के दौरान ${item.itemName} के लिए उच्च मांग (${item.seasonalDemandMultiplier}x)`,
               priority: 7,
               isActive: true,
@@ -489,14 +519,20 @@ app.post('/api/reminders/create-from-inventory', async (req, res) => {
 
       // Overstock alert (3x min stock)
       if (item.quantity > item.minStockLevel * 3) {
+        const titleOver = language === 'marathi' ? `जादा साठा: ${item.itemName}` : (language === 'hindi' ? `अधिक स्टॉक: ${item.itemName}` : `Overstock: ${item.itemName}`);
+        const msgOver = language === 'marathi'
+          ? `${item.itemName} चा साठा ${item.quantity} युनिट आहे. साठा कमी करण्यासाठी प्रमोशनचा विचार करा.`
+          : (language === 'hindi'
+            ? `${item.itemName} का स्टॉक अधिक है (${item.quantity}). बिक्री बढ़ाने के लिए ऑफर चलाएँ।`
+            : `${item.itemName} has ${item.quantity} units. Consider a promotion to clear stock.`);
         await Reminder.findOneAndUpdate(
           { userId, type: 'overstock', 'metadata.itemName': item.itemName },
           {
             $set: {
               userId,
               type: 'overstock',
-              title: `Overstock: ${item.itemName}`,
-              message: `${item.itemName} has ${item.quantity} units. Consider a promotion to clear stock.`,
+              title: titleOver,
+              message: msgOver,
               messageHindi: `${item.itemName} का स्टॉक अधिक है (${item.quantity}). बिक्री बढ़ाने के लिए ऑफर चलाएँ।`,
               priority: 5,
               isActive: true,

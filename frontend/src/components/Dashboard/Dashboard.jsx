@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useStore from '../../store/useStore';
+import { getTranslation } from '../../utils/translations';
 import AddDashboardDataModal from './AddDashboardDataModal';
 import Reminders from '../Reminders/Reminders';
 import { GlowingCard } from '../ui/glowing-card';
@@ -79,9 +80,9 @@ const Dashboard = () => {
   const fetchDashboardData = async (userId) => {
     try {
       setLoading(true);
-      console.log("Fetching dashboard for userId:", userId);
+      console.log("Fetching dashboard for userId:", userId, "Language:", language);
       
-      const res = await fetch(`${API_URL}/api/dashboard?userId=${userId}`);
+      const res = await fetch(`${API_URL}/api/dashboard?userId=${userId}&language=${language}`);
       
       if (!res.ok) throw new Error('Failed to fetch dashboard data');
       
@@ -206,6 +207,7 @@ const Dashboard = () => {
   
   const healthText = healthScore >= 80 ? "Excellent" : healthScore >= 60 ? "Good" : "Needs Attention";
   const healthTextHindi = healthScore >= 80 ? "उत्कृष्ट" : healthScore >= 60 ? "अच्छा" : "ध्यान चाहिए";
+  const healthTextMarathi = healthScore >= 80 ? "उत्तम" : healthScore >= 60 ? "चांगले" : "लक्ष दिले जाते";
 
   const StatCard = ({ title, value, icon, trend, trendValue }) => (
     <GlowingCard className="p-6" data-tts-block="true">
@@ -241,7 +243,7 @@ const Dashboard = () => {
     if (!transaction) return null;
     
     const transactionDate = transaction.date ? new Date(transaction.date) : new Date();
-    const formattedDate = transactionDate.toLocaleDateString(language === 'hindi' ? 'hi-IN' : 'en-US', {
+    const formattedDate = transactionDate.toLocaleDateString(language === 'marathi' ? 'mr-IN' : (language === 'hindi' ? 'hi-IN' : 'en-US'), {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -324,15 +326,19 @@ const Dashboard = () => {
               backgroundClip: 'text'
             }}
           >
-            {language === 'hindi' 
-              ? `नमस्ते, ${userName}!` 
-              : `Namaste, ${userName}!`
+            {language === 'marathi' 
+              ? `नमस्कार, ${userName}!` 
+              : (language === 'hindi' 
+                ? `नमस्ते, ${userName}!` 
+                : `Namaste, ${userName}!`)
             }
           </h1>
           <p className="text-gray-400 text-lg">
-            {language === 'hindi' 
-              ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
-              : 'Here are some great insights for your business today'
+            {language === 'marathi' 
+              ? 'आज तुमच्या व्यवसायासाठी काही उत्तम अंतर्दृष्टी आहेत' 
+              : (language === 'hindi' 
+                ? 'आज आपके व्यापार के लिए कुछ अच्छे सुझाव हैं' 
+                : 'Here are some great insights for your business today')
             }
           </p>
         </div>
@@ -340,8 +346,8 @@ const Dashboard = () => {
           <button
             onClick={() => setShowRemindersModal(true)}
             className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-neutral-800 to-neutral-900 hover:border-white/50 border border-gray-700 text-white rounded-xl shadow transition-all duration-300"
-            title={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
-            aria-label={language === 'hindi' ? 'याददाश्त' : 'Reminders'}
+            title={language === 'marathi' ? 'याद करून द्या' : (language === 'hindi' ? 'याददाश्त' : 'Reminders')}
+            aria-label={language === 'marathi' ? 'याद करून द्या' : (language === 'hindi' ? 'याददाश्त' : 'Reminders')}
           >
             <Bell size={20} />
             {reminderCount > 0 && (
@@ -356,7 +362,7 @@ const Dashboard = () => {
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 hover:from-gray-100 hover:via-gray-300 hover:to-gray-500 text-black rounded-xl shadow transition-all duration-200 font-medium"
           >
             <Edit3 size={18} /> 
-            {language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data'}
+            {language === 'marathi' ? 'डेटा अपडेट करा' : (language === 'hindi' ? 'डेटा अपडेट करें' : 'Update Data')}
           </button>
         </div>
       </div>
@@ -364,26 +370,26 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title={language === 'hindi' ? 'आज की आय' : "Today's Income"}
+          title={language === 'marathi' ? 'आजचे उत्पन्न' : (language === 'hindi' ? 'आज की आय' : "Today's Income")}
           value={`₹${todayIncome.toLocaleString()}`}
           icon={IndianRupee}
           trend={todayIncome > 0 ? "up" : null}
           trendValue="12"
         />
         <StatCard
-          title={language === 'hindi' ? 'मासिक लाभ' : 'Monthly Profit'}
+          title={language === 'marathi' ? 'मासिक लाभ' : (language === 'hindi' ? 'मासिक लाभ' : 'Monthly Profit')}
           value={`₹${monthlyProfit.toLocaleString()}`}
           icon={TrendingUp}
           trend={null}
         />
         <StatCard
-          title={language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
+          title={language === 'marathi' ? 'एकूण बचत' : (language === 'hindi' ? 'कुल बचत' : 'Total Savings')}
           value={`₹${totalSavings.toLocaleString()}`}
           icon={Wallet}
           trend={null}
         />
         <StatCard
-          title={language === 'hindi' ? 'लक्ष्य प्रगति' : 'Goal Progress'}
+          title={language === 'marathi' ? 'लक्ष्य प्रगती' : (language === 'hindi' ? 'लक्ष्य प्रगति' : 'Goal Progress')}
           value={`${totalSavings.toLocaleString()}`}
           icon={Target}
           trend={null}
@@ -396,7 +402,7 @@ const Dashboard = () => {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-white" />
-              {language === 'hindi' ? 'व्यापार स्वास्थ्य स्कोर' : 'Business Health Score'}
+              {language === 'marathi' ? 'व्यवसाय स्वास्थ्य स्कोर' : (language === 'hindi' ? 'व्यापार स्वास्थ्य स्कोर' : 'Business Health Score')}
             </h2>
           </div>
           <div className="text-right">
@@ -412,7 +418,7 @@ const Dashboard = () => {
               {healthScore}/100
             </p>
             <p className="text-sm text-gray-400">
-              {language === 'hindi' ? healthTextHindi : healthText}
+              {language === 'marathi' ? healthTextMarathi : (language === 'hindi' ? healthTextHindi : healthText)}
             </p>
           </div>
         </div>
@@ -427,7 +433,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
-              {language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)'}
+              {language === 'marathi' ? 'एकूण विक्रय (सर्वकाळ)' : (language === 'hindi' ? 'कुल बिक्री (सभी समय)' : 'Total Sales (All-Time)')}
             </p>
             <p 
               className="text-2xl font-bold"
@@ -443,7 +449,7 @@ const Dashboard = () => {
             </GlowingCard>
             <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
-              {language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)'}
+              {language === 'marathi' ? 'एकूण खर्च (सर्वकाळ)' : (language === 'hindi' ? 'कुल खर्च (सभी समय)' : 'Total Expenses (All-Time)')}
             </p>
               <p 
                 className="text-2xl font-bold"
@@ -459,7 +465,7 @@ const Dashboard = () => {
             </GlowingCard>
             <GlowingCard className="p-4">
             <p className="text-sm text-gray-300 mb-1">
-              {language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)'}
+              {language === 'marathi' ? 'निव्वळ नफा (सर्वकाळ)' : (language === 'hindi' ? 'शुद्ध लाभ (सभी समय)' : 'Net Profit (All-Time)')}
             </p>
               <p 
                 className="text-2xl font-bold"
@@ -490,7 +496,7 @@ const Dashboard = () => {
                 backgroundClip: 'text'
               }}
             >
-              {language === 'hindi' ? 'हाल के लेनदेन' : 'Recent Transactions'}
+              {language === 'marathi' ? 'अलीकडील व्यवहार' : (language === 'hindi' ? 'हाल के लेनदेन' : 'Recent Transactions')}
             </h3>
           </div>
 
@@ -508,12 +514,14 @@ const Dashboard = () => {
               <div className="text-center py-12">
                 <AlertCircle className="mx-auto text-gray-600 mb-3" size={40} />
                 <p className="text-gray-400">
-                  {language === 'hindi' ? 'अभी तक कोई लेनदेन नहीं' : 'No transactions yet'}
+                  {language === 'marathi' ? 'अजून कोणतेही व्यवहार नाहीत' : (language === 'hindi' ? 'अभी तक कोई लेनदेन नहीं' : 'No transactions yet')}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  {language === 'hindi' 
-                    ? 'यहाँ देखने के लिए अपना पहला लेनदेन जोड़ें' 
-                    : 'Add your first transaction to see it here'}
+                  {language === 'marathi' 
+                    ? 'इथे पाहण्यासाठी तुमचा पहिला व्यवहार जोडा' 
+                    : (language === 'hindi' 
+                      ? 'यहाँ देखने के लिए अपना पहला लेनदेन जोड़ें' 
+                      : 'Add your first transaction to see it here')}
                 </p>
               </div>
             )}
@@ -533,11 +541,13 @@ const Dashboard = () => {
                 backgroundClip: 'text'
               }}
             >
-              Achievement Unlocked!
+              {getTranslation('goalAchieved', language)}
             </h3>
             <p className="text-sm text-gray-200 mb-1">
               {language === 'hindi' 
                 ? `आपने अपने लक्ष्य के लिए ₹${totalSavings.toLocaleString()} बचाए हैं!` 
+                : language === 'marathi'
+                ? `आपने आपल्या लक्ष्यासाठी ₹${totalSavings.toLocaleString()} बचवले!`
                 : `You've saved ₹${totalSavings.toLocaleString()} towards your goal!`
               }
             </p>
@@ -545,6 +555,8 @@ const Dashboard = () => {
               <p className="text-sm text-gray-200">
                 {language === 'hindi' 
                   ? `${goalName} के लक्ष्य तक पहुँचने के लिए केवल ₹${(savingsGoal - totalSavings).toLocaleString()} और!` 
+                  : language === 'marathi'
+                  ? `${goalName} लक्ष्यापर्यंत पोहोचण्यासाठी फक्त ₹${(savingsGoal - totalSavings).toLocaleString()} अधिक!`
                   : `Only ₹${(savingsGoal - totalSavings).toLocaleString()} more to reach your ${goalName} goal!`
                 }
               </p>
@@ -567,7 +579,7 @@ const Dashboard = () => {
                     backgroundClip: 'text'
                   }}
                 >
-                  {language === 'hindi' ? 'एआई सिफारिशें' : 'AI Recommendations'}
+                  {language === 'marathi' ? 'एआय शिफारसी' : (language === 'hindi' ? 'एआई सिफारिशें' : 'AI Recommendations')}
                 </h2>
               </div>
               {dashboard?.aiInsights && dashboard.aiInsights.some(i => i.model === 'prophet_ai') && (
@@ -602,7 +614,7 @@ const Dashboard = () => {
                 <>
                   <GlowingCard className="p-3">
                     <p className="text-sm font-medium text-gray-300">
-                      {language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights'}
+                      {language === 'marathi' ? 'लेनदेन जोडा AI insights साठी' : (language === 'hindi' ? 'लेनदेन जोड़ें AI insights के लिए' : 'Add transactions to get AI insights')}
                     </p>
                   </GlowingCard>
                 </>
@@ -645,7 +657,7 @@ const Dashboard = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {language === 'hindi' ? 'याददाश्त' : 'Reminders'}
+                  {language === 'marathi' ? 'स्मरणपत्रे' : (language === 'hindi' ? 'याददाश्त' : 'Reminders')}
                 </h2>
               </div>
               <button

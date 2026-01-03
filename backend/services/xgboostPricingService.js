@@ -18,9 +18,11 @@ async function generateXGBoostPricingRecommendations(userId, language = 'english
     }).sort({ date: -1 }).limit(500); // Limit to last 500 transactions for performance
 
     if (!salesTransactions.length) {
-      const noDataMessage = language === 'english' 
-        ? 'No sales data found. Add transactions.'
-        : 'कोई बिक्री डेटा नहीं मिला। लेनदेन जोड़ें।';
+      const noDataMessage = language === 'marathi'
+        ? 'विक्री डेटा सापडला नाही. व्यवहार जोडा.'
+        : (language === 'english' 
+          ? 'No sales data found. Add transactions.'
+          : 'कोई बिक्री डेटा नहीं मिला। लेनदेन जोड़ें।');
       return {
         success: false,
         error: 'No sales data found',
@@ -81,7 +83,7 @@ async function generateXGBoostPricingRecommendations(userId, language = 'english
 /**
  * Call Python XGBoost service
  */
-function callXGBoostService(transactions, language = 'hindi') {
+function callXGBoostService(transactions, language = 'english') {
   return new Promise((resolve, reject) => {
     const fs = require('fs');
     const os = require('os');
@@ -176,7 +178,7 @@ function callXGBoostService(transactions, language = 'hindi') {
 /**
  * Fallback rule-based recommendations (when XGBoost fails)
  */
-function generateFallbackRecommendations(salesTransactions, language = 'hindi') {
+function generateFallbackRecommendations(salesTransactions, language = 'english') {
   console.log('⚠️ Using fallback rule-based recommendations');
   
   if (!salesTransactions.length) {
@@ -279,31 +281,47 @@ function generateFallbackRecommendations(salesTransactions, language = 'hindi') 
     // Create sales performance context
     let salesContext;
     if (salesRatio >= 0.9) {
-      salesContext = 'सबसे ज्यादा बिकने वाला आइटम';
+      salesContext = language === 'marathi' ? 'सर्वाधिक विकले जाणारे आयटम' : (language === 'hindi' ? 'सबसे ज्यादा बिकने वाला आइटम' : 'Top selling item');
     } else if (salesRatio >= 0.7) {
-      salesContext = 'यह आइटम बहुत अच्छा बिकता है';
+      salesContext = language === 'marathi' ? 'हा आयटम खूप चांगला विकतो' : (language === 'hindi' ? 'यह आइटम बहुत अच्छा बिकता है' : 'This item sells very well');
     } else if (salesRatio >= 0.5) {
-      salesContext = 'यह आइटम अच्छा बिकता है';
+      salesContext = language === 'marathi' ? 'हा आयटम चांगला विकतो' : (language === 'hindi' ? 'यह आइटम अच्छा बिकता है' : 'This item sells well');
     } else if (salesRatio >= 0.3) {
-      salesContext = 'यह आइटम ठीक बिकता है';
+      salesContext = language === 'marathi' ? 'हा आयटम ठीकठाक विकतो' : (language === 'hindi' ? 'यह आइटम ठीक बिकता है' : 'This item sells okay');
     } else {
-      salesContext = 'यह आइटम कम बिकता है';
+      salesContext = language === 'marathi' ? 'हा आयटम कमी विकतो' : (language === 'hindi' ? 'यह आइटम कम बिकता है' : 'This item sells less');
     }
     
     // Conservative priority levels
     let priority, reason;
     if (percentDiff > 25) {
       priority = 'high';
-      reason = `${salesContext} - कीमत ${Math.round(percentDiff)}% बढ़ाएं (धीरे-धीरे)`;
+      reason = language === 'marathi' 
+        ? `${salesContext} - किंमत ${Math.round(percentDiff)}% ने वाढवा (हळूहळू)`
+        : (language === 'hindi' 
+          ? `${salesContext} - कीमत ${Math.round(percentDiff)}% बढ़ाएं (धीरे-धीरे)`
+          : `${salesContext} - Increase price by ${Math.round(percentDiff)}% (gradually)`);
     } else if (percentDiff > 15) {
       priority = 'medium';
-      reason = `${salesContext} - कीमत ${Math.round(percentDiff)}% बढ़ाने की सिफारिश`;
+      reason = language === 'marathi'
+        ? `${salesContext} - किंमत ${Math.round(percentDiff)}% ने वाढवण्याची शिफारस`
+        : (language === 'hindi'
+          ? `${salesContext} - कीमत ${Math.round(percentDiff)}% बढ़ाने की सिफारिश`
+          : `${salesContext} - Recommend increasing price by ${Math.round(percentDiff)}%`);
     } else if (percentDiff > 5) {
       priority = 'low';
-      reason = `${salesContext} - थोड़ी कीमत बढ़ाएं (${Math.round(percentDiff)}%)`;
+      reason = language === 'marathi'
+        ? `${salesContext} - किंमतीत थोडी वाढ (${Math.round(percentDiff)}%)`
+        : (language === 'hindi'
+          ? `${salesContext} - थोड़ी कीमत बढ़ाएं (${Math.round(percentDiff)}%)`
+          : `${salesContext} - Slightly increase price (${Math.round(percentDiff)}%)`);
     } else {
       priority = 'low';
-      reason = `${salesContext} - कीमत बाजार के अनुसार है`;
+      reason = language === 'marathi'
+        ? `${salesContext} - किंमत बाजारानुसार आहे`
+        : (language === 'hindi'
+          ? `${salesContext} - कीमत बाजार के अनुसार है`
+          : `${salesContext} - Price is aligned with market`);
     }
     
     recommendations.push({
@@ -322,9 +340,11 @@ function generateFallbackRecommendations(salesTransactions, language = 'hindi') 
     const totalPotential = recommendations.reduce((sum, r) => sum + r.potentialMonthlyIncrease, 0);
   
   // Generate bilingual fallback message
-  const fallbackMessage = language === 'english'
-    ? `Adjusting prices could yield ₹${totalPotential}/month additional profit.`
-    : `कीमतें समायोजित करने से ₹${totalPotential}/माह अतिरिक्त लाभ हो सकता है।`;
+  const fallbackMessage = language === 'marathi'
+    ? `किंमती समायोजित केल्यास दर महिन्याला ₹${totalPotential} अतिरिक्त नफा मिळू शकतो.`
+    : (language === 'english'
+      ? `Adjusting prices could yield ₹${totalPotential}/month additional profit.`
+      : `कीमतें समायोजित करने से ₹${totalPotential}/माह अतिरिक्त लाभ हो सकता है।`);
   
   return {
     success: true,

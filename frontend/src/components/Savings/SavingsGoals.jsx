@@ -139,7 +139,7 @@ const SavingsGoals = () => {
       }`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-white mb-1">{language === 'hindi' ? goal.titleHindi || goal.title : goal.title}</h3>
+            <h3 className="text-lg font-bold text-white mb-1">{(language === 'hindi' || language === 'marathi') ? goal.titleHindi || goal.title : goal.title}</h3>
             <div className="flex items-center space-x-4 text-sm text-gray-400">
               <span>₹{(goal.currentAmount ?? 0).toLocaleString()} / ₹{(goal.targetAmount ?? 0).toLocaleString()}</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -147,9 +147,15 @@ const SavingsGoals = () => {
                 isOverdue ? 'bg-rose-500/25 text-rose-300' :
                 'bg-rose-500/15 text-rose-300'
               }`}>
-                {isCompleted ? 'Completed' : 
-                 isOverdue ? 'Overdue' : 
-                 `${daysRemaining} days left`}
+                {isCompleted 
+                  ? (language === 'marathi' ? 'पूर्ण झाले' : (language === 'hindi' ? 'पूर्ण' : 'Completed'))
+                  : isOverdue 
+                  ? (language === 'marathi' ? 'मुदत संपली' : (language === 'hindi' ? 'समय सीमा खत्म' : 'Overdue'))
+                  : (language === 'marathi' 
+                    ? `${daysRemaining} दिवस बाकी` 
+                    : (language === 'hindi' 
+                      ? `${daysRemaining} दिन बचे` 
+                      : `${daysRemaining} days left`))}
               </span>
             </div>
           </div>
@@ -181,7 +187,11 @@ const SavingsGoals = () => {
           </div>
           <div className="flex justify-between text-sm text-gray-400 mt-1">
             <span>{progress}%</span>
-            <span>₹{Math.max((goal.targetAmount ?? 0) - (goal.currentAmount ?? 0), 0).toLocaleString()} remaining</span>
+            <span>
+              ₹{Math.max((goal.targetAmount ?? 0) - (goal.currentAmount ?? 0), 0).toLocaleString()} {
+                language === 'marathi' ? 'शिल्लक' : (language === 'hindi' ? 'शेष' : 'remaining')
+              }
+            </span>
           </div>
         </div>
 
@@ -191,7 +201,11 @@ const SavingsGoals = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle size={20} className="text-rose-400" />
               <span className="text-rose-300 font-medium">
-                {language === 'hindi' ? 'लक्ष्य पूरा हो गया!' : 'Goal Achieved!'}
+                {language === 'marathi' 
+                  ? getTranslation('goalAchieved', language)
+                  : (language === 'hindi' 
+                    ? 'लक्ष्य पूरा हो गया!'
+                    : 'Goal Achieved!')}
               </span>
             </div>
           </div>
@@ -273,10 +287,11 @@ const SavingsGoals = () => {
               {getTranslation('savingsGoals', language)}
             </h1>
             <p className="text-gray-300">
-              {language === 'hindi' 
-                ? 'अपने सपनों को पूरा करने के लिए बचत करें' 
-                : 'Save to achieve your dreams'
-              }
+              {language === 'marathi'
+                ? 'आपली स्वप्ने पूर्ण करण्यासाठी बचत करा'
+                : (language === 'hindi' 
+                  ? 'अपने सपनों को पूरा करने के लिए बचत करें' 
+                  : 'Save to achieve your dreams')}
             </p>
             </div>
           </div>
@@ -286,12 +301,12 @@ const SavingsGoals = () => {
       <GlowingCard className="p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">
-            {language === 'hindi' ? 'कुल बचत' : 'Total Savings'}
+            {getTranslation('totalSavings', language)}
           </h2>
           <div className="text-right">
             <div className="text-3xl font-bold text-rose-400">₹{savings.toLocaleString()}</div>
             <div className="text-sm text-gray-400">
-              {language === 'hindi' ? 'सभी लक्ष्यों के लिए' : 'Across all goals'}
+              {getTranslation('acrossAllGoals', language)}
             </div>
           </div>
         </div>
@@ -322,25 +337,25 @@ const SavingsGoals = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-6 w-full max-w-md mx-4 border border-gray-700">
             <h3 className="text-lg font-bold text-white mb-4">
-              {language === 'hindi' ? 'नया लक्ष्य जोड़ें' : 'Add New Goal'}
+              {getTranslation('addNewGoal', language)}
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  {language === 'hindi' ? 'लक्ष्य का नाम' : 'Goal Name'}
+                  {getTranslation('goalName', language)}
                 </label>
                 <input
                   type="text"
                   value={newGoal.name}
                   onChange={(e) => setNewGoal({ ...newGoal, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-700 bg-gradient-to-br from-neutral-800 to-neutral-900 text-white rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                  placeholder={language === 'hindi' ? 'उदाहरण: नई सिलाई मशीन' : 'Example: New Sewing Machine'}
+                  placeholder={getTranslation('exampleGoal', language)}
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  {language === 'hindi' ? 'लक्ष्य राशि' : 'Target Amount'}
+                  {getTranslation('targetAmount', language)}
                 </label>
                 <input
                   type="number"
@@ -352,7 +367,7 @@ const SavingsGoals = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  {language === 'hindi' ? 'समय सीमा' : 'Deadline'}
+                  {getTranslation('deadline', language)}
                 </label>
                 <input
                   type="date"
@@ -405,14 +420,14 @@ const SavingsGoals = () => {
       {/* Achievements */}
       <GlowingCard className="p-6 shadow-sm">
         <h2 className="text-xl font-bold text-white mb-6">
-          {getTranslation('achievement', language)}s
+          {language === 'marathi' ? 'उपलब्धी' : (language === 'hindi' ? 'उपलब्धियां' : 'Achievements')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {achievements && achievements.length > 0 ? achievements.map((achievement) => (
             <AchievementCard key={achievement.id || achievement._id || Math.random()} achievement={achievement} />
           )) : (
             <p className="text-gray-400 text-sm col-span-2 text-center py-4">
-              {language === 'hindi' ? 'अभी तक कोई उपलब्धि नहीं' : 'No achievements yet'}
+              {getTranslation('nothingYet', language)}
             </p>
           )}
         </div>
@@ -423,14 +438,15 @@ const SavingsGoals = () => {
         <div className="flex items-center justify-center space-x-3 mb-4">
           <Gift size={24} className="text-rose-400" />
           <h2 className="text-xl font-bold text-rose-300">
-            {language === 'hindi' ? 'आपका सपना सच हो सकता है!' : 'Your Dream Can Come True!'}
+            {getTranslation('yourDreamCanComeTrue', language)}
           </h2>
         </div>
         <p className="text-gray-300">
-          {language === 'hindi' 
-            ? 'प्रतिदिन ₹100 बचाने से 6 महीने में आप ₹18,000 बचा सकते हैं। यह आपके नए सिलाई मशीन के लिए पर्याप्त है!' 
-            : 'Saving ₹100 daily for 6 months will give you ₹18,000. That\'s enough for your new sewing machine!'
-          }
+          {language === 'marathi'
+            ? 'दररोज ₹100 बचत केल्यास 6 महिन्यांत तुमच्याकडे ₹18,000 होतील. हे तुमच्या नवीन सिलाई मशीनसाठी पुरेसे आहे!'
+            : (language === 'hindi' 
+              ? 'प्रतिदिन ₹100 बचाने से 6 महीने में आप ₹18,000 बचा सकते हैं। यह आपके नए सिलाई मशीन के लिए पर्याप्त है!' 
+              : 'Saving ₹100 daily for 6 months will give you ₹18,000. That\'s enough for your new sewing machine!')}
         </p>
       </GlowingCard>
     </div>

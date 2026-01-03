@@ -58,33 +58,33 @@ const LandingPage = ({ onGetStarted }) => {
                 <Sparkles size={20} className="text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent">
-                {language === 'hindi' ? 'दीदी का डिजिटल ट्विन' : "Didi's Digital Twin"}
+                {language === 'marathi' ? 'दीदीचा डिजिटल ट्विन' : (language === 'hindi' ? 'दीदी का डिजिटल ट्विन' : "Didi's Digital Twin")}
               </span>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-300 hover:text-white transition">
-                {language === 'hindi' ? 'सुविधाएं' : 'Features'}
+                {language === 'marathi' ? 'वैशिष्ट्य' : (language === 'hindi' ? 'सुविधाएं' : 'Features')}
               </a>
               <a href="#solution" className="text-gray-300 hover:text-white transition">
-                {language === 'hindi' ? 'समाधान' : 'Solution'}
+                {language === 'marathi' ? 'उपाय' : (language === 'hindi' ? 'समाधान' : 'Solution')}
               </a>
               <a href="#success" className="text-gray-300 hover:text-white transition">
-                {language === 'hindi' ? 'सफलता' : 'Success Stories'}
+                {language === 'marathi' ? 'यश कहाणी' : (language === 'hindi' ? 'सफलता' : 'Success Stories')}
               </a>
               <button
-                onClick={() => setLanguage(language === 'hindi' ? 'english' : 'hindi')}
+                onClick={() => setLanguage(language === 'marathi' ? 'english' : (language === 'hindi' ? 'marathi' : 'hindi'))}
                 className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center space-x-2"
               >
                 <Globe size={16} />
-                <span>{language === 'hindi' ? 'English' : 'हिंदी'}</span>
+                <span>{language === 'marathi' ? 'EN' : (language === 'hindi' ? 'MR' : 'हिं')}</span>
               </button>
               <button
                 onClick={handleGetStarted}
                 className="px-6 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition font-semibold"
               >
-                {language === 'hindi' ? 'साइन इन' : 'Sign In'}
+                {language === 'marathi' ? 'साइन इन' : (language === 'hindi' ? 'साइन इन' : 'Sign In')}
               </button>
             </nav>
 
@@ -105,19 +105,19 @@ const LandingPage = ({ onGetStarted }) => {
               className="md:hidden py-4 space-y-4"
             >
               <a href="#features" className="block text-gray-300 hover:text-white transition">
-                {language === 'hindi' ? 'सुविधाएं' : 'Features'}
+                {language === 'marathi' ? 'वैशिष्ट्य' : (language === 'hindi' ? 'सुविधाएं' : 'Features')}
               </a>
               <a href="#solution" className="block text-gray-300 hover:text-white transition">
-                {language === 'hindi' ? 'समाधान' : 'Solution'}
+                {language === 'marathi' ? 'उपाय' : (language === 'hindi' ? 'समाधान' : 'Solution')}
               </a>
               <a href="#success" className="block text-gray-300 hover:text-white transition">
-                {language === 'hindi' ? 'सफलता' : 'Success Stories'}
+                {language === 'marathi' ? 'यश कहाणी' : (language === 'hindi' ? 'सफलता' : 'Success Stories')}
               </a>
               <button
                 onClick={handleGetStarted}
                 className="w-full px-6 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition font-semibold"
               >
-                {language === 'hindi' ? 'शुरू करें' : 'Get Started'}
+                {language === 'marathi' ? 'शुरू करा' : (language === 'hindi' ? 'शुरू करें' : 'Get Started')}
               </button>
             </motion.div>
           )}
@@ -141,7 +141,7 @@ const LandingPage = ({ onGetStarted }) => {
           >
             <motion.div variants={fadeInUp} className="inline-block">
               <span className="px-4 py-2 rounded-full bg-gradient-to-r from-rose-500/20 to-orange-500/20 border border-rose-500/30 text-rose-300 text-sm font-medium">
-                {language === 'hindi' ? '🚀 AI-संचालित व्यापार सहायक' : '🚀 AI-Powered Business Assistant'}
+                {language === 'marathi' ? '🚀 एआই-संचालित व्यवसाय सहायक' : (language === 'hindi' ? '🚀 AI-संचालित व्यापार सहायक' : '🚀 AI-Powered Business Assistant')}
               </span>
             </motion.div>
 
@@ -150,11 +150,11 @@ const LandingPage = ({ onGetStarted }) => {
               className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight"
             >
               <span className="bg-gradient-to-r from-white via-rose-200 to-orange-200 bg-clip-text text-transparent">
-                {language === 'hindi' ? 'स्मार्ट व्यापार' : 'Smart Business'}
+                {language === 'marathi' ? 'स्मार्ट व्यवसाय' : (language === 'hindi' ? 'स्मार्ट व्यापार' : 'Smart Business')}
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
-                {language === 'hindi' ? 'तुरंत वितरित' : 'Delivered Instantly'}
+                {language === 'marathi' ? 'तुरंत वितरित' : (language === 'hindi' ? 'तुरंत वितरित' : 'Delivered Instantly')}
               </span>
             </motion.h1>
 
@@ -162,9 +162,11 @@ const LandingPage = ({ onGetStarted }) => {
               variants={fadeInUp}
               className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
             >
-              {language === 'hindi'
+              {language === 'marathi'
+                ? 'तुमची व्यवसाय धोरणे एआय-संचालित अचूकतेसह उत्पादनासाठी तयार अंतर्दृष्टीत बदला. थोडक्यात पासून उत्कृष्टतेपर्यंत काही सेकंदात, महिन्यांमध्ये नाही.'
+                : (language === 'hindi'
                 ? 'अपनी व्यापार रणनीति को AI-संचालित सटीकता के साथ उत्पादन-तैयार डिजिटल संपत्तियों में बदलें। संक्षिप्त से शानदार तक सेकंडों में, महीनों नहीं।'
-                : 'Transform your business strategy into production-ready insights with AI-powered precision. From brief to brilliance in seconds, not months.'}
+                : 'Transform your business strategy into production-ready insights with AI-powered precision. From brief to brilliance in seconds, not months.')}
             </motion.p>
 
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -172,11 +174,11 @@ const LandingPage = ({ onGetStarted }) => {
                 onClick={handleGetStarted}
                 className="group px-8 py-4 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition font-bold text-lg flex items-center space-x-2 shadow-lg shadow-rose-500/50"
               >
-                <span>{language === 'hindi' ? 'शुरू करें' : 'Get Started'}</span>
+                <span>{language === 'marathi' ? 'शुरू करा' : (language === 'hindi' ? 'शुरू करें' : 'Get Started')}</span>
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition" />
               </button>
               <button className="px-8 py-4 rounded-xl bg-white/10 backdrop-blur-sm hover:bg-white/20 transition font-bold text-lg border border-white/20">
-                {language === 'hindi' ? 'और जानें' : 'Learn More'}
+                {language === 'marathi' ? 'आणखी जाणून घ्या' : (language === 'hindi' ? 'और जानें' : 'Learn More')}
               </button>
             </motion.div>
 
@@ -186,10 +188,10 @@ const LandingPage = ({ onGetStarted }) => {
               className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto pt-12"
             >
               {[
-                { value: '10,000+', label: language === 'hindi' ? 'सक्रिय उपयोगकर्ता' : 'Active Users' },
-                { value: '₹50Cr+', label: language === 'hindi' ? 'कुल बिक्री' : 'Total Sales' },
-                { value: '95%', label: language === 'hindi' ? 'सटीकता' : 'Accuracy' },
-                { value: '11', label: language === 'hindi' ? 'भाषाएं' : 'Languages' }
+                { value: '10,000+', label: language === 'marathi' ? 'सक्रिय वापरकर्ते' : (language === 'hindi' ? 'सक्रिय उपयोगकर्ता' : 'Active Users') },
+                { value: '₹50Cr+', label: language === 'marathi' ? 'एकूण विक्री' : (language === 'hindi' ? 'कुल बिक्री' : 'Total Sales') },
+                { value: '95%', label: language === 'marathi' ? 'अचूकता' : (language === 'hindi' ? 'सटीकता' : 'Accuracy') },
+                { value: '11', label: language === 'marathi' ? 'भाषा' : (language === 'hindi' ? 'भाषाएं' : 'Languages') }
               ].map((stat, index) => (
                 <div key={index} className="text-center">
                   <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent">
@@ -214,12 +216,14 @@ const LandingPage = ({ onGetStarted }) => {
             className="text-center space-y-6 mb-16"
           >
             <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold">
-              {language === 'hindi' ? 'चुनौती' : 'The Challenge'}
+              {language === 'marathi' ? 'आव्हान' : (language === 'hindi' ? 'चुनौती' : 'The Challenge')}
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-xl text-gray-300 max-w-3xl mx-auto">
-              {language === 'hindi'
+              {language === 'marathi'
+                ? 'लहान व्यवसायांना मोठ्या समस्यांना सामोरे जावे लागते'
+                : (language === 'hindi'
                 ? 'छोटे व्यापारियों को बड़ी समस्याओं का सामना करना पड़ता है'
-                : 'Small business owners face big challenges'}
+                : 'Small business owners face big challenges')}
             </motion.p>
           </motion.div>
 
@@ -233,24 +237,30 @@ const LandingPage = ({ onGetStarted }) => {
             {[
               {
                 icon: TrendingUp,
-                title: language === 'hindi' ? 'मूल्य निर्धारण की चुनौती' : 'Pricing Challenges',
-                problem: language === 'hindi' 
+                title: language === 'marathi' ? 'किंमत निर्धारणा चुनौती' : (language === 'hindi' ? 'मूल्य निर्धारण की चुनौती' : 'Pricing Challenges'),
+                problem: language === 'marathi'
+                  ? 'सही कीमत ठरविणे कठीण आहे - खूप जास्त आणि ग्राहक गमवतात, खूप कम आणि नफा गमवतात'
+                  : (language === 'hindi' 
                   ? 'सही कीमत तय करना मुश्किल है - बहुत अधिक और ग्राहक खो जाते हैं, बहुत कम और मुनाफा खो जाता है'
-                  : 'Hard to set the right price - too high and lose customers, too low and lose profit'
+                  : 'Hard to set the right price - too high and lose customers, too low and lose profit')
               },
               {
                 icon: BarChart3,
-                title: language === 'hindi' ? 'मांग का अनुमान' : 'Demand Forecasting',
-                problem: language === 'hindi'
+                title: language === 'marathi' ? 'मांगीचे पूर्वानुमान' : (language === 'hindi' ? 'मांग का अनुमान' : 'Demand Forecasting'),
+                problem: language === 'marathi'
+                  ? 'पर्वांना आणि ऋतूंसाठी किती स्टॉक ठेवावा हे जाणून घेणे कठीण आहे'
+                  : (language === 'hindi'
                   ? 'त्योहारों और मौसमों के लिए कितना स्टॉक रखना है यह जानना कठिन है'
-                  : 'Difficult to know how much stock to keep for festivals and seasons'
+                  : 'Difficult to know how much stock to keep for festivals and seasons')
               },
               {
                 icon: Zap,
-                title: language === 'hindi' ? 'समय की कमी' : 'Time Constraints',
-                problem: language === 'hindi'
+                title: language === 'marathi' ? 'वेळ निर्बंध' : (language === 'hindi' ? 'समय की कमी' : 'Time Constraints'),
+                problem: language === 'marathi'
+                  ? 'खाता-बहीत व्यवहार रेकॉर्ड करणे तासांच घेते'
+                  : (language === 'hindi'
                   ? 'खाता-बही में लेन-देन दर्ज करने में घंटों लग जाते हैं'
-                  : 'Recording transactions in notebooks takes hours every day'
+                  : 'Recording transactions in notebooks takes hours every day')
               }
             ].map((item, index) => {
               const Icon = item.icon;
@@ -284,13 +294,15 @@ const LandingPage = ({ onGetStarted }) => {
           >
             <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold">
               <span className="bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent">
-                {language === 'hindi' ? 'हमारा समाधान' : 'Our Solution'}
+                {language === 'marathi' ? 'आमचा उपाय' : (language === 'hindi' ? 'हमारा समाधान' : 'Our Solution')}
               </span>
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-xl text-gray-300 max-w-3xl mx-auto">
-              {language === 'hindi'
+              {language === 'marathi'
+                ? 'एआई-संचालित वैशिष्ट्य जे आपल्या व्यवसायाला रूपांतरित करतात'
+                : (language === 'hindi'
                 ? 'AI-संचालित सुविधाएं जो आपके व्यापार को बदल देती हैं'
-                : 'AI-powered features that transform your business'}
+                : 'AI-powered features that transform your business')}
             </motion.p>
           </motion.div>
 
@@ -304,37 +316,45 @@ const LandingPage = ({ onGetStarted }) => {
             {[
               {
                 icon: Brain,
-                title: language === 'hindi' ? 'AI मांग पूर्वानुमान' : 'AI Demand Forecasting',
-                description: language === 'hindi'
+                title: language === 'marathi' ? 'एआई मांगीचे पूर्वानुमान' : (language === 'hindi' ? 'AI मांग पूर्वानुमान' : 'AI Demand Forecasting'),
+                description: language === 'marathi'
+                  ? 'Prophet AI सह 95% अचूकता सह मांगीचे भविष्य सांगा. सणांसाठी अगोदर तयार रहा.'
+                  : (language === 'hindi'
                   ? 'Prophet AI के साथ 95% सटीकता के साथ मांग का पूर्वानुमान। त्योहारों के लिए पहले से तैयार रहें।'
-                  : 'Predict demand with 95% accuracy using Prophet AI. Stay prepared for festivals.',
+                  : 'Predict demand with 95% accuracy using Prophet AI. Stay prepared for festivals.'),
                 stat: '95%',
                 color: 'from-purple-500 to-pink-500'
               },
               {
                 icon: DollarSign,
-                title: language === 'hindi' ? 'स्मार्ट प्राइसिंग' : 'Smart Pricing',
-                description: language === 'hindi'
+                title: language === 'marathi' ? 'स्मार्ट किंमत निर्धारण' : (language === 'hindi' ? 'स्मार्ट प्राइसिंग' : 'Smart Pricing'),
+                description: language === 'marathi'
+                  ? 'XGBoost मॉडल तुम्हाला सांगते की जास्तीत जास्त नफा कोणत्या किंमतीला ठेवावी.'
+                  : (language === 'hindi'
                   ? 'XGBoost मॉडल आपको बताता है कि अधिकतम मुनाफे के लिए कितनी कीमत रखनी है।'
-                  : 'XGBoost model tells you exactly what price to charge for maximum profit.',
+                  : 'XGBoost model tells you exactly what price to charge for maximum profit.'),
                 stat: '+45%',
                 color: 'from-green-500 to-emerald-500'
               },
               {
                 icon: Mic,
-                title: language === 'hindi' ? '11 भाषाओं में वॉइस कमांड' : 'Voice Commands in 11 Languages',
-                description: language === 'hindi'
+                title: language === 'marathi' ? '11 भाषेतील आवाज कमांड' : (language === 'hindi' ? '11 भाषाओं में वॉइस कमांड' : 'Voice Commands in 11 Languages'),
+                description: language === 'marathi'
+                  ? 'हिंदी, बंगाली, तमिल, मराठी आणि बरेच काही भाषेत बोलून व्यवहार रेकॉर्ड करा.'
+                  : (language === 'hindi'
                   ? 'हिंदी, बंगाली, तमिल, मराठी और अन्य में बस बोलें और लेनदेन दर्ज करें।'
-                  : 'Just speak in Hindi, Bengali, Tamil, Marathi and more to record transactions.',
+                  : 'Just speak in Hindi, Bengali, Tamil, Marathi and more to record transactions.'),
                 stat: '11',
                 color: 'from-orange-500 to-rose-500'
               },
               {
                 icon: BarChart3,
-                title: language === 'hindi' ? 'वास्तविक समय डैशबोर्ड' : 'Real-Time Dashboard',
-                description: language === 'hindi'
+                title: language === 'marathi' ? 'रिअल-टाइम डॅशबोर्ड' : (language === 'hindi' ? 'वास्तविक समय डैशबोर्ड' : 'Real-Time Dashboard'),
+                description: language === 'marathi'
+                  ? 'उत्पन्न, खर्च, नफा आणि बचत तुरंत पहा. कोणतीही प्रतीक्षा नाही.'
+                  : (language === 'hindi'
                   ? 'आय, खर्च, मुनाफा और बचत को तुरंत देखें। कोई प्रतीक्षा नहीं।'
-                  : 'See income, expenses, profit, and savings instantly. No waiting.',
+                  : 'See income, expenses, profit, and savings instantly. No waiting.'),
                 stat: '24/7',
                 color: 'from-blue-500 to-cyan-500'
               }
@@ -374,12 +394,14 @@ const LandingPage = ({ onGetStarted }) => {
             className="text-center space-y-6 mb-16"
           >
             <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold">
-              {language === 'hindi' ? 'शक्तिशाली क्षमताएं' : 'Powerful Capabilities'}
+              {language === 'marathi' ? 'शक्तिशाली क्षमता' : (language === 'hindi' ? 'शक्तिशाली क्षमताएं' : 'Powerful Capabilities')}
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-xl text-gray-300 max-w-3xl mx-auto">
-              {language === 'hindi'
-                ? 'छोटे व्यापार के लिए डिज़ाइन किए गए व्यापक उपकरण'
-                : 'Comprehensive tools designed for small business operations'}
+              {language === 'marathi'
+                ? 'लघु व्यवसायांसाठी डिझाइन केलेली व्यापक साधने'
+                : (language === 'hindi'
+                  ? 'छोटे व्यापार के लिए डिज़ाइन किए गए व्यापक उपकरण'
+                  : 'Comprehensive tools designed for small business operations')}
             </motion.p>
           </motion.div>
 
@@ -393,31 +415,39 @@ const LandingPage = ({ onGetStarted }) => {
             {[
               {
                 icon: BarChart3,
-                title: language === 'hindi' ? 'इन्वेंटरी प्रबंधन' : 'Inventory Management',
-                description: language === 'hindi'
-                  ? 'रियल-टाइम स्टॉक ट्रैकिंग और स्वचालित रिस्टॉक अलर्ट'
-                  : 'Real-time stock tracking and automated restock alerts'
+                title: language === 'marathi' ? 'साठा व्यवस्थापन' : (language === 'hindi' ? 'इन्वेंटरी प्रबंधन' : 'Inventory Management'),
+                description: language === 'marathi'
+                  ? 'रिअल-टाइम स्टॉक ट्रॅकिंग आणि स्वयंचलित पुनर्भरण सूचना'
+                  : (language === 'hindi'
+                    ? 'रियल-टाइम स्टॉक ट्रैकिंग और स्वचालित रिस्टॉक अलर्ट'
+                    : 'Real-time stock tracking and automated restock alerts')
               },
               {
                 icon: Users,
-                title: language === 'hindi' ? 'आसान सहयोग' : 'Easy Collaboration',
-                description: language === 'hindi'
-                  ? 'परिवार के सदस्यों के साथ व्यापार डेटा साझा करें'
-                  : 'Share business data with family members'
+                title: language === 'marathi' ? 'सोपे सहयोग' : (language === 'hindi' ? 'आसान सहयोग' : 'Easy Collaboration'),
+                description: language === 'marathi'
+                  ? 'कुटुंबातील सदस्यांसोबत व्यवसाय डेटा शेअर करा'
+                  : (language === 'hindi'
+                    ? 'परिवार के सदस्यों के साथ व्यापार डेटा साझा करें'
+                    : 'Share business data with family members')
               },
               {
                 icon: Globe,
-                title: language === 'hindi' ? 'बहुभाषी समर्थन' : 'Multi-Language Support',
-                description: language === 'hindi'
-                  ? '11 भारतीय भाषाओं में उपलब्ध'
-                  : 'Available in 11 Indian languages'
+                title: language === 'marathi' ? 'बहुभाषिक समर्थन' : (language === 'hindi' ? 'बहुभाषी समर्थन' : 'Multi-Language Support'),
+                description: language === 'marathi'
+                  ? '11 भारतीय भाषांमध्ये उपलब्ध'
+                  : (language === 'hindi'
+                    ? '11 भारतीय भाषाओं में उपलब्ध'
+                    : 'Available in 11 Indian languages')
               },
               {
                 icon: Shield,
-                title: language === 'hindi' ? 'सुरक्षित और निजी' : 'Secure & Private',
-                description: language === 'hindi'
-                  ? 'एंड-टू-एंड एन्क्रिप्शन के साथ आपका डेटा सुरक्षित'
-                  : 'Your data is safe with end-to-end encryption'
+                title: language === 'marathi' ? 'सुरक्षित आणि खाजगी' : (language === 'hindi' ? 'सुरक्षित और निजी' : 'Secure & Private'),
+                description: language === 'marathi'
+                  ? 'एंड-टू-एंड एन्क्रिप्शनसह तुमचा डेटा सुरक्षित आहे'
+                  : (language === 'hindi'
+                    ? 'एंड-टू-एंड एन्क्रिप्शन के साथ आपका डेटा सुरक्षित'
+                    : 'Your data is safe with end-to-end encryption')
               }
             ].map((capability, index) => {
               const Icon = capability.icon;
@@ -450,12 +480,14 @@ const LandingPage = ({ onGetStarted }) => {
             className="text-center space-y-6 mb-16"
           >
             <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold">
-              {language === 'hindi' ? 'भारतीय व्यापारियों द्वारा विश्वसनीय' : 'Trusted by Indian Entrepreneurs'}
+              {language === 'marathi' ? 'भारतीय उद्योगशी विश्वास' : (language === 'hindi' ? 'भारतीय व्यापारियों द्वारा विश्वसनीय' : 'Trusted by Indian Entrepreneurs')}
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-xl text-gray-300 max-w-3xl mx-auto">
-              {language === 'hindi'
-                ? 'हजारों व्यापारियों ने AI की शक्ति से अपने मुनाफे को बढ़ाया है'
-                : 'Thousands of business owners have increased their profits with AI power'}
+              {language === 'marathi'
+                ? 'हजारो मालकींस एआई शक्तीने आपला नफा वाढवला आहे'
+                : (language === 'hindi'
+                ? 'हजारो व्यापारीभो ने AI की शक्ति से अपने मुनाफे को बढ़ाया है'
+                : 'Thousands of business owners have increased their profits with AI power')}
             </motion.p>
           </motion.div>
 
@@ -538,33 +570,39 @@ const LandingPage = ({ onGetStarted }) => {
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10 text-center space-y-6">
               <h2 className="text-4xl md:text-5xl font-bold text-white">
-                {language === 'hindi' 
-                  ? 'अपने व्यापार को आज ही बदलें' 
-                  : 'Transform Your Business Today'}
+                {language === 'marathi' 
+                  ? 'आजच तुमचा व्यवसाय बदला' 
+                  : (language === 'hindi' 
+                    ? 'अपने व्यापार को आज ही बदलें' 
+                    : 'Transform Your Business Today')}
               </h2>
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                {language === 'hindi'
-                  ? 'हजारों उपयोगकर्ताओं के साथ शामिल हों जिन्होंने AI-संचालित बुद्धि से अपने व्यापार संचालन में क्रांति ला दी है'
-                  : 'Join thousands of users who\'ve revolutionized their business operations with AI-powered intelligence'}
+                {language === 'marathi'
+                  ? 'हजारो वापरकर्त्यांमध्ये सामील व्हा ज्यांनी एआय-संचालित बुद्धिमत्तेमुळे आपला व्यवसाय पूर्णपणे बदलला आहे'
+                  : (language === 'hindi'
+                    ? 'हजारों उपयोगकर्ताओं के साथ शामिल हों जिन्होंने AI-संचालित बुद्धि से अपने व्यापार संचालन में क्रांति ला दी है'
+                    : 'Join thousands of users who\'ve revolutionized their business operations with AI-powered intelligence')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                 <button
                   onClick={handleGetStarted}
                   className="px-8 py-4 rounded-xl bg-white text-rose-600 hover:bg-gray-100 transition font-bold text-lg shadow-lg"
                 >
-                  {language === 'hindi' ? 'अभी साइन अप करें' : 'Sign Up Now'}
+                  {language === 'marathi' ? 'आत्ता साइन अप करा' : (language === 'hindi' ? 'अभी साइन अप करें' : 'Sign Up Now')}
                 </button>
                 <button
                   onClick={handleGetStarted}
                   className="px-8 py-4 rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition font-bold text-lg border border-white/30"
                 >
-                  {language === 'hindi' ? 'लॉगिन' : 'Login'}
+                  {language === 'marathi' ? 'लॉगिन' : (language === 'hindi' ? 'लॉगिन' : 'Login')}
                 </button>
               </div>
               <p className="text-white/80 text-sm pt-4">
-                {language === 'hindi'
-                  ? '✓ सुरक्षित प्रमाणीकरण • ✓ मुफ्त शुरू करें • ✓ प्रीमियम सुविधाएं उपलब्ध'
-                  : '✓ Secure authentication • ✓ Free to start • ✓ Premium features available'}
+                {language === 'marathi'
+                  ? '✓ सुरक्षित प्रमाणीकरण • ✓ मोफत सुरुवात • ✓ प्रीमियम वैशिष्ट्ये उपलब्ध'
+                  : (language === 'hindi'
+                    ? '✓ सुरक्षित प्रमाणीकरण • ✓ मुफ्त शुरू करें • ✓ प्रीमियम सुविधाएं उपलब्ध'
+                    : '✓ Secure authentication • ✓ Free to start • ✓ Premium features available')}
               </p>
             </div>
           </motion.div>
@@ -582,63 +620,65 @@ const LandingPage = ({ onGetStarted }) => {
                   <Sparkles size={20} className="text-white" />
                 </div>
                 <span className="text-lg font-bold">
-                  {language === 'hindi' ? 'दीदी का डिजिटल ट्विन' : "Didi's Digital Twin"}
+                  {language === 'marathi' ? 'दीदीचा डिजिटल ट्विन' : (language === 'hindi' ? 'दीदी का डिजिटल ट्विन' : "Didi's Digital Twin")}
                 </span>
               </div>
               <p className="text-gray-400 text-sm">
-                {language === 'hindi'
-                  ? 'AI द्वारा संचालित व्यापार बुद्धि। अपनी दृष्टि को तुरंत वास्तविकता में बदलें।'
-                  : 'Business intelligence powered by AI. Transform your vision into reality instantly.'}
+                {language === 'marathi'
+                  ? 'एआय-संचालित व्यवसाय बुद्धिमत्ता. तुमची दृष्टी त्वरित वास्तवात बदला.'
+                  : (language === 'hindi'
+                    ? 'AI द्वारा संचालित व्यापार बुद्धि। अपनी दृष्टि को तुरंत वास्तविकता में बदलें।'
+                    : 'Business intelligence powered by AI. Transform your vision into reality instantly.')}
               </p>
             </div>
 
             {/* Platform */}
             <div>
-              <h3 className="font-bold mb-4">{language === 'hindi' ? 'प्लेटफ़ॉर्म' : 'Platform'}</h3>
+              <h3 className="font-bold mb-4">{language === 'marathi' ? 'प्लॅटफॉर्म' : (language === 'hindi' ? 'प्लेटफ़ॉर्म' : 'Platform')}</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#features" className="hover:text-white transition">{language === 'hindi' ? 'सुविधाएं' : 'Features'}</a></li>
-                <li><a href="#solution" className="hover:text-white transition">{language === 'hindi' ? 'समाधान' : 'Solution'}</a></li>
-                <li><a href="#success" className="hover:text-white transition">{language === 'hindi' ? 'मूल्य निर्धारण' : 'Pricing'}</a></li>
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'सुरक्षा' : 'Security'}</a></li>
+                <li><a href="#features" className="hover:text-white transition">{language === 'marathi' ? 'वैशिष्ट्ये' : (language === 'hindi' ? 'सुविधाएं' : 'Features')}</a></li>
+                <li><a href="#solution" className="hover:text-white transition">{language === 'marathi' ? 'उपाय' : (language === 'hindi' ? 'समाधान' : 'Solution')}</a></li>
+                <li><a href="#success" className="hover:text-white transition">{language === 'marathi' ? 'किंमत' : (language === 'hindi' ? 'मूल्य निर्धारण' : 'Pricing')}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'सुरक्षा' : (language === 'hindi' ? 'सुरक्षा' : 'Security')}</a></li>
               </ul>
             </div>
 
             {/* Company */}
             <div>
-              <h3 className="font-bold mb-4">{language === 'hindi' ? 'कंपनी' : 'Company'}</h3>
+              <h3 className="font-bold mb-4">{language === 'marathi' ? 'कंपनी' : (language === 'hindi' ? 'कंपनी' : 'Company')}</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'हमारे बारे में' : 'About'}</a></li>
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'करियर' : 'Careers'}</a></li>
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'ब्लॉग' : 'Blog'}</a></li>
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'प्रेस' : 'Press'}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'आमच्याबद्दल' : (language === 'hindi' ? 'हमारे बारे में' : 'About')}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'करिअर' : (language === 'hindi' ? 'करियर' : 'Careers')}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'ब्लॉग' : (language === 'hindi' ? 'ब्लॉग' : 'Blog')}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'प्रेस' : (language === 'hindi' ? 'प्रेस' : 'Press')}</a></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h3 className="font-bold mb-4">{language === 'hindi' ? 'सहायता' : 'Support'}</h3>
+              <h3 className="font-bold mb-4">{language === 'marathi' ? 'मदत' : (language === 'hindi' ? 'सहायता' : 'Support')}</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'सहायता केंद्र' : 'Help Center'}</a></li>
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'दस्तावेज़ीकरण' : 'Documentation'}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'मदत केंद्र' : (language === 'hindi' ? 'सहायता केंद्र' : 'Help Center')}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'दस्तऐवज' : (language === 'hindi' ? 'दस्तावेज़ीकरण' : 'Documentation')}</a></li>
                 <li><a href="#" className="hover:text-white transition">API</a></li>
-                <li><a href="#" className="hover:text-white transition">{language === 'hindi' ? 'संपर्क' : 'Contact'}</a></li>
+                <li><a href="#" className="hover:text-white transition">{language === 'marathi' ? 'संपर्क' : (language === 'hindi' ? 'संपर्क' : 'Contact')}</a></li>
               </ul>
             </div>
           </div>
 
           <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between">
             <p className="text-gray-400 text-sm">
-              © 2025 Didi's Digital Twin. {language === 'hindi' ? 'सर्वाधिकार सुरक्षित।' : 'All rights reserved.'}
+              © 2025 Didi's Digital Twin. {language === 'marathi' ? 'सर्व हक्क राखीव.' : (language === 'hindi' ? 'सर्वाधिकार सुरक्षित।' : 'All rights reserved.')}
             </p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 hover:text-white text-sm transition">
-                {language === 'hindi' ? 'गोपनीयता नीति' : 'Privacy Policy'}
+                {language === 'marathi' ? 'गोपनीयता धोरण' : (language === 'hindi' ? 'गोपनीयता नीति' : 'Privacy Policy')}
               </a>
               <a href="#" className="text-gray-400 hover:text-white text-sm transition">
-                {language === 'hindi' ? 'सेवा की शर्तें' : 'Terms of Service'}
+                {language === 'marathi' ? 'सेवेच्या अटी' : (language === 'hindi' ? 'सेवा की शर्तें' : 'Terms of Service')}
               </a>
               <a href="#" className="text-gray-400 hover:text-white text-sm transition">
-                {language === 'hindi' ? 'कुकी नीति' : 'Cookie Policy'}
+                {language === 'marathi' ? 'कुकी धोरण' : (language === 'hindi' ? 'कुकी नीति' : 'Cookie Policy')}
               </a>
             </div>
           </div>

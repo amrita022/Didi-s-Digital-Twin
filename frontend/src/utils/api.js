@@ -164,14 +164,14 @@ export async function getDashboardData(userId) {
 
 
 /* Get business analytics */
-export async function fetchAnalytics(userId) {
+export async function fetchAnalytics(userId, language = 'english') {
   if (!userId) {
     console.error('❌ ERROR: fetchAnalytics called without userId!');
     throw new Error('userId is required for fetchAnalytics');
   }
   
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics?userId=${userId}`);
+    const response = await fetch(`${API_BASE_URL}/analytics?userId=${userId}&language=${encodeURIComponent(language)}`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch analytics data');

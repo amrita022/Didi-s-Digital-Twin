@@ -9,12 +9,6 @@ const LANGUAGE_TO_BCP47 = {
   english: 'en-IN',
   hindi: 'hi-IN',
   marathi: 'mr-IN',
-  tamil: 'ta-IN',
-  telugu: 'te-IN',
-  kannada: 'kn-IN',
-  malayalam: 'ml-IN',
-  gujarati: 'gu-IN',
-  bengali: 'bn-IN',
   // fallback
   default: 'en-IN',
 };

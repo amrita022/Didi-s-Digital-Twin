@@ -46,10 +46,11 @@ const Header = () => {
               {getTranslation('welcome', language)}, {userName}! 🌸
             </h1>
             <p className="text-gray-600 text-sm">
-              {language === 'hindi' 
+              {language === 'marathi'
+                ? 'आज तुमचा व्यवसाय कसा चालू आहे?'
+                : (language === 'hindi' 
                 ? 'आपका व्यापार कैसा चल रहा है?' 
-                : 'How is your business doing today?'
-              }
+                : 'How is your business doing today?')}
             </p>
           </div>
         </div>
@@ -76,7 +77,7 @@ const Header = () => {
             className="flex items-center space-x-2 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors text-sm font-medium"
           >
             <LogOut size={16} />
-            <span>Logout</span>
+            <span>{language === 'marathi' ? 'लॉगआउट' : (language === 'hindi' ? 'लॉगआउट' : 'Logout')}</span>
           </button>
 
           {/* Language Toggle */}
@@ -101,6 +102,7 @@ const Header = () => {
             >
               हिं
             </button>
+            {/* Marathi is controlled from Settings; keep this toggle EN/HI only for now */}
           </div>
         </div>
       </div>

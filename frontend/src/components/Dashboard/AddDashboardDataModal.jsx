@@ -165,7 +165,13 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
                     min="0"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Total sales this month</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {typeof window !== 'undefined' && localStorage.getItem('language') === 'marathi' 
+                    ? 'या महिन्यात एकूण विक्रय' 
+                    : (typeof window !== 'undefined' && localStorage.getItem('language') === 'hindi'
+                      ? 'इस महीने की कुल बिक्री'
+                      : 'Total sales this month')}
+                </p>
               </div>
             </div>
           </div>
@@ -174,7 +180,11 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
           <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-5 border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
             <h3 className="text-lg font-semibold text-rose-300 mb-4 flex items-center gap-2">
               <TrendingDown className="h-5 w-5" />
-              Expenses & Profit
+              {typeof window !== 'undefined' && localStorage.getItem('language') === 'marathi'
+                ? 'खर्च आणि नफा'
+                : (typeof window !== 'undefined' && localStorage.getItem('language') === 'hindi'
+                  ? 'खर्च और लाभ'
+                  : 'Expenses & Profit')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -222,17 +232,34 @@ const AddDashboardDataModal = ({ onClose, onSave, existingData }) => {
             {/* Auto-calculated profit notice */}
             <div className="mt-4 p-3 bg-rose-950/30 rounded-lg border border-rose-500/30">
               <p className="text-sm text-rose-200">
-                <strong>Tip:</strong> Profit is usually calculated as Sales - Expenses. Make sure your numbers match!
+                <strong>{typeof window !== 'undefined' && localStorage.getItem('language') === 'marathi' ? 'सूचना:' : (typeof window !== 'undefined' && localStorage.getItem('language') === 'hindi' ? 'सुझाव:' : 'Tip:')}</strong> 
+                {typeof window !== 'undefined' && localStorage.getItem('language') === 'marathi'
+                  ? ' नफा सामान्यतः विक्रय - खर्च म्हणून मोजला जातो. तुमची संख्या मिळते याची खात्री करा!'
+                  : (typeof window !== 'undefined' && localStorage.getItem('language') === 'hindi'
+                    ? ' लाभ आमतौर पर बिक्री - खर्च के रूप में गणना की जाती है। सुनिश्चित करें कि आपकी संख्या मेल खाती है!'
+                    : ' Profit is usually calculated as Sales - Expenses. Make sure your numbers match!')}
               </p>
             </div>
           </div>
 
           {/* Summary Card */}
           <div className="bg-gradient-to-r from-neutral-800 to-neutral-900 rounded-xl p-5 border-2 border-gray-700">
-            <h3 className="text-lg font-semibold text-rose-300 mb-3">Quick Summary</h3>
+            <h3 className="text-lg font-semibold text-rose-300 mb-3">
+              {typeof window !== 'undefined' && localStorage.getItem('language') === 'marathi'
+                ? 'द्रुत सारांश'
+                : (typeof window !== 'undefined' && localStorage.getItem('language') === 'hindi'
+                  ? 'त्वरित सारांश'
+                  : 'Quick Summary')}
+            </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-3 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
-                <p className="text-xs text-gray-400 mb-1">Savings</p>
+                <p className="text-xs text-gray-400 mb-1">
+                  {typeof window !== 'undefined' && localStorage.getItem('language') === 'marathi'
+                    ? 'बचत'
+                    : (typeof window !== 'undefined' && localStorage.getItem('language') === 'hindi'
+                      ? 'बचत'
+                      : 'Savings')}
+                </p>
                 <p className="text-lg font-bold text-rose-400">₹{(Number(formData.totalSavings) || 0).toLocaleString()}</p>
               </div>
               <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-3 shadow-sm border border-gray-700 hover:border-rose-500/50 transition-all duration-300">
